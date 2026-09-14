@@ -1,0 +1,219 @@
+/* ============================================================================
+   Westwood Law Firm Portal — diagram base stylesheet
+   Shared by every diagram in docs/diagrams/src/. Rendered at 1920x1080
+   logical pixels and screenshotted at 2x (3840x2160) by scripts/render-diagrams.sh.
+   ========================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap");
+
+:root {
+  --navy: #0b1b35;
+  --navy-dark: #061120;
+  --navy-light: #122848;
+  --navy-muted: #1a3558;
+  --gold: #c49d3f;
+  --gold-light: #d8b86a;
+  --gold-dark: #a08232;
+  --offwhite: #faf9f6;
+  --cream: #f5f2ec;
+  --charcoal: #242c3d;
+  --charcoal-light: #3a4559;
+  --slate: #7a8aa3;
+  --slate-light: #a3afc2;
+  --slate-muted: #e8e4dc;
+  --border: #e3ddd2;
+  --white: #ffffff;
+  --green: #2f7d5b;
+  --green-bg: #e8f4ee;
+  --blue: #33628f;
+  --blue-bg: #e9f1f8;
+  --red: #b0413e;
+  --red-bg: #f9eae9;
+  --amber: #8a6d24;
+  --amber-bg: #f8f1e0;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+}
+
+body {
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  background: var(--offwhite);
+  color: var(--charcoal);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.canvas {
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.eyebrow {
+  font-size: 14px;
+  letter-spacing: 0.24em;
+  font-weight: 700;
+  color: var(--gold-dark);
+  text-transform: uppercase;
+}
+h1.title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 600;
+  font-size: 42px;
+  line-height: 1.08;
+  color: var(--navy);
+  margin-top: 6px;
+}
+.header-rule {
+  position: absolute;
+  left: 64px;
+  width: 92px;
+  height: 4px;
+  background: var(--gold);
+  border-radius: 2px;
+}
+.header-note {
+  font-size: 16px;
+  color: var(--slate);
+  text-align: right;
+  line-height: 1.5;
+}
+
+/* ── Cards ──────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 12px 28px -16px rgba(11, 27, 53, 0.28);
+}
+
+.step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: var(--gold-light);
+  font-size: 17px;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.chip.visitor {
+  background: var(--blue-bg);
+  color: var(--blue);
+}
+.chip.client {
+  background: var(--green-bg);
+  color: var(--green);
+}
+.chip.admin {
+  background: var(--amber-bg);
+  color: var(--amber);
+}
+.chip.lawyer {
+  background: #e7eaf3;
+  color: var(--navy-light);
+}
+.chip.system {
+  background: var(--cream);
+  color: var(--charcoal-light);
+  border: 1px solid var(--border);
+}
+.chip.gold {
+  background: var(--amber-bg);
+  color: var(--gold-dark);
+}
+
+.sys-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--navy-muted);
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 11px;
+}
+.sys-note::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+  flex: 0 0 auto;
+}
+
+/* ── Connectors ─────────────────────────────────────────────────────────── */
+svg.links {
+  position: absolute;
+  inset: 0;
+  width: 1920px;
+  height: 1080px;
+  pointer-events: none;
+}
+.link {
+  stroke: var(--navy-muted);
+  stroke-width: 2.5;
+  fill: none;
+}
+.link.thin {
+  stroke-width: 2;
+}
+.link.dashed {
+  stroke-dasharray: 8 7;
+}
+.link.gold {
+  stroke: var(--gold-dark);
+}
+.link-label {
+  font-size: 13px;
+  font-weight: 600;
+  fill: var(--slate);
+}
+
+/* ── Footer legend ──────────────────────────────────────────────────────── */
+.legend {
+  position: absolute;
+  left: 64px;
+  right: 64px;
+  bottom: 26px;
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  font-size: 13.5px;
+  color: var(--slate);
+  border-top: 1px solid var(--slate-muted);
+  padding-top: 14px;
+}
+.legend b {
+  color: var(--charcoal-light);
+  font-weight: 600;
+}

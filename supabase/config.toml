@@ -1,0 +1,116 @@
+# =============================================================================
+# Westwood Law Firm - Supabase Configuration
+# =============================================================================
+# This file configures the local Supabase development environment
+# Run `supabase start` to use this configuration
+# =============================================================================
+
+[api]
+# Port for the REST API (PostgREST)
+port = 54321
+# Enable CORS for local development
+cors_origins = ["http://localhost:5173", "http://localhost:3000"]
+
+[db]
+# Port for PostgreSQL
+port = 54322
+# Shadow database for migrations
+shadow_port = 54320
+# Major version of PostgreSQL
+major_version = 17
+
+[studio]
+# Port for Supabase Studio UI
+port = 54323
+
+# Renamed from [inbucket] — the CLI warned on every command. smtp_port and
+# pop3_port are no longer top-level keys; they are optional and commented out
+# in the generated config, so they are dropped here.
+[local_smtp]
+enabled = true
+# Port for the email testing server web interface
+port = 54324
+
+[auth]
+# Site URL for email confirmation links
+site_url = "http://localhost:5173"
+# Additional redirect URLs for OAuth
+additional_redirect_urls = ["http://localhost:5173/**"]
+# JWT expiry (1 hour for development)
+jwt_expiry = 3600
+# Passwords shorter than this are rejected as weak.
+# Renamed: this was `min_password_length`, which the CLI silently ignored.
+minimum_password_length = 6
+
+# Email confirmation lives here now, not as `enable_email_confirmations` under
+# [auth]. Under the old name it was silently ignored, so a local `supabase
+# start` did NOT require email confirmation while production does — the local
+# signup flow quietly diverged from the real one.
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+# Must match the live project. The app defaults its OTP input to 6 boxes
+# (the live /auth/v1/settings endpoint does not expose mailer_otp_length —
+# verified 2026-09-30), so keep this at 6 to match the live setting.
+otp_length = 6
+otp_expiry = 3600
+# Controls the minimum gap between confirmation / reset emails.
+max_frequency = "1s"
+
+# Phone confirmation is off; `enable_phone_confirmations` under [auth] was
+# ignored, and false is the default here anyway.
+[auth.sms]
+enable_signup = false
+enable_confirmations = false
+
+[storage]
+# Port for storage API
+port = 54327
+# File size limit (50MB)
+file_size_limit = "52428800"
+# Allowed mime types
+allowed_mime_types = [
+  "image/*",
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "text/*",
+]
+
+# Renamed from [edge_functions]. There is no import_map key any more — the
+# functions import dependencies by absolute URL, so the shared import map was
+# dead config that only produced a "fallback import map" warning on deploy.
+[edge_runtime]
+enabled = true
+policy = "per_worker"
+inspector_port = 8083
+deno_version = 2
+
+# =============================================================================
+# CUSTOM SETTINGS
+# =============================================================================
+
+# Seed the database with initial data on reset
+[db.seed]
+enabled = true
+sql = "supabase/migrations/20260919_seed_content.sql"
+
+# =============================================================================
+# NOTES
+# =============================================================================
+# To start local development:
+#   supabase start
+#
+# To stop:
+#   supabase stop
+#
+# To reset database (re-run migrations + seed):
+#   supabase db reset
+#
+# To generate TypeScript types:
+#   supabase gen types typescript --local > src/lib/database.types.ts
+#
+# To deploy to remote:
+#   supabase link --project-ref YOUR_PROJECT_REF
+#   supabase db push
+#   supabase functions deploy admin-create-user

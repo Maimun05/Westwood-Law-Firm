@@ -1,0 +1,4 @@
+[tools]
+# Matches CI (.github/workflows/ci.yml) and the Vercel project's Node.js
+# setting, so local, CI and production all build on the same major.
+node = "24"

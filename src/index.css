@@ -1,0 +1,735 @@
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&display=swap");
+@import "tailwindcss";
+
+@theme inline {
+  /* ── Color Palette ── */
+  --color-navy: #0b1b35;
+  --color-navy-dark: #061120;
+  --color-navy-light: #122848;
+  --color-navy-muted: #1a3558;
+
+  --color-gold: #c49d3f;
+  --color-gold-light: #d8b86a;
+  --color-gold-dark: #a08232;
+  --color-gold-muted: #c49d3f33;
+
+  --color-offwhite: #faf9f6;
+  --color-cream: #f5f2ec;
+  --color-charcoal: #242c3d;
+  --color-charcoal-light: #3a4559;
+  --color-slate: #7a8aa3;
+  --color-slate-light: #a3afc2;
+  --color-slate-muted: #e8e4dc;
+
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  /* Semantic colors */
+  --color-bg-primary: #faf9f6;
+  --color-bg-secondary: #ffffff;
+  --color-bg-tertiary: #f0ede8;
+  --color-bg-inverse: #0b1b35;
+
+  --color-text-primary: #1a2231;
+  --color-text-secondary: #4a5568;
+  --color-text-muted: #7a8aa3;
+  --color-text-inverse: #ffffff;
+  --color-text-accent: #c49d3f;
+
+  --color-border-light: #e8e4dc;
+  --color-border-medium: #d9d4ca;
+  --color-border-dark: #c49d3f;
+
+  --color-focus: #c49d3f;
+  --color-focus-ring: #c49d3f66;
+
+  /* ── Typography ── */
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+
+  /* Fluid type scale (clamp) */
+  --text-display-xl: clamp(3rem, 5vw + 1rem, 5.5rem);
+  --text-display-lg: clamp(2.5rem, 4vw + 1rem, 4.5rem);
+  --text-display-md: clamp(2rem, 3vw + 0.5rem, 3.5rem);
+  --text-display-sm: clamp(1.75rem, 2.5vw + 0.5rem, 2.5rem);
+
+  --text-heading-xl: clamp(2rem, 2.5vw + 1rem, 3rem);
+  --text-heading-lg: clamp(1.75rem, 2vw + 0.75rem, 2.5rem);
+  --text-heading-md: clamp(1.5rem, 1.5vw + 0.75rem, 2rem);
+  --text-heading-sm: clamp(1.25rem, 1vw + 0.75rem, 1.5rem);
+
+  --text-body-lg: clamp(1.125rem, 1vw + 0.5rem, 1.25rem);
+  --text-body: 1rem;
+  --text-body-sm: 0.875rem;
+  --text-caption: 0.8125rem;
+  --text-micro: 0.75rem;
+
+  /* ── Spacing ── */
+  --space-px: 1px;
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 1.75rem;
+  --space-8: 2rem;
+  --space-9: 2.25rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-14: 3.5rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+  --space-28: 7rem;
+  --space-32: 8rem;
+
+  /* ── Border Radius ── */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+  --radius-full: 9999px;
+
+  /* ── Shadows ── */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.03);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.06), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.06), 0 8px 10px -6px rgb(0 0 0 / 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.1);
+
+  /* Gold shadows */
+  --shadow-gold-sm: 0 2px 8px -2px rgb(196 157 63 / 0.15);
+  --shadow-gold-md: 0 8px 24px -4px rgb(196 157 63 / 0.18);
+  --shadow-gold-lg: 0 16px 48px -8px rgb(196 157 63 / 0.22);
+
+  /* Navy shadows */
+  --shadow-navy-sm: 0 2px 8px -2px rgb(11 27 53 / 0.1);
+  --shadow-navy-md: 0 8px 24px -4px rgb(11 27 53 / 0.12);
+  --shadow-navy-lg: 0 16px 48px -8px rgb(11 27 53 / 0.15);
+
+  /* Dialog elevation — navy-tinted so panels sit in the page rather than on it */
+  --shadow-modal:
+    0 32px 64px -20px rgb(11 27 53 / 0.34), 0 4px 16px -6px rgb(11 27 53 / 0.14);
+
+  /* ── Transitions ── */
+  --transition-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ── Z-index ── */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-modal-backdrop: 400;
+  --z-modal: 500;
+  --z-popover: 600;
+  --z-tooltip: 700;
+  --z-toast: 800;
+}
+
+@utility font-serif {
+  font-family: var(--font-serif);
+}
+
+@utility font-sans {
+  font-family: var(--font-sans);
+}
+
+@utility text-balance {
+  text-wrap: balance;
+}
+
+@utility text-pretty {
+  text-wrap: pretty;
+}
+
+/* ── Global Base ── */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    /* Delays must go too, otherwise staggered content stays invisible. */
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  line-height: 1.6;
+}
+
+/* ── Selection ── */
+::selection {
+  background-color: var(--color-gold-muted);
+  color: var(--color-navy);
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-gold-muted);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gold);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+/* ── Focus Ring ── */
+*:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ── Custom Select Arrow ── */
+select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%237a8aa3' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.75rem center;
+  background-repeat: no-repeat;
+  background-size: 1.25rem 1.25rem;
+  padding-right: 2.75rem;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* ── Utility Patterns ── */
+@utility container-page {
+  @apply max-w-7xl mx-auto px-6 lg:px-8;
+}
+
+@utility section-py {
+  @apply py-16 lg:py-24;
+}
+
+@utility section-py-lg {
+  @apply py-20 lg:py-32;
+}
+
+@utility gradient-gold {
+  background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-light) 100%);
+}
+
+@utility gradient-navy {
+  background: linear-gradient(
+    135deg,
+    var(--color-navy) 0%,
+    var(--color-navy-dark) 55%,
+    var(--color-navy-light) 100%
+  );
+}
+
+@utility gradient-navy-subtle {
+  background: linear-gradient(180deg, var(--color-navy) 0%, var(--color-navy-light) 100%);
+}
+
+@utility pattern-grid {
+  background-image:
+    linear-gradient(var(--color-gold) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-gold) 1px, transparent 1px);
+  background-size: 80px 80px;
+}
+
+@utility pattern-grid-sm {
+  background-image:
+    linear-gradient(var(--color-gold) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-gold) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* ── Button Base ── */
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 font-semibold tracking-wide rounded-lg transition-all duration-200;
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
+}
+
+@utility btn-primary {
+  @apply btn bg-[var(--color-gold)] text-[var(--color-navy)] hover:bg-[var(--color-gold-light)] active:bg-[var(--color-gold-dark)];
+  @apply hover:shadow-[var(--shadow-gold-md)] active:scale-[0.98];
+  @apply focus-visible:ring-[var(--color-focus-ring)];
+  @apply px-7 py-3.5 text-sm;
+}
+
+@utility btn-primary-lg {
+  @apply btn-primary px-8 py-4 text-base;
+}
+
+@utility btn-secondary {
+  @apply btn border-2 border-[var(--color-navy)] text-[var(--color-navy)] hover:bg-[var(--color-navy)] hover:text-white;
+  @apply focus-visible:ring-[var(--color-navy)] focus-visible:ring-offset-2;
+  @apply px-7 py-3.5 text-sm;
+}
+
+@utility btn-secondary-lg {
+  @apply btn-secondary px-8 py-4 text-base;
+}
+
+@utility btn-outline {
+  @apply btn border border-[var(--color-border-medium)] text-[var(--color-text-secondary)] hover:border-[var(--color-gold)] hover:text-[var(--color-gold)] hover:bg-[var(--color-gold-muted)];
+  @apply focus-visible:ring-[var(--color-focus-ring)];
+  @apply px-6 py-3 text-sm;
+}
+
+@utility btn-ghost {
+  @apply btn text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-tertiary)];
+  @apply focus-visible:ring-[var(--color-focus-ring)];
+  @apply px-4 py-2.5 text-sm;
+}
+
+@utility btn-link {
+  @apply inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-text-primary)] hover:text-[var(--color-gold)] transition-colors;
+  @apply border-b border-transparent hover:border-[var(--color-gold)] pb-0.5;
+}
+
+/* ── Card Base ── */
+@utility card {
+  @apply bg-white rounded-2xl border border-[var(--color-border-light)] transition-all duration-300;
+  @apply hover:border-[var(--color-gold)] hover:shadow-xl hover:shadow-[var(--shadow-navy-sm)];
+}
+
+@utility card-hover-lift {
+  @apply card hover:-translate-y-1 hover:shadow-2xl hover:shadow-[var(--shadow-navy-md)];
+}
+
+/* ── Input Base ── */
+@utility input-base {
+  @apply w-full bg-white border border-[var(--color-border-light)] rounded-lg px-4 py-3.5 text-sm text-[var(--color-text-primary)];
+  @apply placeholder-[var(--color-slate-light)];
+  @apply transition-all duration-200;
+  @apply focus:outline-none focus:border-[var(--color-gold)] focus:ring-2 focus:ring-[var(--color-focus-ring)];
+  @apply hover:border-[var(--color-border-medium)];
+  @apply disabled:bg-[var(--color-bg-tertiary)] disabled:text-[var(--color-slate-light)] disabled:cursor-not-allowed;
+}
+
+@utility label-base {
+  @apply block text-sm font-medium text-[var(--color-text-primary)] mb-2;
+}
+
+@utility form-error {
+  @apply text-sm text-red-600 mt-1.5;
+}
+
+@utility form-hint {
+  @apply text-sm text-[var(--color-text-muted)] mt-1.5;
+}
+
+/* ── Badge Base ── */
+@utility badge {
+  @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wide transition-colors;
+}
+
+@utility badge-gold {
+  @apply badge bg-[var(--color-gold-muted)] text-[var(--color-gold-dark)];
+}
+
+@utility badge-navy {
+  @apply badge bg-[var(--color-navy)] text-white;
+}
+
+@utility badge-outline {
+  @apply badge border border-[var(--color-border-medium)] text-[var(--color-text-secondary)] hover:border-[var(--color-gold)] hover:text-[var(--color-gold)];
+}
+
+/* ── Heading Utilities ──
+   The `length:` hint is required: text-[var(--x)] without it compiles to
+   `color: var(--x)` because a bare var() gives Tailwind no type, so these
+   size tokens silently never applied. */
+
+@utility heading-display {
+  @apply font-serif font-bold tracking-tight text-[var(--color-text-primary)];
+}
+
+@utility heading-section {
+  @apply font-serif text-[length:var(--text-heading-lg)] font-bold tracking-tight text-[var(--color-text-primary)];
+}
+
+@utility heading-card {
+  @apply font-serif text-[length:var(--text-heading-sm)] font-bold tracking-tight text-[var(--color-text-primary)];
+}
+
+/* ── Text Utilities ── */
+@utility text-lead {
+  @apply text-[length:var(--text-body-lg)] text-[var(--color-text-secondary)] leading-relaxed;
+}
+
+@utility text-body {
+  @apply text-[length:var(--text-body)] text-[var(--color-text-secondary)] leading-relaxed;
+}
+
+@utility text-muted {
+  @apply text-[length:var(--text-body-sm)] text-[var(--color-text-muted)];
+}
+
+@utility text-caption {
+  @apply text-[length:var(--text-caption)] text-[var(--color-text-muted)];
+}
+
+@utility text-micro {
+  @apply text-[length:var(--text-micro)] text-[var(--color-text-muted)];
+}
+
+@utility text-accent {
+  @apply text-[var(--color-text-accent)];
+}
+
+@utility text-accent-sm {
+  @apply text-xs font-semibold tracking-widest uppercase text-[var(--color-text-accent)];
+}
+
+/* ── Animation ── */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@utility animate-fade-in {
+  animation: fade-in var(--transition-slow) ease-out forwards;
+}
+
+@utility animate-slide-up {
+  animation: slide-up var(--transition-slow) ease-out forwards;
+}
+
+@utility animate-slide-down {
+  animation: slide-down var(--transition-base) ease-out forwards;
+}
+
+@utility animate-scale-in {
+  animation: scale-in var(--transition-base) ease-out forwards;
+}
+
+@utility animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-tertiary) 25%,
+    var(--color-border-light) 50%,
+    var(--color-bg-tertiary) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ── Stagger Delays ── */
+.stagger-1 {
+  animation-delay: 100ms;
+}
+.stagger-2 {
+  animation-delay: 200ms;
+}
+.stagger-3 {
+  animation-delay: 300ms;
+}
+.stagger-4 {
+  animation-delay: 400ms;
+}
+.stagger-5 {
+  animation-delay: 500ms;
+}
+.stagger-6 {
+  animation-delay: 600ms;
+}
+
+/* ── Modal Shell ────────────────────────────────────────────────────────────
+   Structural rules for the shared <Modal> primitive. These live in CSS rather
+   than utilities because the entrance/exit animations are keyed off
+   [data-state], which lets a closing panel stay mounted until its exit
+   animation finishes. All motion is cancelled by the prefers-reduced-motion
+   block above.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+@keyframes modal-scrim-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-scrim-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes modal-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes modal-panel-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+}
+
+@keyframes modal-sheen {
+  from {
+    transform: translateX(-140%) skewX(-18deg);
+  }
+  to {
+    transform: translateX(340%) skewX(-18deg);
+  }
+}
+
+@keyframes modal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-layer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  justify-content: center;
+  /* Centring comes from the panel's auto margins, not from align-items. */
+  align-items: flex-start;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1rem;
+}
+
+/* Purely decorative: clicks fall through to .modal-layer, which owns the
+   backdrop-click-to-close behaviour. */
+.modal-scrim {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-color: rgb(11 27 53 / 0.58);
+  background-image: radial-gradient(120% 90% at 50% 0%, rgb(196 157 63 / 0.08), transparent 62%);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+/* `backwards` rather than `both` on the way in: once the entrance finishes the
+   element returns to its untransformed state, so `position: fixed` descendants
+   are not captured by a leftover transform. The `to` frame matches the natural
+   state, so nothing visibly jumps. */
+.modal-layer[data-state="open"] .modal-scrim {
+  animation: modal-scrim-in 220ms ease-out backwards;
+}
+
+.modal-layer[data-state="closed"] .modal-scrim {
+  animation: modal-scrim-out 160ms ease-in forwards;
+}
+
+.modal-panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  /* Auto margins centre the panel vertically but collapse when it is taller
+     than the viewport, so a tall dialog scrolls instead of clipping its top. */
+  margin: auto;
+  outline: none;
+}
+
+.modal-layer[data-state="open"] .modal-panel {
+  animation: modal-panel-in 320ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.modal-layer[data-state="closed"] .modal-panel {
+  animation: modal-panel-out 160ms cubic-bezier(0.4, 0, 1, 1) forwards;
+  /* The panel is showing a frozen snapshot of its content on the way out —
+     do not let anyone interact with it. */
+  pointer-events: none;
+}
+
+/* Pin toward the top instead of centring — for tall, scrollable dialogs. */
+.modal-layer[data-align="top"] {
+  padding-top: 6rem;
+}
+
+.modal-layer[data-align="top"] .modal-panel {
+  margin-top: 0;
+  margin-bottom: auto;
+}
+
+/* One-off gold sweep across a navy dialog header as it opens. */
+.modal-sheen {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 45%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.13), transparent);
+  animation: modal-sheen 1100ms cubic-bezier(0.16, 1, 0.3, 1) 200ms backwards;
+}
+
+/* Staggered content reveal for dialog bodies. */
+.modal-stagger > * {
+  animation: modal-rise 420ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.modal-stagger > *:nth-child(1) {
+  animation-delay: 70ms;
+}
+.modal-stagger > *:nth-child(2) {
+  animation-delay: 120ms;
+}
+.modal-stagger > *:nth-child(3) {
+  animation-delay: 170ms;
+}
+.modal-stagger > *:nth-child(4) {
+  animation-delay: 220ms;
+}
+.modal-stagger > *:nth-child(5) {
+  animation-delay: 270ms;
+}
+.modal-stagger > *:nth-child(6) {
+  animation-delay: 320ms;
+}
+.modal-stagger > *:nth-child(n + 7) {
+  animation-delay: 360ms;
+}
+
+/* ── Image Helpers ── */
+@utility img-cover {
+  @apply w-full h-full object-cover;
+}
+
+@utility img-contain {
+  @apply w-full h-full object-contain;
+}
+
+/* ── Divider ── */
+@utility divider {
+  @apply h-px bg-gradient-to-r from-transparent via-[var(--color-border-light)] to-transparent;
+}
+
+@utility divider-gold {
+  @apply h-px bg-gradient-to-r from-transparent via-[var(--color-gold)] to-transparent;
+}
+
+/* ── Print Styles ── */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  nav,
+  footer,
+  button {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  a {
+    text-decoration: none;
+    color: black !important;
+  }
+}
+
+/* ── High Contrast Mode ── */
+@media (prefers-contrast: high) {
+  :root {
+    --color-border-light: #000;
+    --color-text-secondary: #000;
+    --color-text-muted: #333;
+  }
+}
