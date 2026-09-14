@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" role="img" aria-label="Portrait not available">
+  <!-- Branded stand-in, shown when a lawyer has no portrait yet. Replaces the
+       generic grey silhouette that read as a broken image. -->
+  <rect width="400" height="500" fill="#0d1f3c"/>
+  <rect x="10" y="10" width="380" height="480" fill="none" stroke="#c9a84c" stroke-opacity="0.18" stroke-width="1.5"/>
+  <circle cx="200" cy="218" r="78" fill="#c9a84c" fill-opacity="0.06" stroke="#c9a84c" stroke-opacity="0.55" stroke-width="2"/>
+  <text x="200" y="252" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif"
+        font-size="96" font-weight="700" fill="#c9a84c">W</text>
+  <line x1="142" y1="338" x2="258" y2="338" stroke="#c9a84c" stroke-opacity="0.5" stroke-width="2"/>
+  <text x="200" y="378" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif"
+        font-size="17" letter-spacing="4" fill="#8a9ab5">PHOTO PENDING</text>
+</svg>

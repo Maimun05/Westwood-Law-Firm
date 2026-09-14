@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="_base.css" />
+    <style>
+      /* ── System boundary ─────────────────────────────────────────────────── */
+      .boundary {
+        position: absolute;
+        left: 300px;
+        top: 175px;
+        width: 1556px;
+        height: 810px;
+        background: var(--white);
+        border: 1.5px solid var(--navy-light);
+        border-radius: 18px;
+        box-shadow: 0 18px 40px -28px rgba(11, 27, 53, 0.35);
+      }
+      .boundary-label {
+        position: absolute;
+        top: -13px;
+        left: 30px;
+        padding: 0 14px;
+        background: var(--offwhite);
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--navy-muted);
+      }
+
+      /* ── Actor lanes ─────────────────────────────────────────────────────── */
+      .lane {
+        position: absolute;
+        left: 316px;
+        width: 1524px;
+        height: 185px;
+        border-radius: 12px;
+        border: 1px solid #efece4;
+      }
+      .lane.visitor {
+        top: 195px;
+        background: #f7fafd;
+      }
+      .lane.client {
+        top: 386px;
+        background: #f6faf7;
+      }
+      .lane.lawyer {
+        top: 577px;
+        background: #f6f7fb;
+      }
+      .lane.admin {
+        top: 768px;
+        background: #fbf8f0;
+      }
+      .lane-note {
+        position: absolute;
+        left: 336px;
+        top: 10px;
+        font-size: 11.5px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        color: var(--slate);
+        text-transform: uppercase;
+      }
+
+      /* ── Use-case ellipses ───────────────────────────────────────────────── */
+      .uc {
+        position: absolute;
+        height: 92px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1.3;
+        padding: 0 26px;
+      }
+      .uc.visitor {
+        border: 1.5px solid rgba(51, 98, 143, 0.55);
+        background: #eef4fa;
+        color: #2b567f;
+      }
+      .uc.client {
+        border: 1.5px solid rgba(47, 125, 91, 0.55);
+        background: #edf7f1;
+        color: #2a6f51;
+      }
+      .uc.lawyer {
+        border: 1.5px solid rgba(18, 40, 72, 0.5);
+        background: #eef1f7;
+        color: var(--navy-light);
+      }
+      .uc.admin {
+        border: 1.5px solid rgba(160, 130, 50, 0.6);
+        background: #faf4e6;
+        color: #8a6d24;
+      }
+
+      /* ── Actor figures ───────────────────────────────────────────────────── */
+      .actor {
+        position: absolute;
+        left: 64px;
+        width: 216px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+      .actor svg {
+        display: block;
+      }
+      .actor .name {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--navy);
+        margin-top: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="canvas">
+      <header style="position: absolute; left: 64px; top: 40px; right: 64px">
+        <div class="eyebrow">Westwood Law Firm Portal</div>
+        <h1 class="title">Use Case Diagram — Who Can Do What</h1>
+        <div class="header-note" style="position: absolute; right: 0; top: 14px">
+          System Architecture · Diagram 02<br />
+          <span style="font-size: 14px"
+            >Four actors · one portal · every action enforced by row-level security</span
+          >
+        </div>
+        <div class="header-rule" style="top: 118px"></div>
+      </header>
+
+      <!-- association lines: actor → system boundary -->
+      <svg class="links" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+        <path class="link thin" d="M 216 288 L 300 288" />
+        <path class="link thin" d="M 216 478 L 300 478" />
+        <path class="link thin" d="M 216 669 L 300 669" />
+        <path class="link thin" d="M 216 860 L 300 860" />
+      </svg>
+
+      <div class="boundary">
+        <div class="boundary-label">Westwood Law Firm Portal — system boundary</div>
+      </div>
+
+      <!-- ── Visitor lane ───────────────────────────────────────────────────── -->
+      <div class="lane visitor"></div>
+      <div class="lane-note" style="top: 205px">anon role · no account required</div>
+      <div class="uc visitor" style="left: 574px; top: 242px; width: 320px">
+        Browse public content
+      </div>
+      <div class="uc visitor" style="left: 918px; top: 242px; width: 320px">Submit an inquiry</div>
+      <div class="uc visitor" style="left: 1262px; top: 242px; width: 320px">
+        Sign in / register
+      </div>
+
+      <!-- ── Client lane ────────────────────────────────────────────────────── -->
+      <div class="lane client"></div>
+      <div class="lane-note" style="top: 396px">authenticated · client role</div>
+      <div class="uc client" style="left: 358px; top: 433px; width: 272px">Track own matters</div>
+      <div class="uc client" style="left: 650px; top: 433px; width: 272px">
+        Message the legal team
+      </div>
+      <div class="uc client" style="left: 942px; top: 433px; width: 272px">Exchange documents</div>
+      <div class="uc client" style="left: 1234px; top: 433px; width: 272px">View appointments</div>
+      <div class="uc client" style="left: 1526px; top: 433px; width: 272px">
+        Manage profile details
+      </div>
+
+      <!-- ── Lawyer lane ────────────────────────────────────────────────────── -->
+      <div class="lane lawyer"></div>
+      <div class="lane-note" style="top: 587px">authenticated · lawyer role</div>
+      <div class="uc lawyer" style="left: 402px; top: 624px; width: 320px">
+        Manage assigned matters
+      </div>
+      <div class="uc lawyer" style="left: 746px; top: 624px; width: 320px">Post internal notes</div>
+      <div class="uc lawyer" style="left: 1090px; top: 624px; width: 320px">
+        Share notes &amp; documents with client
+      </div>
+      <div class="uc lawyer" style="left: 1434px; top: 624px; width: 320px">
+        Manage matter appointments
+      </div>
+
+      <!-- ── Admin lane ─────────────────────────────────────────────────────── -->
+      <div class="lane admin"></div>
+      <div class="lane-note" style="top: 778px">authenticated · admin role</div>
+      <div class="uc admin" style="left: 338px; top: 815px; width: 230px">
+        Work the intake queue
+      </div>
+      <div class="uc admin" style="left: 588px; top: 815px; width: 230px">
+        Convert inquiry to matter
+      </div>
+      <div class="uc admin" style="left: 838px; top: 815px; width: 230px">
+        Assign lawyer &amp; team
+      </div>
+      <div class="uc admin" style="left: 1088px; top: 815px; width: 230px">
+        Manage users &amp; content
+      </div>
+      <div class="uc admin" style="left: 1338px; top: 815px; width: 230px">
+        Break-glass access (audited)
+      </div>
+      <div class="uc admin" style="left: 1588px; top: 815px; width: 230px">
+        Audit trail &amp; xlsx reports
+      </div>
+
+      <!-- ── Actors ─────────────────────────────────────────────────────────── -->
+      <div class="actor" style="top: 218px">
+        <svg
+          width="44"
+          height="58"
+          viewBox="0 0 44 58"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle cx="22" cy="10" r="8" stroke="#122848" stroke-width="2.4" />
+          <path
+            d="M22 18 V38 M22 24 L8 32 M22 24 L36 32 M22 38 L10 54 M22 38 L34 54"
+            stroke="#122848"
+            stroke-width="2.4"
+            stroke-linecap="round"
+          />
+        </svg>
+        <div class="name">Visitor</div>
+        <span class="chip visitor">Public</span>
+      </div>
+
+      <div class="actor" style="top: 409px">
+        <svg
+          width="44"
+          height="58"
+          viewBox="0 0 44 58"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle cx="22" cy="10" r="8" stroke="#122848" stroke-width="2.4" />
+          <path
+            d="M22 18 V38 M22 24 L8 32 M22 24 L36 32 M22 38 L10 54 M22 38 L34 54"
+            stroke="#122848"
+            stroke-width="2.4"
+            stroke-linecap="round"
+          />
+        </svg>
+        <div class="name">Client</div>
+        <span class="chip client">Account holder</span>
+      </div>
+
+      <div class="actor" style="top: 600px">
+        <svg
+          width="44"
+          height="58"
+          viewBox="0 0 44 58"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle cx="22" cy="10" r="8" stroke="#122848" stroke-width="2.4" />
+          <path
+            d="M22 18 V38 M22 24 L8 32 M22 24 L36 32 M22 38 L10 54 M22 38 L34 54"
+            stroke="#122848"
+            stroke-width="2.4"
+            stroke-linecap="round"
+          />
+        </svg>
+        <div class="name">Lawyer</div>
+        <span class="chip lawyer">Legal team</span>
+      </div>
+
+      <div class="actor" style="top: 791px">
+        <svg
+          width="44"
+          height="58"
+          viewBox="0 0 44 58"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle cx="22" cy="10" r="8" stroke="#122848" stroke-width="2.4" />
+          <path
+            d="M22 18 V38 M22 24 L8 32 M22 24 L36 32 M22 38 L10 54 M22 38 L34 54"
+            stroke="#122848"
+            stroke-width="2.4"
+            stroke-linecap="round"
+          />
+        </svg>
+        <div class="name">Admin</div>
+        <span class="chip admin">Firm staff</span>
+      </div>
+
+      <div class="legend">
+        <b>Legend</b>
+        <span
+          >Ellipses are system use cases · a solid line means the actor interacts with the
+          system</span
+        >
+        <span style="margin-left: auto"
+          >Enforced server-side by RLS policies &amp; SECURITY DEFINER functions · break-glass is
+          admin-only and always audited</span
+        >
+      </div>
+    </div>
+  </body>
+</html>

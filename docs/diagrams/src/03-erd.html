@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="_base.css" />
+    <style>
+      /* ── Table cards ─────────────────────────────────────────────────────── */
+      .tbl {
+        position: absolute;
+        width: 332px;
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 10px 24px -18px rgba(11, 27, 53, 0.35);
+      }
+      .tbl-h {
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 12px;
+        background: var(--navy);
+        color: var(--white);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+      .tbl-h .hint {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.55);
+      }
+      .tbl-h.muted {
+        background: var(--slate-muted);
+        color: var(--charcoal-light);
+      }
+      .tbl-h.muted .hint {
+        color: var(--slate);
+      }
+      .r {
+        height: 22px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 12px;
+        border-top: 1px solid #f2efe8;
+        font-size: 12px;
+        color: var(--charcoal-light);
+      }
+      .r .c {
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      .r.pk .c {
+        font-weight: 700;
+        color: var(--navy);
+      }
+      .r .t {
+        margin-left: auto;
+        font-size: 10.5px;
+        color: var(--slate);
+        white-space: nowrap;
+      }
+      .b {
+        flex: 0 0 auto;
+        font-size: 9.5px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        border-radius: 4px;
+        padding: 1px 5px;
+      }
+      .b.pk {
+        background: #f3e8cf;
+        color: #8a6d24;
+      }
+      .b.fk {
+        background: #e3edf7;
+        color: #2b567f;
+      }
+      .pad {
+        height: 6px;
+      }
+
+      /* ── Enum reference rows ─────────────────────────────────────────────── */
+      .er {
+        padding: 5px 12px;
+        border-top: 1px solid #f2efe8;
+      }
+      .er .lbl {
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--navy);
+        letter-spacing: 0.02em;
+      }
+      .er .val {
+        font-size: 10.5px;
+        line-height: 1.45;
+        color: var(--slate);
+        margin-top: 1px;
+      }
+
+      /* ── Connectors ──────────────────────────────────────────────────────── */
+      .rel {
+        stroke: #8fa0b8;
+        stroke-width: 1.75;
+        fill: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="canvas">
+      <header style="position: absolute; left: 64px; top: 40px; right: 64px">
+        <div class="eyebrow">Westwood Law Firm Portal</div>
+        <h1 class="title">Entity Relationship Diagram — Data Model</h1>
+        <div class="header-note" style="position: absolute; right: 0; top: 14px">
+          System Architecture · Diagram 03<br />
+          <span style="font-size: 14px">PostgreSQL · row-level security on every table</span>
+        </div>
+        <div class="header-rule" style="top: 118px"></div>
+      </header>
+
+      <!-- connectors (drawn first, cards paint over the ends) -->
+      <svg class="links" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker
+            id="arr2"
+            viewBox="0 0 10 10"
+            refX="8"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path d="M0,0 L10,5 L0,10 z" fill="#8fa0b8" />
+          </marker>
+        </defs>
+        <path class="rel" d="M 396 280 L 429 280" marker-end="url(#arr2)" />
+        <path class="rel" d="M 396 500 C 412 500, 413 620, 429 620" marker-end="url(#arr2)" />
+        <path class="rel" d="M 234 534 L 234 550" marker-end="url(#arr2)" />
+        <path class="rel" d="M 234 652 L 234 668" marker-end="url(#arr2)" />
+        <path class="rel" d="M 606 806 L 606 822" marker-end="url(#arr2)" />
+        <path class="rel" d="M 761 600 C 778 600, 778 274, 794 274" marker-end="url(#arr2)" />
+        <path class="rel" d="M 761 640 C 778 640, 778 469, 794 469" marker-end="url(#arr2)" />
+        <path class="rel" d="M 761 680 C 778 680, 778 697, 794 697" marker-end="url(#arr2)" />
+        <path
+          class="rel"
+          d="M 761 720 L 778 720 L 778 572 L 1142 572 L 1142 330 L 1159 330"
+          marker-end="url(#arr2)"
+        />
+        <path class="rel" d="M 1325 468 L 1325 484" marker-end="url(#arr2)" />
+      </svg>
+
+      <!-- ── Column 1: identity ─────────────────────────────────────────────── -->
+      <div class="tbl" style="left: 64px; top: 190px; height: 344px">
+        <div class="tbl-h">profiles <span class="hint">identity</span></div>
+        <div class="r pk">
+          <span class="b pk">PK</span><span class="c">id</span
+          ><span class="t">uuid → auth.users</span>
+        </div>
+        <div class="r"><span class="c">email</span><span class="t">text unique</span></div>
+        <div class="r"><span class="c">full_name</span><span class="t">text · composed</span></div>
+        <div class="r"><span class="c">honorific</span><span class="t">text</span></div>
+        <div class="r"><span class="c">first_name</span><span class="t">text</span></div>
+        <div class="r"><span class="c">middle_name</span><span class="t">text</span></div>
+        <div class="r"><span class="c">last_name</span><span class="t">text</span></div>
+        <div class="r"><span class="c">suffix</span><span class="t">text</span></div>
+        <div class="r"><span class="c">nickname</span><span class="t">text</span></div>
+        <div class="r"><span class="c">phone</span><span class="t">text</span></div>
+        <div class="r"><span class="c">role</span><span class="t">user_role</span></div>
+        <div class="r"><span class="c">is_active</span><span class="t">bool</span></div>
+        <div class="r"><span class="c">deleted_at</span><span class="t">timestamptz</span></div>
+        <div class="r"><span class="c">created_at</span><span class="t">timestamptz</span></div>
+        <div class="pad"></div>
+      </div>
+
+      <div class="tbl" style="left: 64px; top: 550px; height: 102px">
+        <div class="tbl-h">profile_practice_areas <span class="hint">m:n</span></div>
+        <div class="r pk">
+          <span class="b pk">PK</span><span class="b fk">FK</span><span class="c">profile_id</span
+          ><span class="t">uuid</span>
+        </div>
+        <div class="r pk">
+          <span class="b pk">PK</span><span class="b fk">FK</span
+          ><span class="c">practice_area_id</span><span class="t">text</span>
+        </div>
+        <div class="r"><span class="c">created_at</span><span class="t">timestamptz</span></div>
+        <div class="pad"></div>
+      </div>
+
+      <div class="tbl" style="left: 64px; top: 668px; height: 190px">
+        <div class="tbl-h">public content <span class="hint">7 tables</span></div>
+        <div class="r"><span class="c">practice_areas</span><span class="t">public read</span></div>
+        <div class="r"><span class="c">articles</span><span class="t">published only</span></div>
+        <div class="r"><span class="c">specialists</span><span class="t">public read</span></div>
+        <div class="r">
+          <span class="c">corporate_clients</span><span class="t">public read</span>
+        </div>
+        <div class="r"><span class="c">faqs</span><span class="t">public read</span></div>
+        <div class="r"><span class="c">seminar_events</span><span class="t">public read</span></div>
+        <div class="r">
+          <span class="c">retainer_packages</span><span class="t">public read</span>
+        </div>
+        <div class="pad"></div>
+      </div>
+
+      <div class="tbl" style="left: 64px; top: 874px; height: 102px">
+        <div class="tbl-h muted">legacy tables <span class="hint">read-only backup</span></div>
+        <div class="r"><span class="c">lawyers_legacy</span><span class="t">renamed</span></div>
+        <div class="r">
+          <span class="c">saved_lawyers_legacy</span><span class="t">renamed</span>
+        </div>
+        <div class="r">
+          <span class="c">consultations_legacy</span><span class="t">renamed</span>
+        </div>
+        <div class="pad"></div>
+      </div>
+
+      <!-- ── Column 2: intake & matters ─────────────────────────────────────── -->
+      <div class="tbl" style="left: 429px; top: 190px; height: 322px">
+        <div class="tbl-h">inquiries <span class="hint">intake</span></div>
+        <div class="r pk">
+          <span class="b pk">PK</span><span class="c">id</span><span class="t">uuid</span>
+        </div>
+        <div class="r">
+          <span class="c">inquiry_number</span><span class="t">text · WI-YYYY-NNN</span>
+        </div>
+        <div class="r"><span class="c">name</span><span class="t">text</span></div>
+        <div class="r"><span class="c">email</span><span class="t">text</span></div>
+        <div class="r"><span class="c">phone</span><span class="t">text</span></div>
+        <div class="r"><span class="c">practice_area</span><span class="t">text</span></div>
+        <div class="r"><span class="c">subject</span><span class="t">text</span></div>
+        <div class="r"><span class="c">message</span><span class="t">text</span></div>
+        <div class="r"><span class="c">status</span><span class="t">inquiry_status</span></div>
+        <div class="r">
+          <span class="b fk">FK</span><span class="c">assigned_to</span
+          ><span class="t">uuid → profiles</span>
+        </div>
+        <div class="r">
+          <span class="b fk">FK</span><span class="c">client_id</span
+          ><span class="t">uuid → profiles</span>
+        </div>
+        <div class="r">
+          <span class="c">preferred_contact_method</span><span class="t">text</span>
+        </div>
+        <div class="r"><span class="c">created_at</span><span class="t">timestamptz</span></div>
+        <div class="pad"></div>
+      </div>
+
+      <div class="tbl" style="left: 429px; top: 528px; height: 278px">
+        <div class="tbl-h">matters <span class="hint">hub</span></div>
+        <div class="r pk">
+          <span class="b pk">PK</span><span class="c">id</span><span class="t">uuid</span>
+        </div>
+        <div class="r"><span class="c">matter_number</span><span class="t">text unique</span></div>
+        <div class="r">
+          <span class="b fk">FK</span><span class="c">client_id</span
+          ><span class="t">uuid → profiles</span>
+        </div>
+        <div class="r">
+          <span class="b fk">FK</span><span class="c">lawyer_id</span
+          ><span class="t">uuid → profiles</span>
+        </div>
+        <div class="r"><span class="c">practice_area</span><span class="t">text</span></div>
+        <div class="r"><span class="c">status</span><span class="t">matter_status</span></div>
+        <div class="r"><span class="c">priority</span><span class="t">priority_level</span></div>
+        <div class="r"><span class="c">title</span><span class="t">text</span></div>
+        <div class="r"><span class="c">date_opened</span><span class="t">date</span></div>
+        <div class="r"><span class="c">date_closed</span><span class="t">date</span></div>
+        <div class="r"><span class="c">created_at</span><span class="t">timestamptz</span></div>
+        <div class="pad"></div>
+      </div>
+
+      <div class="tbl" style="left: 429px; top: 822px; height: 124px">
+        <div class="tbl-h">matter_members <span class="hint">team</span></div>
+        <div class="r pk">
+          <span class="b pk">PK</span><span class="b fk">FK</span><span class="c">matter_id</span
+          ><span class="t">uuid</span>
+        </div>
+        <div class="r pk">
+          <span class="b pk">PK</span><span class="b fk">FK</span><span class="c">lawyer_id</span
+          ><span class="t">uuid</span>
+        </div>
+        <div class="r">
+          <span class="b fk">FK</span><span class="c">added_by</span
+          ><span class="t">uuid → profiles</span>
+        </div>
+        <div class="r"><span class="c">created_at</span><span class="t">timestamptz</span></div>
+        <div class="pad"></div>
+      </div>
+
+      <!-- ── Column 3: matter collaboration ─────────────────────────────────── -->
+      <div class="tbl" style="left: 794px; top: 190px; height: 168px">
+        <div class="tbl-h">matter_notes <span class="hint">messages</span></div>
+        <div class="r pk">
+          <span class="b pk">PK</span><span class="c">id</span><span class="t">uuid</span>
+        </div>
+        <div class="r">
+          <span class="b fk">FK</span><span class="c">matter_id</span
+          ><span class="t">uuid → matters</span>
+        </div>
+        <div class="r">
+          <span class="b fk">FK</span><span class="c">author_id</span
+          ><span class="t">uuid → profiles</span>
+        </div>
+        <div class="r"><span class="c">body</span><span class="t">1 – 5000 chars</span></div>
+        <div class="r">
+          <span class="c">visibility</span><span class="t">internal · client</span>
+        </div>
+        <div class="r"><span class="c">created_at</span><span class="t">timestamptz</span></div>
+        <div class="pad"></div>
+      </div>
+
+      <div class="tbl" style="left: 794px; top: 374px; height: 190px">
+        <div class="tbl-h">matter_events <span class="hint">timeline</span></div>
+        <div class="r pk">
+          <span class="b pk">PK</span><span class="c">id</span><span class="t">uuid</span>
+        </div>
+        <div class="r">
+          <span class="b fk">FK</span><span class="c">matter_id</span
+          ><span class="t">uuid → matters</span>
+        </div>
+        <div class="r"><span class="c">event_type</span><span class="t">text</span></div>
+        <div class="r"><span class="c">title</span><span class="t">text</span></div>
+        <div class="r">
+          <span class="b fk">FK</span><span class="c">actor_id</span
+          ><span class="t">uuid → profiles</span>
+        </div>
+        <div class="r"><span class="c">visible_to_client</span><span class="t">bool</span></div>
+        <div class="r"><span class="c">created_at</span><span class="t">timestamptz</span></div>
+        <div class="pad"></div>
+      </div>
+
+      <div class="tbl" style="left: 794px; top: 580px; height: 234px">
+        <div class="tbl-h">appointments <span class="hint">scheduling</span></div>
+        <div class="r pk">
+          <span class="b pk">PK</span><span class="c">id</span><span class="t">uuid</span>
+        </div>
+        <div class="r">
+          <span class="b fk">FK</span><span class="c">matter_id</span
+          ><span class="t">uuid → matters</span>
+        </div>
+        <div class="r">
+          <span class="b fk">FK</span><span class="c">client_id</span
+          ><span class="t">uuid → profiles</span>
+        </div>
+        <div class="r">
+          <span class="b fk">FK</span><span class="c">lawyer_id</span
+          ><span class="t">uuid → profiles</span>
+        </div>
+        <div class="r"><span class="c">appointment_type</span><span class="t">text</span></div>
+        <div class="r"><span class="c">date</span><span class="t">date</span></div>
+        <div class="r"><span class="c">time</span><span class="t">text</span></div>
+        <div class="r"><span class="c">mode</span><span class="t">appointment_mode</span></div>
+        <div class="r"><span class="c">status</span><span class="t">appointment_status</span></div>
+        <div class="pad"></div>
+      </div>
+
+      <!-- ── Column 4: documents & delivery ─────────────────────────────────── -->
+      <div class="tbl" style="left: 1159px; top: 190px; height: 278px">
+        <div class="tbl-h">documents <span class="hint">files</span></div>
+        <div class="r pk">
+          <span class="b pk">PK</span><span class="c">id</span><span class="t">uuid</span>
+        </div>
+        <div class="r">
+          <span class="b fk">FK</span><span class="c">matter_id</span
+          ><span class="t">uuid → matters</span>
+        </div>
+        <div class="r"><span class="c">name</span><span class="t">text</span></div>
+        <div class="r"><span class="c">file_path</span><span class="t">text unique</span></div>
+        <div class="r"><span class="c">file_type</span><span class="t">text</span></div>
+        <div class="r"><span class="c">file_size</span><span class="t">bigint</span></div>
+        <div class="r"><span class="c">version</span><span class="t">text</span></div>
+        <div class="r"><span class="c">status</span><span class="t">document_status</span></div>
+        <div class="r"><span class="c">access_level</span><span class="t">access_level</span></div>
+        <div class="r">
+          <span class="b fk">FK</span><span class="c">uploaded_by</span
+          ><span class="t">uuid → profiles</span>
+        </div>
+        <div class="r"><span class="c">uploaded_at</span><span class="t">timestamptz</span></div>
+        <div class="pad"></div>
+      </div>
+
+      <div class="tbl" style="left: 1159px; top: 484px; height: 168px">
+        <div class="tbl-h">confidential_access_grants <span class="hint">break-glass</span></div>
+        <div class="r pk">
+          <span class="b pk">PK</span><span class="c">id</span><span class="t">uuid</span>
+        </div>
+        <div class="r">
+          <span class="b fk">FK</span><span class="c">document_id</span
+          ><span class="t">uuid → documents</span>
+        </div>
+        <div class="r">
+          <span class="b fk">FK</span><span class="c">admin_id</span
+          ><span class="t">uuid → profiles</span>
+        </div>
+        <div class="r"><span class="c">reason</span><span class="t">≥ 15 chars</span></div>
+        <div class="r"><span class="c">created_at</span><span class="t">timestamptz</span></div>
+        <div class="r"><span class="c">expires_at</span><span class="t">now() + 15 min</span></div>
+        <div class="pad"></div>
+      </div>
+
+      <div class="tbl" style="left: 1159px; top: 668px; height: 234px">
+        <div class="tbl-h">notifications <span class="hint">realtime</span></div>
+        <div class="r pk">
+          <span class="b pk">PK</span><span class="c">id</span><span class="t">uuid</span>
+        </div>
+        <div class="r">
+          <span class="b fk">FK</span><span class="c">user_id</span
+          ><span class="t">uuid → profiles</span>
+        </div>
+        <div class="r"><span class="c">title</span><span class="t">text</span></div>
+        <div class="r"><span class="c">message</span><span class="t">text</span></div>
+        <div class="r">
+          <span class="c">type</span><span class="t">info · success · warning</span>
+        </div>
+        <div class="r"><span class="c">read</span><span class="t">bool</span></div>
+        <div class="r"><span class="c">link</span><span class="t">text</span></div>
+        <div class="r"><span class="c">created_at</span><span class="t">timestamptz</span></div>
+        <div class="r"><span class="c">read_at</span><span class="t">timestamptz</span></div>
+        <div class="pad"></div>
+      </div>
+
+      <!-- ── Column 5: audit & enums ────────────────────────────────────────── -->
+      <div class="tbl" style="left: 1524px; top: 190px; height: 300px">
+        <div class="tbl-h">audit_logs <span class="hint">compliance</span></div>
+        <div class="r pk">
+          <span class="b pk">PK</span><span class="c">id</span><span class="t">uuid</span>
+        </div>
+        <div class="r"><span class="c">user_id</span><span class="t">uuid → auth.users</span></div>
+        <div class="r"><span class="c">user_email</span><span class="t">text</span></div>
+        <div class="r"><span class="c">user_role</span><span class="t">text</span></div>
+        <div class="r"><span class="c">event_type</span><span class="t">text</span></div>
+        <div class="r"><span class="c">event_description</span><span class="t">text</span></div>
+        <div class="r"><span class="c">resource_type</span><span class="t">text</span></div>
+        <div class="r"><span class="c">resource_id</span><span class="t">text</span></div>
+        <div class="r"><span class="c">metadata</span><span class="t">jsonb</span></div>
+        <div class="r"><span class="c">success</span><span class="t">bool</span></div>
+        <div class="r"><span class="c">source</span><span class="t">trigger · client</span></div>
+        <div class="r"><span class="c">created_at</span><span class="t">timestamptz</span></div>
+        <div class="pad"></div>
+      </div>
+
+      <div class="tbl" style="left: 1524px; top: 506px; height: 322px">
+        <div class="tbl-h">enum types <span class="hint">reference</span></div>
+        <div class="er">
+          <div class="lbl">matter_status</div>
+          <div class="val">
+            New Inquiry · Under Review · Consultation · Conflict Check · Accepted · Active ·
+            Resolved · Closed
+          </div>
+        </div>
+        <div class="er">
+          <div class="lbl">inquiry_status</div>
+          <div class="val">New · Under Review · Contacted · Converted · Closed</div>
+        </div>
+        <div class="er">
+          <div class="lbl">document_status</div>
+          <div class="val">Draft · Received · Final · Archived</div>
+        </div>
+        <div class="er">
+          <div class="lbl">access_level</div>
+          <div class="val">
+            Public · Staff Shared · Confidential · Lawyer Only · Client &amp; Assigned Lawyer
+          </div>
+        </div>
+        <div class="er">
+          <div class="lbl">appointment_mode / status</div>
+          <div class="val">
+            In-Person · Video Call · Phone Call / Pending · Confirmed · Completed · Cancelled
+          </div>
+        </div>
+        <div class="er">
+          <div class="lbl">user_role</div>
+          <div class="val">client · lawyer · admin</div>
+        </div>
+        <div class="pad"></div>
+      </div>
+
+      <div class="legend">
+        <b>Legend</b>
+        <span
+          ><span class="b pk">PK</span> primary key &nbsp;·&nbsp;
+          <span class="b fk">FK</span> foreign key</span
+        >
+        <span style="margin-left: auto"
+          >Lines show the core parent → child relations · matters and profiles are the hubs · every
+          table is protected by row-level security</span
+        >
+      </div>
+    </div>
+  </body>
+</html>

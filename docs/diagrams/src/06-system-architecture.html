@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="_base.css" />
+    <style>
+      .band-cap {
+        position: absolute;
+        left: 64px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--gold-dark);
+      }
+      .band {
+        position: absolute;
+        left: 64px;
+        width: 1792px;
+        border-radius: 14px;
+      }
+
+      /* users */
+      .ubox {
+        position: absolute;
+        top: 12px;
+        height: 46px;
+        width: 420px;
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 6px 16px;
+        box-shadow: 0 8px 18px -16px rgba(11, 27, 53, 0.4);
+      }
+      .ubox .t {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: var(--navy);
+      }
+      .ubox .s {
+        font-size: 11px;
+        color: var(--slate);
+        margin-top: 1px;
+      }
+
+      /* presentation */
+      .plat {
+        position: absolute;
+        top: 16px;
+        height: 88px;
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px 20px;
+        box-shadow: 0 10px 24px -20px rgba(11, 27, 53, 0.45);
+      }
+      .plat .t {
+        font-size: 15.5px;
+        font-weight: 700;
+        color: var(--navy);
+      }
+      .plat .s {
+        font-size: 11.5px;
+        color: var(--charcoal-light);
+        margin-top: 4px;
+        line-height: 1.45;
+      }
+
+      /* supabase container */
+      .sbox {
+        position: absolute;
+        top: 52px;
+        height: 112px;
+        width: 336px;
+        background: var(--white);
+        border-radius: 10px;
+        padding: 11px 14px;
+      }
+      .sbox .t {
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--navy);
+      }
+      .sbox .s {
+        font-size: 10.5px;
+        line-height: 1.5;
+        color: var(--charcoal-light);
+        margin-top: 4px;
+      }
+
+      /* data */
+      .dbox {
+        position: absolute;
+        top: 36px;
+        height: 118px;
+        width: 280px;
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 11px 14px;
+      }
+      .dbox .t {
+        font-size: 12.5px;
+        font-weight: 800;
+        color: var(--navy);
+      }
+      .dbox .s {
+        font-size: 10.5px;
+        line-height: 1.5;
+        color: var(--charcoal-light);
+        margin-top: 4px;
+      }
+
+      /* security spine */
+      .sec {
+        position: absolute;
+        top: 16px;
+        height: 58px;
+        width: 426px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 10px;
+        padding: 8px 14px;
+      }
+      .sec .t {
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--gold-light);
+        letter-spacing: 0.04em;
+      }
+      .sec .s {
+        font-size: 10.5px;
+        line-height: 1.4;
+        color: #c9d2e0;
+        margin-top: 3px;
+      }
+
+      .flabel {
+        position: absolute;
+        font-size: 11.5px;
+        font-weight: 700;
+        color: var(--slate);
+        background: var(--offwhite);
+        padding: 1px 7px;
+        border-radius: 6px;
+        white-space: nowrap;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="canvas">
+      <header style="position: absolute; left: 64px; top: 40px; right: 64px">
+        <div class="eyebrow">Westwood Law Firm Portal</div>
+        <h1 class="title">System Architecture — End-to-End</h1>
+        <div class="header-note" style="position: absolute; right: 0; top: 14px">
+          System Architecture · Diagram 06<br />
+          <span style="font-size: 14px">React SPA on Vercel → Supabase → PostgreSQL</span>
+        </div>
+        <div class="header-rule" style="top: 118px"></div>
+      </header>
+
+      <svg class="links" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker
+            id="arr5"
+            viewBox="0 0 10 10"
+            refX="8"
+            refY="5"
+            markerWidth="6.5"
+            markerHeight="6.5"
+            orient="auto-start-reverse"
+          >
+            <path d="M0,0 L10,5 L0,10 z" fill="#8fa0b8" />
+          </marker>
+        </defs>
+        <path
+          class="link thin"
+          style="stroke: #8fa0b8"
+          d="M 738 255 L 738 293"
+          marker-end="url(#arr5)"
+        />
+        <path
+          class="link thin"
+          style="stroke: #8fa0b8"
+          d="M 1182 255 L 1182 293"
+          marker-end="url(#arr5)"
+        />
+        <path
+          class="link thin"
+          style="stroke: #8fa0b8"
+          d="M 738 415 L 738 453"
+          marker-end="url(#arr5)"
+        />
+        <path
+          class="link thin"
+          style="stroke: #8fa0b8"
+          d="M 1182 415 L 1182 453"
+          marker-end="url(#arr5)"
+        />
+        <path
+          class="link thin"
+          style="stroke: #8fa0b8"
+          d="M 738 635 L 738 673"
+          marker-end="url(#arr5)"
+        />
+        <path
+          class="link thin"
+          style="stroke: #8fa0b8"
+          d="M 1182 635 L 1182 673"
+          marker-end="url(#arr5)"
+        />
+      </svg>
+
+      <!-- ── 1 · Users ──────────────────────────────────────────────────────── -->
+      <div class="band-cap" style="top: 165px">1 · Users</div>
+      <div class="band" style="top: 185px; height: 70px">
+        <div class="ubox" style="left: 20px">
+          <div class="t">Visitor</div>
+          <div class="s">public pages · inquiry form</div>
+        </div>
+        <div class="ubox" style="left: 464px">
+          <div class="t">Client</div>
+          <div class="s">own matters · messages · documents</div>
+        </div>
+        <div class="ubox" style="left: 908px">
+          <div class="t">Lawyer</div>
+          <div class="s">assigned matters · internal notes</div>
+        </div>
+        <div class="ubox" style="left: 1352px">
+          <div class="t">Admin</div>
+          <div class="s">intake · users · content · audit</div>
+        </div>
+      </div>
+
+      <!-- ── 2 · Presentation & delivery ────────────────────────────────────── -->
+      <div class="band-cap" style="top: 275px">2 · Presentation &amp; delivery</div>
+      <div class="band" style="top: 295px; height: 120px">
+        <div class="plat" style="left: 20px; width: 1024px">
+          <div class="t">React 19 single-page app — Vite 8 · TypeScript 5.7 · Tailwind 4</div>
+          <div class="s">
+            role-aware dashboards for client, lawyer and admin · supabase-js client · realtime
+            subscriptions · xlsx report exports · nothing sensitive in the browser but the anon key
+          </div>
+        </div>
+        <div class="plat" style="left: 1064px; width: 728px">
+          <div class="t">Vercel — hosting &amp; delivery</div>
+          <div class="s">
+            static build from the repo · global CDN · HTTPS · SPA routing — serves the app, never
+            the data
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 3 · Platform services ──────────────────────────────────────────── -->
+      <div class="band-cap" style="top: 435px">3 · Platform services</div>
+      <div
+        class="band"
+        style="
+          top: 455px;
+          height: 180px;
+          background: var(--navy);
+          box-shadow: 0 18px 40px -28px rgba(6, 17, 32, 0.7);
+        "
+      >
+        <div
+          style="
+            position: absolute;
+            left: 24px;
+            top: 14px;
+            font-size: 13.5px;
+            font-weight: 800;
+            color: #fff;
+          "
+        >
+          Supabase — the entire backend, no custom server
+        </div>
+        <div
+          style="
+            position: absolute;
+            right: 24px;
+            top: 16px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--gold-light);
+          "
+        >
+          auth · api · realtime · storage · functions
+        </div>
+        <div class="sbox" style="left: 24px">
+          <div class="t">Auth</div>
+          <div class="s">
+            email + password · confirmed signup · JWT session carried on every request
+          </div>
+        </div>
+        <div class="sbox" style="left: 376px">
+          <div class="t">PostgREST API</div>
+          <div class="s">
+            table reads &amp; writes under RLS · RPCs: submit_inquiry · convert_inquiry_to_matter ·
+            break_glass_open_document
+          </div>
+        </div>
+        <div class="sbox" style="left: 728px">
+          <div class="t">Realtime</div>
+          <div class="s">live notifications and matter updates pushed while signed in</div>
+        </div>
+        <div class="sbox" style="left: 1080px">
+          <div class="t">Storage</div>
+          <div class="s">
+            documents bucket (private) · lawyer-photos (public read) · path-scoped policies
+          </div>
+        </div>
+        <div class="sbox" style="left: 1432px">
+          <div class="t">Edge Functions</div>
+          <div class="s">
+            admin-create-user · admin-delete-user — service role stays server-side
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 4 · Data at rest ───────────────────────────────────────────────── -->
+      <div class="band-cap" style="top: 655px">
+        4 · Data at rest — PostgreSQL · RLS on every table
+      </div>
+      <div
+        class="band"
+        style="top: 675px; height: 170px; background: var(--cream); border: 1px solid var(--border)"
+      >
+        <div class="dbox" style="left: 24px">
+          <div class="t">Identity &amp; roles</div>
+          <div class="s">profiles · profile_practice_areas · public_lawyers view</div>
+        </div>
+        <div class="dbox" style="left: 316px">
+          <div class="t">Intake</div>
+          <div class="s">inquiries — status workflow · reference numbers · audit trail</div>
+        </div>
+        <div class="dbox" style="left: 608px">
+          <div class="t">Matters</div>
+          <div class="s">
+            matters · matter_members · matter_notes · matter_events · appointments
+          </div>
+        </div>
+        <div class="dbox" style="left: 900px">
+          <div class="t">Documents</div>
+          <div class="s">documents · confidential_access_grants (break-glass)</div>
+        </div>
+        <div class="dbox" style="left: 1192px">
+          <div class="t">Notifications &amp; audit</div>
+          <div class="s">notifications · audit_logs — trigger / client stamped</div>
+        </div>
+        <div class="dbox" style="left: 1484px">
+          <div class="t">Public content</div>
+          <div class="s">
+            practice_areas · articles · specialists · corporate_clients · faqs · seminar_events ·
+            retainer_packages
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 5 · Cross-cutting security ─────────────────────────────────────── -->
+      <div class="band-cap" style="top: 855px">5 · Cross-cutting security</div>
+      <div class="band" style="top: 875px; height: 90px; background: var(--navy-dark)">
+        <div class="sec" style="left: 20px">
+          <div class="t">RLS ON EVERY TABLE</div>
+          <div class="s">policies are the only gate — client · lawyer · admin roles</div>
+        </div>
+        <div class="sec" style="left: 462px">
+          <div class="t">SERVER-SIDE FUNCTIONS</div>
+          <div class="s">SECURITY DEFINER with pinned search_path — no privilege leaks</div>
+        </div>
+        <div class="sec" style="left: 904px">
+          <div class="t">AUDIT TRAIL</div>
+          <div class="s">every sensitive action stamped trigger vs client · append-only</div>
+        </div>
+        <div class="sec" style="left: 1346px">
+          <div class="t">BREAK-GLASS</div>
+          <div class="s">admin-only · reason ≥ 15 chars · 15-minute expiry · audited</div>
+        </div>
+      </div>
+
+      <!-- ── Flow labels ────────────────────────────────────────────────────── -->
+      <div class="flabel" style="left: 746px; top: 262px">HTTPS</div>
+      <div class="flabel" style="left: 746px; top: 422px">supabase-js · JWT session</div>
+      <div class="flabel" style="left: 746px; top: 642px">SQL under row-level security</div>
+
+      <div class="legend">
+        <b>Legend</b>
+        <span
+          >The browser talks only to Supabase — every request carries the user's JWT and is filtered
+          by RLS</span
+        >
+        <span style="margin-left: auto"
+          >No custom server · no service-role key in the client · one source of truth:
+          PostgreSQL</span
+        >
+      </div>
+    </div>
+  </body>
+</html>

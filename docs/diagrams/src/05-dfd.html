@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="_base.css" />
+    <style>
+      /* ── External entities ───────────────────────────────────────────────── */
+      .ent {
+        position: absolute;
+        width: 190px;
+        height: 80px;
+        background: var(--white);
+        border: 1.5px solid var(--navy-light);
+        border-radius: 8px;
+        box-shadow: 0 10px 22px -18px rgba(11, 27, 53, 0.4);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+      }
+      .ent .t {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--navy);
+      }
+      .ent .s {
+        font-size: 11px;
+        color: var(--slate);
+      }
+
+      /* ── Processes ───────────────────────────────────────────────────────── */
+      .proc {
+        position: absolute;
+        width: 260px;
+        height: 112px;
+        background: var(--white);
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        padding: 14px 18px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        box-shadow: 0 12px 26px -20px rgba(11, 27, 53, 0.45);
+      }
+      .proc .n {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        color: var(--gold-dark);
+      }
+      .proc .t {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--navy);
+        margin-top: 3px;
+      }
+      .proc .s {
+        font-size: 11.5px;
+        line-height: 1.4;
+        color: var(--charcoal-light);
+        margin-top: 3px;
+      }
+
+      /* ── Data stores ─────────────────────────────────────────────────────── */
+      .store {
+        position: absolute;
+        width: 242px;
+        height: 120px;
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-top: 3px solid var(--navy-light);
+        border-bottom: 3px solid var(--navy-light);
+        border-radius: 4px;
+        padding: 12px 14px;
+      }
+      .store .t {
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--navy);
+      }
+      .store .t em {
+        font-style: normal;
+        color: var(--gold-dark);
+      }
+      .store .s {
+        font-size: 11px;
+        line-height: 1.45;
+        color: var(--slate);
+        margin-top: 4px;
+      }
+
+      /* ── Flow labels ─────────────────────────────────────────────────────── */
+      .flabel {
+        position: absolute;
+        font-size: 11.5px;
+        font-weight: 700;
+        color: var(--slate);
+        background: var(--offwhite);
+        padding: 1px 7px;
+        border-radius: 6px;
+        white-space: nowrap;
+      }
+      .flabel.gold {
+        color: var(--gold-dark);
+      }
+      .rel2 {
+        stroke: #8fa0b8;
+        stroke-width: 1.75;
+        fill: none;
+      }
+      .rel2.identity {
+        stroke: var(--gold-dark);
+        stroke-dasharray: 7 6;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="canvas">
+      <header style="position: absolute; left: 64px; top: 40px; right: 64px">
+        <div class="eyebrow">Westwood Law Firm Portal</div>
+        <h1 class="title">Data Flow Diagram — Level 1</h1>
+        <div class="header-note" style="position: absolute; right: 0; top: 14px">
+          System Architecture · Diagram 05<br />
+          <span style="font-size: 14px"
+            >Entities → processes → data stores · every path passes through RLS</span
+          >
+        </div>
+        <div class="header-rule" style="top: 118px"></div>
+      </header>
+
+      <svg class="links" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker
+            id="arr4"
+            viewBox="0 0 10 10"
+            refX="8"
+            refY="5"
+            markerWidth="6.5"
+            markerHeight="6.5"
+            orient="auto-start-reverse"
+          >
+            <path d="M0,0 L10,5 L0,10 z" fill="#8fa0b8" />
+          </marker>
+          <marker
+            id="arr4g"
+            viewBox="0 0 10 10"
+            refX="8"
+            refY="5"
+            markerWidth="6.5"
+            markerHeight="6.5"
+            orient="auto-start-reverse"
+          >
+            <path d="M0,0 L10,5 L0,10 z" fill="#a08232" />
+          </marker>
+        </defs>
+
+        <!-- entity → process -->
+        <path class="rel2" d="M 254 270 L 480 270 L 480 470" marker-end="url(#arr4)" />
+        <path class="rel2" d="M 254 370 L 1080 370 L 1080 470" marker-end="url(#arr4)" />
+        <path class="rel2" d="M 1666 270 L 1180 270 L 1180 470" marker-end="url(#arr4)" />
+        <path class="rel2" d="M 1666 390 L 830 390 L 830 470" marker-end="url(#arr4)" />
+
+        <!-- identity read -->
+        <path class="rel2 identity" d="M 185 800 L 185 530 L 350 530" marker-end="url(#arr4g)" />
+        <!-- public pages read -->
+        <path
+          class="rel2 identity"
+          d="M 1854 860 L 1880 860 L 1880 200 L 160 200 L 160 230"
+          marker-end="url(#arr4g)"
+        />
+
+        <!-- process → store -->
+        <path class="rel2" d="M 420 582 L 420 770 L 443 770 L 443 800" marker-end="url(#arr4)" />
+        <path class="rel2" d="M 455 800 L 455 620 L 700 620 L 700 540" marker-end="url(#arr4)" />
+        <path class="rel2" d="M 540 582 L 540 760 L 1475 760 L 1475 800" marker-end="url(#arr4)" />
+        <path class="rel2" d="M 830 582 L 830 720 L 701 720 L 701 800" marker-end="url(#arr4)" />
+        <path class="rel2" d="M 930 582 L 930 730 L 1217 730 L 1217 800" marker-end="url(#arr4)" />
+        <path class="rel2" d="M 1080 582 L 1080 700 L 900 700 L 900 800" marker-end="url(#arr4)" />
+        <path class="rel2" d="M 900 800 L 900 700 L 1080 700 L 1080 582" marker-end="url(#arr4)" />
+        <path
+          class="rel2"
+          d="M 1530 582 L 1530 770 L 1733 770 L 1733 800"
+          marker-end="url(#arr4)"
+        />
+      </svg>
+
+      <!-- ── Entities ───────────────────────────────────────────────────────── -->
+      <div class="ent" style="left: 64px; top: 230px">
+        <div class="t">Visitor</div>
+        <div class="s">anonymous · no account</div>
+      </div>
+      <div class="ent" style="left: 64px; top: 350px">
+        <div class="t">Client</div>
+        <div class="s">portal account</div>
+      </div>
+      <div class="ent" style="left: 1666px; top: 230px">
+        <div class="t">Lawyer</div>
+        <div class="s">legal team</div>
+      </div>
+      <div class="ent" style="left: 1666px; top: 350px">
+        <div class="t">Admin</div>
+        <div class="s">firm staff</div>
+      </div>
+
+      <!-- ── Processes ──────────────────────────────────────────────────────── -->
+      <div class="proc" style="left: 350px; top: 470px">
+        <div class="n">PROCESS 1</div>
+        <div class="t">Submit inquiry</div>
+        <div class="s">submit_inquiry() · validates name, email, message before writing</div>
+      </div>
+      <div class="proc" style="left: 700px; top: 470px">
+        <div class="n">PROCESS 2</div>
+        <div class="t">Intake &amp; conversion</div>
+        <div class="s">review the queue · convert_inquiry_to_matter() · assign team</div>
+      </div>
+      <div class="proc" style="left: 1050px; top: 470px">
+        <div class="n">PROCESS 3</div>
+        <div class="t">Matter workspace</div>
+        <div class="s">notes · documents · appointments — gated per access level</div>
+      </div>
+      <div class="proc" style="left: 1400px; top: 470px">
+        <div class="n">PROCESS 4</div>
+        <div class="t">Publish &amp; notify</div>
+        <div class="s">content management · notifications · reports</div>
+      </div>
+
+      <!-- ── Data stores ────────────────────────────────────────────────────── -->
+      <div class="store" style="left: 64px; top: 800px">
+        <div class="t"><em>D1</em> · profiles &amp; roles</div>
+        <div class="s">identity · composite names · role · active / soft-deleted</div>
+      </div>
+      <div class="store" style="left: 322px; top: 800px">
+        <div class="t"><em>D2</em> · inquiries</div>
+        <div class="s">status workflow · reference number · contact preference</div>
+      </div>
+      <div class="store" style="left: 580px; top: 800px">
+        <div class="t"><em>D3</em> · matters</div>
+        <div class="s">members · notes · events · appointments · status pipeline</div>
+      </div>
+      <div class="store" style="left: 838px; top: 800px">
+        <div class="t"><em>D4</em> · documents</div>
+        <div class="s">versioned files · access level · break-glass grants</div>
+      </div>
+      <div class="store" style="left: 1096px; top: 800px">
+        <div class="t"><em>D5</em> · notifications</div>
+        <div class="s">per-user · realtime delivery · read state</div>
+      </div>
+      <div class="store" style="left: 1354px; top: 800px">
+        <div class="t"><em>D6</em> · audit_logs</div>
+        <div class="s">trigger / client stamped · append-only by policy</div>
+      </div>
+      <div class="store" style="left: 1612px; top: 800px">
+        <div class="t"><em>D7</em> · public content</div>
+        <div class="s">articles · FAQs · seminars · packages · specialists</div>
+      </div>
+
+      <!-- ── Flow labels ────────────────────────────────────────────────────── -->
+      <div class="flabel" style="left: 300px; top: 246px">inquiry form</div>
+      <div class="flabel gold" style="left: 198px; top: 504px">
+        identity &amp; role (auth.uid())
+      </div>
+      <div class="flabel gold" style="left: 840px; top: 176px">public pages</div>
+      <div class="flabel" style="left: 1000px; top: 376px">review &amp; decisions</div>
+      <div class="flabel" style="left: 240px; top: 724px">validated inquiry · New</div>
+      <div class="flabel" style="left: 474px; top: 592px">open queue</div>
+      <div class="flabel" style="left: 596px; top: 736px">audit entry</div>
+      <div class="flabel" style="left: 712px; top: 694px">matter created</div>
+      <div class="flabel" style="left: 950px; top: 704px">assignment notices</div>
+      <div class="flabel" style="left: 930px; top: 662px">notes · files · appointments ⇄</div>
+      <div class="flabel" style="left: 1540px; top: 746px">content updates</div>
+
+      <div class="legend">
+        <b>Legend</b>
+        <span
+          >Rectangles = external entities · rounded boxes = processes · open rectangles = data
+          stores</span
+        >
+        <span style="margin-left: auto"
+          >Gold dashed = read paths (public pages, identity) · every other flow is mediated by
+          row-level security · ⇄ = read + write</span
+        >
+      </div>
+    </div>
+  </body>
+</html>

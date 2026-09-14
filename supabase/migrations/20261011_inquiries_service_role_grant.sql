@@ -1,0 +1,23 @@
+-- ============================================================================
+-- 20261011 — service_role access to inquiries (for notify-inquiry)
+-- ============================================================================
+-- The notify-inquiry edge function runs as service_role and claims an inquiry
+-- with UPDATE ... RETURNING, then releases the claim if the email fails.
+-- On live, public.inquiries never received the table-level privileges
+-- service_role normally inherits from the project defaults, so the first real
+-- call died with:
+--
+--   permission denied for table inquiries
+--
+-- the same class of live-only grant gap as 20261007 (content tables). Grant
+-- the two privileges the function needs, explicitly:
+--   * UPDATE for the firm_notified_at claim itself;
+--   * SELECT for the RETURNING columns the claim reads back.
+--
+-- Nothing else changes: RLS policies for anon/authenticated are untouched, and
+-- service_role still bypasses RLS (it is the server-side role).
+--
+-- Idempotent: GRANT is a no-op when the privilege already exists.
+-- ============================================================================
+
+GRANT SELECT, UPDATE ON public.inquiries TO service_role;

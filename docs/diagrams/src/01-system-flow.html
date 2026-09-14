@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="_base.css" />
+    <style>
+      .card {
+        position: absolute;
+        width: 412px;
+        height: 340px;
+        padding: 24px 28px 22px;
+        display: flex;
+        flex-direction: column;
+      }
+      .card .card-title {
+        font-size: 20.5px;
+        font-weight: 700;
+        color: var(--navy);
+        margin-top: 16px;
+        line-height: 1.25;
+      }
+      .card .card-body {
+        font-size: 15px;
+        line-height: 1.56;
+        color: var(--charcoal-light);
+        margin-top: 10px;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .chips {
+        display: flex;
+        gap: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="canvas">
+      <header style="position: absolute; left: 64px; top: 40px; right: 64px">
+        <div class="eyebrow">Westwood Law Firm Portal</div>
+        <h1 class="title">System Flow — Lead-to-Matter Lifecycle</h1>
+        <div class="header-note" style="position: absolute; right: 0; top: 14px">
+          Process Flow · Diagram 01<br />
+          <span style="font-size: 14px">Public visitor → inquiry → matter → client portal</span>
+        </div>
+        <div class="header-rule" style="top: 118px"></div>
+      </header>
+
+      <svg class="links" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker
+            id="arr"
+            viewBox="0 0 10 10"
+            refX="8"
+            refY="5"
+            markerWidth="7"
+            markerHeight="7"
+            orient="auto-start-reverse"
+          >
+            <path d="M0,0 L10,5 L0,10 z" fill="#1a3558" />
+          </marker>
+        </defs>
+        <!-- row 1: left to right -->
+        <path class="link" d="M 476 345 L 516 345" marker-end="url(#arr)" />
+        <path class="link" d="M 936 345 L 976 345" marker-end="url(#arr)" />
+        <path class="link" d="M 1396 345 L 1436 345" marker-end="url(#arr)" />
+        <!-- row 1 to row 2 -->
+        <path class="link" d="M 1650 515 L 1650 561" marker-end="url(#arr)" />
+        <!-- row 2: right to left -->
+        <path class="link" d="M 1444 735 L 1404 735" marker-end="url(#arr)" />
+        <path class="link" d="M 984 735 L 944 735" marker-end="url(#arr)" />
+        <path class="link" d="M 524 735 L 484 735" marker-end="url(#arr)" />
+      </svg>
+
+      <!-- ── Row 1 ─────────────────────────────────────────────────────────── -->
+      <div class="card" style="left: 64px; top: 175px">
+        <div class="row">
+          <span class="step-num">1</span><span class="chip visitor">Visitor</span>
+        </div>
+        <div class="card-title">Browse the public site</div>
+        <div class="card-body">
+          Practice areas, lawyer profiles, insights, FAQs, seminars and retainer packages — open to
+          everyone, no account needed.
+        </div>
+        <div style="margin-top: auto">
+          <div class="sys-note">anon read · public_lawyers view</div>
+        </div>
+      </div>
+
+      <div class="card" style="left: 524px; top: 175px">
+        <div class="row">
+          <span class="step-num">2</span><span class="chip visitor">Visitor</span>
+        </div>
+        <div class="card-title">Submit an inquiry</div>
+        <div class="card-body">
+          The contact and consultation forms capture the visitor's name, email, phone, practice area
+          and message.
+        </div>
+        <div style="margin-top: auto">
+          <div class="sys-note">submitInquiry() → submit_inquiry()</div>
+        </div>
+      </div>
+
+      <div class="card" style="left: 984px; top: 175px">
+        <div class="row">
+          <span class="step-num">3</span><span class="chip system">System</span>
+        </div>
+        <div class="card-title">Validated and filed server-side</div>
+        <div class="card-body">
+          The RPC checks name, email and message before writing. Bad input returns a clear 400 —
+          never a silent failure.
+        </div>
+        <div style="margin-top: auto">
+          <div class="sys-note">ERRCODE 22023 · files under the signed-in user</div>
+        </div>
+      </div>
+
+      <div class="card" style="left: 1444px; top: 175px">
+        <div class="row">
+          <span class="step-num">4</span><span class="chip system">System</span>
+        </div>
+        <div class="card-title">Queued with a reference number</div>
+        <div class="card-body">
+          The inquiry enters the firm's intake queue as New with a reference number, and the write
+          is recorded in the audit trail.
+        </div>
+        <div style="margin-top: auto">
+          <div class="sys-note">inquiries · WI-YYYY-NNN · audit_logs</div>
+        </div>
+      </div>
+
+      <!-- ── Row 2 ─────────────────────────────────────────────────────────── -->
+      <div class="card" style="left: 1444px; top: 565px">
+        <div class="row"><span class="step-num">5</span><span class="chip admin">Admin</span></div>
+        <div class="card-title">Admin reviews the intake queue</div>
+        <div class="card-body">
+          Staff work the queue in the Client Intake screen; status moves through Under Review and
+          Contacted as follow-up happens.
+        </div>
+        <div style="margin-top: auto">
+          <div class="sys-note">Admin Intake · inquiry status workflow</div>
+        </div>
+      </div>
+
+      <div class="card" style="left: 984px; top: 565px">
+        <div class="row"><span class="step-num">6</span><span class="chip admin">Admin</span></div>
+        <div class="card-title">Qualified → converted to a matter</div>
+        <div class="card-body">
+          One action creates the numbered matter, links the client's account and marks the inquiry
+          Converted. No client account? The client registers with that email first.
+        </div>
+        <div style="margin-top: auto">
+          <div class="sys-note">convert_inquiry_to_matter() · INQUIRY_CONVERTED</div>
+        </div>
+      </div>
+
+      <div class="card" style="left: 524px; top: 565px">
+        <div class="row">
+          <span class="step-num">7</span
+          ><span class="chips"
+            ><span class="chip admin">Admin</span><span class="chip lawyer">Lawyer</span></span
+          >
+        </div>
+        <div class="card-title">Lawyer and team assigned</div>
+        <div class="card-body">
+          The lead lawyer and the supporting team are attached to the matter; everyone is notified
+          and the work begins.
+        </div>
+        <div style="margin-top: auto">
+          <div class="sys-note">matter_members · notifications</div>
+        </div>
+      </div>
+
+      <div class="card" style="left: 64px; top: 565px">
+        <div class="row">
+          <span class="step-num">8</span
+          ><span class="chips"
+            ><span class="chip client">Client</span><span class="chip lawyer">Lawyer</span></span
+          >
+        </div>
+        <div class="card-title">Portal collaboration → close</div>
+        <div class="card-body">
+          Clients track the matter, message the team and exchange documents. When the work ends the
+          matter is Resolved / Closed — audit trail complete.
+        </div>
+        <div style="margin-top: auto">
+          <div class="sys-note">matter_notes · documents · realtime</div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <b>Actors</b>
+        <span class="chip visitor">Visitor</span>
+        <span class="chip client">Client</span>
+        <span class="chip admin">Admin</span>
+        <span class="chip lawyer">Lawyer</span>
+        <span class="chip system">System</span>
+        <span style="margin-left: auto"
+          >Numbered cards follow the lifecycle 1 → 8 · every table is protected by row-level
+          security</span
+        >
+      </div>
+    </div>
+  </body>
+</html>
