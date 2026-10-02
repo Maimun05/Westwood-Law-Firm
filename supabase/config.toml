@@ -39,9 +39,14 @@ port = 54324
 site_url = "https://westwood-law-firm.vercel.app"
 # Additional redirect URLs for OAuth and email links. Keep the production
 # domain plus the local dev ports (5173 Vite, 8443) allowed.
+# NOTE: Supabase rejects redirects to link-local IPs (169.254.0.0/16) with a
+# 403 even when listed here (SSRF protection) — dev servers must be reached
+# via localhost or a hostname for auth emails to send.
 additional_redirect_urls = [
   "https://westwood-law-firm.vercel.app/**",
   "http://localhost:5173/**",
+  "http://169.254.83.107:5173/**",
+  "http://169.254.*:5173/**",
   "http://localhost:8443",
   "http://localhost:8443/reset-password",
   "http://localhost:8443/auth",
