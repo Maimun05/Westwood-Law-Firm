@@ -230,7 +230,9 @@ every push to `main` deploy automatically.
 | `deploy-production`  | pushes to `main`; skipped without `VERCEL_TOKEN`          |
 | `supabase-deploy`    | disabled (`if: false`); migrations are applied manually   |
 
-CI runs on Node 20. `.mise.toml` pins Node 22 for local work.
+Node 24 everywhere: `.mise.toml` for local work, `NODE_VERSION` in the workflow, and the Vercel
+project's Node.js setting. Keep them in step — CI is only useful as a pre-deploy gate if it runs the
+same major as production.
 
 ---
 
