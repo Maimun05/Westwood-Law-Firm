@@ -32,10 +32,21 @@ enabled = true
 port = 54324
 
 [auth]
-# Site URL for email confirmation links
-site_url = "http://localhost:5173"
-# Additional redirect URLs for OAuth
-additional_redirect_urls = ["http://localhost:5173/**"]
+# Site URL for email confirmation / recovery links. Must match the live
+# project (https://westwood-law-firm.vercel.app): GoTrue falls back to this
+# when a redirectTo is not in the allow list, so a localhost value sends
+# production reset links to localhost.
+site_url = "https://westwood-law-firm.vercel.app"
+# Additional redirect URLs for OAuth and email links. Keep the production
+# domain plus the local dev ports (5173 Vite, 8443) allowed.
+additional_redirect_urls = [
+  "https://westwood-law-firm.vercel.app/**",
+  "http://localhost:5173/**",
+  "http://localhost:8443",
+  "http://localhost:8443/reset-password",
+  "http://localhost:8443/auth",
+  "http://localhost:8443/**",
+]
 # JWT expiry (1 hour for development)
 jwt_expiry = 3600
 # Passwords shorter than this are rejected as weak.

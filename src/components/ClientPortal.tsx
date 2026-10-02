@@ -850,7 +850,11 @@ function SignIn({ onNavigate }: { onNavigate: (p: Page) => void }) {
                   <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide">
                     Password
                   </label>
-                  <button type="button" className="text-xs text-[#c9a84c] hover:underline">
+                  <button
+                    type="button"
+                    onClick={() => onNavigate("forgot-password")}
+                    className="text-xs text-[#c9a84c] hover:underline"
+                  >
                     Forgot Password?
                   </button>
                 </div>
