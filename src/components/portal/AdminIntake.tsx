@@ -183,7 +183,8 @@ export default function AdminIntake({ onConverted }: { onConverted?: () => void 
 
       {rows.length === 0 && (
         <p className="text-sm text-[#8a9ab5] bg-white rounded-xl border border-[#e8e4dc] p-6">
-          No inquiries yet. Submissions from the website appear here.
+          No inquiries from registered clients yet. Inquiries from signed-out visitors are emailed
+          to the firm instead and never appear here.
         </p>
       )}
       {rows.length > 0 && visible.length === 0 && (
