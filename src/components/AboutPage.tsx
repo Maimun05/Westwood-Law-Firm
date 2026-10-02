@@ -9,7 +9,7 @@ import {
 } from "@/lib/content";
 import { IconMapPin, IconPhone, IconEnvelope } from "@/components/Icons";
 import { useAuth } from "@/hooks/useAuth";
-import { FIRM_EMAIL, FIRM_EMAIL_HREF } from "@/lib/firm";
+import { FIRM_EMAIL } from "@/lib/firm";
 
 type Page =
   | "home"
@@ -497,20 +497,13 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
               ))}
             </div>
             <div className="flex flex-col sm:flex-row gap-4">
-              {user?.role === "client" ? (
+              {user?.role === "client" && (
                 <button
                   onClick={() => onNavigate("inquiry")}
                   className="bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] font-semibold px-8 py-3.5 rounded transition-colors text-sm"
                 >
                   Start a Legal Inquiry
                 </button>
-              ) : (
-                <a
-                  href={FIRM_EMAIL_HREF}
-                  className="bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] font-semibold px-8 py-3.5 rounded transition-colors text-sm text-center"
-                >
-                  Email Us
-                </a>
               )}
               <button
                 onClick={() => onNavigate("contact")}

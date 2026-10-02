@@ -51,9 +51,6 @@ export default function InquiryFallback({
         )}
       </p>
       <div className="flex flex-wrap gap-3 mt-5">
-        <a href={FIRM_EMAIL_HREF} className="btn-primary text-sm px-5 py-2.5">
-          Email Us
-        </a>
         <button
           onClick={() => onNavigate("contact")}
           className={
