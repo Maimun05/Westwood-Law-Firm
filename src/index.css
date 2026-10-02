@@ -112,6 +112,10 @@
   --shadow-navy-md: 0 8px 24px -4px rgb(11 27 53 / 0.12);
   --shadow-navy-lg: 0 16px 48px -8px rgb(11 27 53 / 0.15);
 
+  /* Dialog elevation — navy-tinted so panels sit in the page rather than on it */
+  --shadow-modal:
+    0 32px 64px -20px rgb(11 27 53 / 0.34), 0 4px 16px -6px rgb(11 27 53 / 0.14);
+
   /* ── Transitions ── */
   --transition-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -161,6 +165,8 @@ body,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    /* Delays must go too, otherwise staggered content stays invisible. */
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
@@ -504,6 +510,181 @@ select {
 }
 .stagger-6 {
   animation-delay: 600ms;
+}
+
+/* ── Modal Shell ────────────────────────────────────────────────────────────
+   Structural rules for the shared <Modal> primitive. These live in CSS rather
+   than utilities because the entrance/exit animations are keyed off
+   [data-state], which lets a closing panel stay mounted until its exit
+   animation finishes. All motion is cancelled by the prefers-reduced-motion
+   block above.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+@keyframes modal-scrim-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-scrim-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes modal-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes modal-panel-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+}
+
+@keyframes modal-sheen {
+  from {
+    transform: translateX(-140%) skewX(-18deg);
+  }
+  to {
+    transform: translateX(340%) skewX(-18deg);
+  }
+}
+
+@keyframes modal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-layer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  justify-content: center;
+  /* Centring comes from the panel's auto margins, not from align-items. */
+  align-items: flex-start;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1rem;
+}
+
+/* Purely decorative: clicks fall through to .modal-layer, which owns the
+   backdrop-click-to-close behaviour. */
+.modal-scrim {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-color: rgb(11 27 53 / 0.58);
+  background-image: radial-gradient(120% 90% at 50% 0%, rgb(196 157 63 / 0.08), transparent 62%);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+/* `backwards` rather than `both` on the way in: once the entrance finishes the
+   element returns to its untransformed state, so `position: fixed` descendants
+   are not captured by a leftover transform. The `to` frame matches the natural
+   state, so nothing visibly jumps. */
+.modal-layer[data-state="open"] .modal-scrim {
+  animation: modal-scrim-in 220ms ease-out backwards;
+}
+
+.modal-layer[data-state="closed"] .modal-scrim {
+  animation: modal-scrim-out 160ms ease-in forwards;
+}
+
+.modal-panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  /* Auto margins centre the panel vertically but collapse when it is taller
+     than the viewport, so a tall dialog scrolls instead of clipping its top. */
+  margin: auto;
+  outline: none;
+}
+
+.modal-layer[data-state="open"] .modal-panel {
+  animation: modal-panel-in 320ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.modal-layer[data-state="closed"] .modal-panel {
+  animation: modal-panel-out 160ms cubic-bezier(0.4, 0, 1, 1) forwards;
+  /* The panel is showing a frozen snapshot of its content on the way out —
+     do not let anyone interact with it. */
+  pointer-events: none;
+}
+
+/* Pin toward the top instead of centring — for tall, scrollable dialogs. */
+.modal-layer[data-align="top"] {
+  padding-top: 6rem;
+}
+
+.modal-layer[data-align="top"] .modal-panel {
+  margin-top: 0;
+  margin-bottom: auto;
+}
+
+/* One-off gold sweep across a navy dialog header as it opens. */
+.modal-sheen {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 45%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.13), transparent);
+  animation: modal-sheen 1100ms cubic-bezier(0.16, 1, 0.3, 1) 200ms backwards;
+}
+
+/* Staggered content reveal for dialog bodies. */
+.modal-stagger > * {
+  animation: modal-rise 420ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.modal-stagger > *:nth-child(1) {
+  animation-delay: 70ms;
+}
+.modal-stagger > *:nth-child(2) {
+  animation-delay: 120ms;
+}
+.modal-stagger > *:nth-child(3) {
+  animation-delay: 170ms;
+}
+.modal-stagger > *:nth-child(4) {
+  animation-delay: 220ms;
+}
+.modal-stagger > *:nth-child(5) {
+  animation-delay: 270ms;
+}
+.modal-stagger > *:nth-child(6) {
+  animation-delay: 320ms;
+}
+.modal-stagger > *:nth-child(n + 7) {
+  animation-delay: 360ms;
 }
 
 /* ── Image Helpers ── */

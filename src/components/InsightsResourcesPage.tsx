@@ -15,6 +15,15 @@ import { IconSearch, IconCheck } from "@/components/Icons";
 import { onPortraitError } from "@/utils/image";
 import { submitInquiry } from "@/utils/api";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  MODAL_BUTTON_SECONDARY_CLASS,
+  MODAL_ERROR_CLASS,
+  MODAL_INPUT_CLASS,
+  MODAL_LABEL_CLASS,
+  Modal,
+  ModalBody,
+  ModalHeader,
+} from "@/components/ui/Modal";
 
 type Page =
   | "home"
@@ -660,41 +669,26 @@ export default function InsightsResourcesPage({
 
       {/* Seminar registration modal */}
       {registering && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0d1f3c]/60"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="seminar-register-title"
+        <Modal
+          open
+          onClose={() => setRegistering(null)}
+          size="lg"
+          labelledBy="seminar-register-title"
+          dismissible={!regSending}
         >
-          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="flex items-start justify-between gap-4 p-6 border-b border-[#e8e4dc]">
-              <div>
-                <h3
-                  id="seminar-register-title"
-                  className="font-serif text-lg font-bold text-[#0d1f3c]"
-                >
-                  Register for this Seminar
-                </h3>
-                <p className="text-sm text-[#8a9ab5] mt-1">{registering.title}</p>
-                <p className="text-xs text-[#8a9ab5] mt-1">
-                  {registering.date} · {registering.time}
-                </p>
-              </div>
-              <button
-                onClick={() => setRegistering(null)}
-                aria-label="Close"
-                className="text-[#8a9ab5] hover:text-[#0d1f3c] text-xl leading-none px-1"
-              >
-                ×
-              </button>
-            </div>
+          <ModalHeader
+            tone="light"
+            title="Register for this Seminar"
+            titleId="seminar-register-title"
+            description={`${registering.title} · ${registering.date} · ${registering.time}`}
+            onClose={() => setRegistering(null)}
+            closeDisabled={regSending}
+          />
 
-            <form onSubmit={handleRegister} className="p-6 space-y-4">
+          <ModalBody className="p-6">
+            <form onSubmit={handleRegister} className="space-y-4">
               <div>
-                <label
-                  htmlFor="reg-name"
-                  className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5"
-                >
+                <label htmlFor="reg-name" className={MODAL_LABEL_CLASS}>
                   Full Name *
                 </label>
                 <input
@@ -704,15 +698,12 @@ export default function InsightsResourcesPage({
                   onChange={(e) => setRegForm({ ...regForm, name: e.target.value })}
                   disabled={regSending}
                   placeholder="Juan Dela Cruz"
-                  className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-3 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                  className={MODAL_INPUT_CLASS}
                 />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label
-                    htmlFor="reg-email"
-                    className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5"
-                  >
+                  <label htmlFor="reg-email" className={MODAL_LABEL_CLASS}>
                     Email Address *
                   </label>
                   <input
@@ -722,14 +713,11 @@ export default function InsightsResourcesPage({
                     onChange={(e) => setRegForm({ ...regForm, email: e.target.value })}
                     disabled={regSending}
                     placeholder="you@email.com"
-                    className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-3 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                    className={MODAL_INPUT_CLASS}
                   />
                 </div>
                 <div>
-                  <label
-                    htmlFor="reg-phone"
-                    className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5"
-                  >
+                  <label htmlFor="reg-phone" className={MODAL_LABEL_CLASS}>
                     Phone
                   </label>
                   <input
@@ -739,16 +727,15 @@ export default function InsightsResourcesPage({
                     onChange={(e) => setRegForm({ ...regForm, phone: e.target.value })}
                     disabled={regSending}
                     placeholder="(63) 917 000 0000"
-                    className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-3 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                    className={MODAL_INPUT_CLASS}
                   />
                 </div>
               </div>
 
               {regError && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
-                  <span className="text-red-500 text-sm">⚠️</span>
-                  <p className="text-red-700 text-xs leading-relaxed">{regError}</p>
-                </div>
+                <p role="alert" className={MODAL_ERROR_CLASS}>
+                  {regError}
+                </p>
               )}
 
               <div className="flex gap-3 pt-1">
@@ -756,14 +743,14 @@ export default function InsightsResourcesPage({
                   type="button"
                   onClick={() => setRegistering(null)}
                   disabled={regSending}
-                  className="flex-1 border border-[#e8e4dc] text-[#2c3347] font-semibold py-3 rounded transition-colors text-sm hover:bg-[#f7f5f0] disabled:opacity-50"
+                  className={`flex-1 ${MODAL_BUTTON_SECONDARY_CLASS}`}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={regSending}
-                  className="flex-1 bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] font-semibold py-3 rounded transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] font-semibold py-3 rounded-lg transition-all text-sm active:scale-[0.99] disabled:opacity-40 disabled:pointer-events-none"
                 >
                   {regSending ? "Registering…" : "Confirm Registration"}
                 </button>
@@ -773,8 +760,8 @@ export default function InsightsResourcesPage({
                 The firm will confirm your slot by email. Seats are subject to availability.
               </p>
             </form>
-          </div>
-        </div>
+          </ModalBody>
+        </Modal>
       )}
     </div>
   );

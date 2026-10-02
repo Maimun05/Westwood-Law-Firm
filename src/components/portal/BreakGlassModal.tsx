@@ -1,5 +1,18 @@
 import { useState } from "react";
 
+import {
+  MODAL_BUTTON_SECONDARY_CLASS,
+  MODAL_ERROR_CLASS,
+  MODAL_INPUT_CLASS,
+  MODAL_LABEL_CLASS,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+} from "@/components/ui/Modal";
+
+const TITLE_ID = "break-glass-title";
+
 export default function BreakGlassModal({
   fileName,
   onCancel,
@@ -23,41 +36,80 @@ export default function BreakGlassModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6 border border-amber-300">
-        <h3 className="font-serif text-xl font-bold text-[#0d1f3c] mb-1">
-          Open Confidential document
-        </h3>
-        <p className="text-sm text-[#2c3347] mb-3">
-          <strong>{fileName}</strong> is restricted to the assigned lawyer's team. Opening it is
-          logged and the assigned lawyer is notified immediately.
-        </p>
-        <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1">
-          Reason (required, min. 15 characters)
-        </label>
-        <textarea
-          rows={3}
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#c9a84c]"
-        />
-        {err && <p className="text-xs text-red-600 mt-2">{err}</p>}
-        <div className="flex gap-2 mt-4">
-          <button
-            onClick={onCancel}
-            className="flex-1 border border-[#e8e4dc] rounded py-2.5 text-sm font-semibold"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={submit}
-            disabled={!ok || busy}
-            className="flex-1 bg-amber-600 hover:bg-amber-700 disabled:opacity-40 text-white rounded py-2.5 text-sm font-semibold"
-          >
-            {busy ? "Opening…" : "Log reason and open"}
-          </button>
+    <Modal
+      open
+      onClose={onCancel}
+      size="md"
+      labelledBy={TITLE_ID}
+      dismissible={!busy}
+      panelClassName="border-amber-300"
+    >
+      <ModalHeader
+        tone="light"
+        eyebrow="Confidential access"
+        title="Open Confidential document"
+        titleId={TITLE_ID}
+        onClose={onCancel}
+        closeDisabled={busy}
+      />
+
+      <ModalBody stagger className="space-y-4">
+        <div className="flex gap-3 rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3">
+          <span aria-hidden="true" className="text-lg leading-none">
+            ⚠
+          </span>
+          <p className="text-sm text-[#2c3347]">
+            <strong className="break-all font-semibold text-[#0d1f3c]">{fileName}</strong> is
+            restricted to the assigned lawyer's team. Opening it is logged and the assigned lawyer
+            is notified immediately.
+          </p>
         </div>
-      </div>
-    </div>
+
+        <div>
+          <label className={MODAL_LABEL_CLASS} htmlFor="break-glass-reason">
+            Reason (required, min. 15 characters)
+          </label>
+          <textarea
+            id="break-glass-reason"
+            rows={3}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            className={`${MODAL_INPUT_CLASS} resize-none`}
+          />
+          <p
+            className={`mt-1.5 text-xs tabular-nums ${
+              ok ? "text-emerald-600" : "text-[#8a9ab5]"
+            }`}
+          >
+            {reason.trim().length} / 15 characters
+          </p>
+        </div>
+
+        {err && (
+          <p role="alert" className={MODAL_ERROR_CLASS}>
+            {err}
+          </p>
+        )}
+      </ModalBody>
+
+      <ModalFooter>
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={busy}
+          className={`flex-1 ${MODAL_BUTTON_SECONDARY_CLASS}`}
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={submit}
+          disabled={!ok || busy}
+          className="flex-1 inline-flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold py-3 rounded-lg transition-all duration-200 hover:shadow-[0_8px_24px_-4px_rgb(217_119_6/0.4)] active:scale-[0.99] disabled:opacity-40 disabled:pointer-events-none"
+        >
+          {busy ? "Opening…" : "Log reason and open"}
+        </button>
+      </ModalFooter>
+    </Modal>
   );
 }

@@ -10,6 +10,18 @@ import {
   draftToPayload,
   type ContentKind,
 } from "@/lib/services/contentAdmin";
+import {
+  MODAL_BUTTON_DANGER_CLASS,
+  MODAL_BUTTON_PRIMARY_CLASS,
+  MODAL_BUTTON_SECONDARY_CLASS,
+  MODAL_ERROR_CLASS,
+  MODAL_INPUT_CLASS,
+  MODAL_LABEL_CLASS,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+} from "@/components/ui/Modal";
 
 // Admin CRUD over the five tables that drive the public site.
 //
@@ -259,35 +271,49 @@ export default function ContentManager({
       )}
 
       {confirmDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6">
-            <h3 className="font-serif text-lg font-bold text-[#0d1f3c] mb-2">
+        <Modal
+          open
+          onClose={() => setConfirmDelete(null)}
+          size="sm"
+          labelledBy="content-delete-title"
+          dismissible={!busy}
+        >
+          <ModalBody className="px-6 pt-7 pb-5 text-center">
+            <div className="mx-auto mb-4 grid h-11 w-11 place-items-center rounded-full border border-red-100 bg-red-50 text-lg text-red-600">
+              <span aria-hidden="true">🗑</span>
+            </div>
+            <h3
+              id="content-delete-title"
+              className="font-serif text-lg font-bold text-[#0d1f3c] mb-2"
+            >
               Delete this {cfg.label.replace(/s$/, "").toLowerCase()}?
             </h3>
-            <p className="text-sm text-[#2c3347] mb-1 break-words">
+            <p className="text-sm font-medium text-[#2c3347] mb-1 break-words">
               {String(confirmDelete[cfg.titleField] ?? "(untitled)")}
             </p>
-            <p className="text-xs text-[#8a9ab5] mb-5">
+            <p className="text-xs text-[#8a9ab5]">
               This removes it from the public site immediately and cannot be undone from here.
             </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setConfirmDelete(null)}
-                disabled={busy}
-                className="flex-1 border border-[#e8e4dc] text-[#2c3347] font-semibold py-2.5 rounded text-sm hover:bg-[#f7f5f0] disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => void remove(confirmDelete)}
-                disabled={busy}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded text-sm disabled:opacity-50"
-              >
-                {busy ? "Deleting…" : "Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
+          </ModalBody>
+          <ModalFooter className="flex gap-3 px-6 pb-6 pt-1">
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(null)}
+              disabled={busy}
+              className={`flex-1 ${MODAL_BUTTON_SECONDARY_CLASS}`}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => void remove(confirmDelete)}
+              disabled={busy}
+              className={`flex-1 ${MODAL_BUTTON_DANGER_CLASS}`}
+            >
+              {busy ? "Deleting…" : "Delete"}
+            </button>
+          </ModalFooter>
+        </Modal>
       )}
     </div>
   );
@@ -311,8 +337,6 @@ function ContentForm({
   const [error, setError] = useState("");
 
   const isNew = row === null;
-  const inputCls =
-    "w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-3 py-2 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c]";
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -328,21 +352,23 @@ function ContentForm({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-24 bg-black/50 backdrop-blur-sm overflow-y-auto">
-      <form onSubmit={submit} className="bg-white rounded-2xl w-full max-w-2xl">
-        <div className="flex items-start justify-between gap-4 p-6 border-b border-[#e8e4dc]">
-          <h3 className="font-serif text-lg font-bold text-[#0d1f3c]">
-            {isNew ? `New ${cfg.label.replace(/s$/, "")}` : `Edit ${cfg.label.replace(/s$/, "")}`}
-          </h3>
-          <button
-            type="button"
-            onClick={onCancel}
-            aria-label="Close"
-            className="text-[#8a9ab5] hover:text-[#0d1f3c] text-xl leading-none px-1"
-          >
-            ×
-          </button>
-        </div>
+    <Modal
+      open
+      onClose={onCancel}
+      size="2xl"
+      align="top"
+      labelledBy="content-form-title"
+      dismissible={!busy}
+    >
+      <form onSubmit={submit}>
+        <ModalHeader
+          tone="light"
+          eyebrow={cfg.label}
+          title={isNew ? `New ${cfg.label.replace(/s$/, "")}` : `Edit ${cfg.label.replace(/s$/, "")}`}
+          titleId="content-form-title"
+          onClose={onCancel}
+          closeDisabled={busy}
+        />
 
         <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
           {cfg.fields.map((f) => {
@@ -370,10 +396,7 @@ function ContentForm({
 
             return (
               <div key={f}>
-                <label
-                  htmlFor={id}
-                  className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5"
-                >
+                <label htmlFor={id} className={MODAL_LABEL_CLASS}>
                   {fieldLabel(f)}
                   {(isNew
                     ? cfg.requiredFields
@@ -386,7 +409,7 @@ function ContentForm({
                     rows={LIST_FIELDS.has(f) ? 4 : 8}
                     value={String(value ?? "")}
                     onChange={(e) => setDraft({ ...draft, [f]: e.target.value })}
-                    className={`${inputCls} resize-y font-mono text-xs`}
+                    className={`${MODAL_INPUT_CLASS} resize-y font-mono text-xs`}
                     placeholder={
                       LIST_FIELDS.has(f)
                         ? "One item per line"
@@ -406,7 +429,7 @@ function ContentForm({
                     }
                     disabled={lockedId}
                     onChange={(e) => setDraft({ ...draft, [f]: e.target.value })}
-                    className={`${inputCls} ${lockedId ? "opacity-60" : ""}`}
+                    className={`${MODAL_INPUT_CLASS} ${lockedId ? "opacity-60" : ""}`}
                   />
                 )}
                 {f === "content" && (
@@ -420,30 +443,30 @@ function ContentForm({
           })}
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p className="text-red-700 text-xs leading-relaxed">{error}</p>
-            </div>
+            <p role="alert" className={MODAL_ERROR_CLASS}>
+              {error}
+            </p>
           )}
         </div>
 
-        <div className="flex gap-3 p-6 border-t border-[#e8e4dc]">
+        <ModalFooter className="flex gap-3 p-6 border-t border-[#e8e4dc]">
           <button
             type="button"
             onClick={onCancel}
             disabled={busy}
-            className="flex-1 border border-[#e8e4dc] text-[#2c3347] font-semibold py-3 rounded text-sm hover:bg-[#f7f5f0] disabled:opacity-50"
+            className={`flex-1 ${MODAL_BUTTON_SECONDARY_CLASS}`}
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={busy}
-            className="flex-1 bg-[#0d1f3c] hover:bg-[#162d52] text-white font-semibold py-3 rounded text-sm disabled:opacity-50"
+            className={`flex-1 ${MODAL_BUTTON_PRIMARY_CLASS}`}
           >
             {busy ? "Saving…" : isNew ? "Create" : "Save changes"}
           </button>
-        </div>
+        </ModalFooter>
       </form>
-    </div>
+    </Modal>
   );
 }

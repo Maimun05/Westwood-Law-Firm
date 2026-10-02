@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { MODAL_INPUT_CLASS } from "@/components/ui/Modal";
 
 type Ev = {
   id: string;
@@ -60,7 +61,7 @@ export default function MatterTimeline({
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [extraNames, setExtraNames] = useState<Record<string, string>>({});
-  const endRef = useRef<HTMLDivElement | null>(null);
+  const listRef = useRef<HTMLDivElement | null>(null);
   const fetched = useRef<Set<string>>(new Set());
 
   const load = async () => {
@@ -86,8 +87,11 @@ export default function MatterTimeline({
   }, [matterId]);
 
   // A conversation reads top to bottom, so keep the newest message in view.
+  // Scroll the thread's own container rather than calling scrollIntoView,
+  // which would also scroll the dialog around it on first paint.
   useEffect(() => {
-    endRef.current?.scrollIntoView({ block: "nearest" });
+    const list = listRef.current;
+    if (list) list.scrollTop = list.scrollHeight;
   }, [notes.length, events.length]);
 
   // The `names` map only holds lawyers. A client's own name is known from
@@ -174,7 +178,7 @@ export default function MatterTimeline({
     <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
       <h3 className="text-sm font-semibold text-[#0d1f3c] mb-3">Messages &amp; timeline</h3>
 
-      <div className="max-h-80 overflow-y-auto pr-1 mb-4 space-y-3">
+      <div ref={listRef} className="max-h-80 overflow-y-auto pr-1 mb-4 space-y-3">
         {thread.length === 0 && <p className="text-xs text-[#8a9ab5]">No activity yet.</p>}
 
         {thread.map((entry) => {
@@ -217,7 +221,6 @@ export default function MatterTimeline({
             </div>
           );
         })}
-        <div ref={endRef} />
       </div>
 
       <div className="space-y-2">
@@ -226,14 +229,14 @@ export default function MatterTimeline({
           value={body}
           onChange={(e) => setBody(e.target.value)}
           placeholder={placeholder}
-          className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#c9a84c]"
+          className={`${MODAL_INPUT_CLASS} resize-none`}
         />
         <div className="flex items-center gap-2">
           {role === "lawyer" && (
             <select
               value={visibility}
               onChange={(e) => setVisibility(e.target.value as "internal" | "client")}
-              className="text-xs bg-[#f7f5f0] border border-[#e8e4dc] rounded px-2 py-1.5"
+              className="text-xs bg-white border border-[#e8e4dc] rounded-lg px-2 py-1.5 text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c]"
             >
               <option value="internal">Internal (lawyers only)</option>
               <option value="client">Visible to client</option>

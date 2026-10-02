@@ -64,6 +64,19 @@ import ContentManager from "@/components/portal/ContentManager";
 
 import ListFilters, { applyFilters, type FilterDef } from "@/components/portal/ListFilters";
 
+import {
+  MODAL_BUTTON_DANGER_CLASS,
+  MODAL_BUTTON_PRIMARY_CLASS,
+  MODAL_BUTTON_SECONDARY_CLASS,
+  MODAL_ERROR_CLASS,
+  MODAL_INPUT_CLASS,
+  MODAL_LABEL_CLASS,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+} from "@/components/ui/Modal";
+
 import { lookupNames } from "@/components/portal/Person";
 
 import {
@@ -223,10 +236,12 @@ function PrivacyLabel({ label }: { label: string }) {
 
 function RestrictedScreen({ onReturn }: { onReturn: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl max-w-md w-full p-8 text-center border border-[#e8e4dc] shadow-xl">
+    <Modal open onClose={onReturn} size="md" labelledBy="restricted-title">
+      <ModalBody className="p-8 text-center">
         <div className="text-5xl mb-4">🔒</div>
-        <h2 className="font-serif text-2xl font-bold text-[#0d1f3c] mb-3">Restricted Access</h2>
+        <h2 id="restricted-title" className="font-serif text-2xl font-bold text-[#0d1f3c] mb-3">
+          Restricted Access
+        </h2>
         <p className="text-[#2c3347] text-sm leading-relaxed mb-6">
           This information contains confidential legal content and is limited to authorized legal
           personnel.
@@ -247,14 +262,11 @@ function RestrictedScreen({ onReturn }: { onReturn: () => void }) {
             </div>
           ))}
         </div>
-        <button
-          onClick={onReturn}
-          className="w-full bg-[#0d1f3c] hover:bg-[#162d52] text-white font-semibold py-3 rounded transition-colors text-sm"
-        >
+        <button onClick={onReturn} className={`w-full ${MODAL_BUTTON_PRIMARY_CLASS}`}>
           Return
         </button>
-      </div>
-    </div>
+      </ModalBody>
+    </Modal>
   );
 }
 
@@ -418,30 +430,23 @@ function CreateAccountModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-md">
-      <div className="bg-gradient-to-br from-white via-[#fafaf8] to-[#f7f5f0] rounded-3xl w-full max-w-lg border-2 border-[#c9a84c]/20 shadow-2xl overflow-hidden">
-        {/* Header with diagonal accent */}
-        <div className="relative bg-[#0d1f3c] px-8 py-8 overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-[#c9a84c]/10 rounded-full -translate-y-32 translate-x-32" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#c9a84c]/10 rounded-full translate-y-24 -translate-x-24" />
-          <div className="relative flex items-start justify-between">
-            <div>
-              <p className="text-[#c9a84c] text-xs tracking-[0.2em] uppercase font-semibold mb-2">
-                Westwood Law Firm
-              </p>
-              <h2 className="font-serif text-2xl font-bold text-white mb-1">Create Your Account</h2>
-              <p className="text-white/60 text-sm">Join our secure client portal</p>
-            </div>
-            <button
-              onClick={onClose}
-              className="text-white/50 hover:text-white hover:bg-white/10 rounded-full w-10 h-10 flex items-center justify-center transition-all text-2xl leading-none"
-            >
-              ×
-            </button>
-          </div>
-        </div>
+    <Modal
+      open
+      onClose={onClose}
+      size="lg"
+      labelledBy="create-account-title"
+      dismissible={!loading}
+    >
+      <ModalHeader
+        eyebrow="Westwood Law Firm"
+        title="Create Your Account"
+        titleId="create-account-title"
+        description="Join our secure client portal"
+        onClose={onClose}
+        closeDisabled={loading}
+      />
 
-        <div className="p-8">
+      <ModalBody className="p-8">
           {done ? (
             <div className="text-center py-8">
               <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
@@ -464,10 +469,7 @@ function CreateAccountModal({
                 Your account has been successfully created. You can now access our secure client
                 portal.
               </p>
-              <button
-                onClick={onClose}
-                className="w-full bg-gradient-to-r from-[#0d1f3c] to-[#1a2f4f] hover:from-[#162d52] hover:to-[#0d1f3c] text-white font-semibold py-4 rounded-xl transition-all shadow-lg shadow-[#0d1f3c]/20 text-sm"
-              >
+              <button onClick={onClose} className={`w-full ${MODAL_BUTTON_PRIMARY_CLASS}`}>
                 Continue to Sign In
               </button>
             </div>
@@ -513,7 +515,7 @@ function CreateAccountModal({
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs font-bold text-[#2c3347] uppercase tracking-wider block mb-2">
+                        <label className={MODAL_LABEL_CLASS}>
                           First Name *
                         </label>
                         <input
@@ -524,12 +526,12 @@ function CreateAccountModal({
                             setError("");
                           }}
                           placeholder="Juan"
-                          className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
+                          className={MODAL_INPUT_CLASS}
                           autoFocus
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-bold text-[#2c3347] uppercase tracking-wider block mb-2">
+                        <label className={MODAL_LABEL_CLASS}>
                           Last Name *
                         </label>
                         <input
@@ -540,13 +542,13 @@ function CreateAccountModal({
                             setError("");
                           }}
                           placeholder="Dela Cruz"
-                          className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
+                          className={MODAL_INPUT_CLASS}
                         />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs font-bold text-[#2c3347] uppercase tracking-wider block mb-2">
+                        <label className={MODAL_LABEL_CLASS}>
                           Middle Name{" "}
                           <span className="text-[#8a9ab5] normal-case font-normal">(Optional)</span>
                         </label>
@@ -558,11 +560,11 @@ function CreateAccountModal({
                             setError("");
                           }}
                           placeholder="Santos"
-                          className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
+                          className={MODAL_INPUT_CLASS}
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-bold text-[#2c3347] uppercase tracking-wider block mb-2">
+                        <label className={MODAL_LABEL_CLASS}>
                           Suffix{" "}
                           <span className="text-[#8a9ab5] normal-case font-normal">(Optional)</span>
                         </label>
@@ -574,12 +576,12 @@ function CreateAccountModal({
                             setError("");
                           }}
                           placeholder="Jr., Sr., III"
-                          className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
+                          className={MODAL_INPUT_CLASS}
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs font-bold text-[#2c3347] uppercase tracking-wider block mb-2">
+                      <label className={MODAL_LABEL_CLASS}>
                         Email Address *
                       </label>
                       <input
@@ -600,7 +602,7 @@ function CreateAccountModal({
                 {step === 2 && (
                   <div className="space-y-4">
                     <div>
-                      <label className="text-xs font-bold text-[#2c3347] uppercase tracking-wider block mb-2">
+                      <label className={MODAL_LABEL_CLASS}>
                         Password *
                       </label>
                       <input
@@ -616,7 +618,7 @@ function CreateAccountModal({
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-bold text-[#2c3347] uppercase tracking-wider block mb-2">
+                      <label className={MODAL_LABEL_CLASS}>
                         Confirm Password *
                       </label>
                       <input
@@ -650,7 +652,7 @@ function CreateAccountModal({
                 {step === 3 && (
                   <div className="space-y-4">
                     <div>
-                      <label className="text-xs font-bold text-[#2c3347] uppercase tracking-wider block mb-2">
+                      <label className={MODAL_LABEL_CLASS}>
                         Phone Number{" "}
                         <span className="text-[#8a9ab5] normal-case font-normal">(Optional)</span>
                       </label>
@@ -664,7 +666,7 @@ function CreateAccountModal({
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-bold text-[#2c3347] uppercase tracking-wider block mb-2">
+                      <label className={MODAL_LABEL_CLASS}>
                         Address{" "}
                         <span className="text-[#8a9ab5] normal-case font-normal">(Optional)</span>
                       </label>
@@ -677,7 +679,7 @@ function CreateAccountModal({
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-bold text-[#2c3347] uppercase tracking-wider block mb-2">
+                      <label className={MODAL_LABEL_CLASS}>
                         City{" "}
                         <span className="text-[#8a9ab5] normal-case font-normal">(Optional)</span>
                       </label>
@@ -690,7 +692,7 @@ function CreateAccountModal({
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-bold text-[#2c3347] uppercase tracking-wider block mb-2">
+                      <label className={MODAL_LABEL_CLASS}>
                         Date of Birth{" "}
                         <span className="text-[#8a9ab5] normal-case font-normal">(Optional)</span>
                       </label>
@@ -722,10 +724,9 @@ function CreateAccountModal({
                 )}
 
                 {error && (
-                  <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
-                    <span className="text-red-500 text-lg">⚠️</span>
-                    <p className="text-red-700 text-xs leading-relaxed">{error}</p>
-                  </div>
+                  <p role="alert" className={MODAL_ERROR_CLASS}>
+                    {error}
+                  </p>
                 )}
 
                 <div className="flex gap-3 pt-2">
@@ -736,24 +737,22 @@ function CreateAccountModal({
                         setStep(step - 1);
                         setError("");
                       }}
-                      className="flex-1 border-2 border-[#e8e4dc] hover:border-[#0d1f3c] text-[#0d1f3c] text-sm font-semibold py-3.5 rounded-xl transition-all"
+                      className={`flex-1 ${MODAL_BUTTON_SECONDARY_CLASS}`}
                     >
                       Back
                     </button>
                   )}
                   {step < 3 ? (
-                    <button
-                      type="submit"
-                      className="flex-1 bg-gradient-to-r from-[#0d1f3c] to-[#1a2f4f] hover:from-[#162d52] hover:to-[#0d1f3c] text-white text-sm font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-[#0d1f3c]/20"
-                    >
+                    <button type="submit" className={`flex-1 ${MODAL_BUTTON_PRIMARY_CLASS}`}>
                       Continue
                     </button>
                   ) : (
                     <button
                       type="submit"
-                      className="flex-1 bg-gradient-to-r from-[#c9a84c] to-[#b89840] hover:from-[#e2c87a] hover:to-[#c9a84c] text-[#0d1f3c] text-sm font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-[#c9a84c]/30"
+                      className="flex-1 bg-gradient-to-r from-[#c9a84c] to-[#b89840] hover:from-[#e2c87a] hover:to-[#c9a84c] text-[#0d1f3c] text-sm font-bold py-3 rounded-lg transition-all shadow-lg shadow-[#c9a84c]/30 active:scale-[0.99] disabled:opacity-40 disabled:pointer-events-none"
+                      disabled={loading}
                     >
-                      Create Account
+                      {loading ? "Creating account…" : "Create Account"}
                     </button>
                   )}
                 </div>
@@ -770,9 +769,8 @@ function CreateAccountModal({
               </form>
             </>
           )}
-        </div>
-      </div>
-    </div>
+      </ModalBody>
+    </Modal>
   );
 }
 
@@ -832,7 +830,7 @@ function SignIn({ onNavigate }: { onNavigate: (p: Page) => void }) {
           <div className="bg-white rounded-2xl border border-[#e8e4dc] p-8 shadow-sm mb-4">
             <form onSubmit={handleSubmit} className="space-y-4 mb-6">
               <div>
-                <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                <label className={MODAL_LABEL_CLASS}>
                   Email
                 </label>
                 <input
@@ -1060,40 +1058,26 @@ function NotificationsModal({
   onClose: () => void;
 }) {
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-16 bg-black/50 backdrop-blur-sm overflow-y-auto"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full my-8"
-        onClick={(e) => e.stopPropagation()}
+    <Modal open onClose={onClose} size="2xl" align="top" labelledBy="notifications-title">
+      <ModalHeader
+        tone="light"
+        title="Notifications"
+        titleId="notifications-title"
+        description={unreadCount > 0 ? `${unreadCount} unread` : "You are all caught up"}
+        onClose={onClose}
       >
-        <div className="flex items-center justify-between gap-3 p-5 border-b border-[#e8e4dc]">
-          <div>
-            <h2 className="font-serif text-xl font-bold text-[#0d1f3c]">Notifications</h2>
-            <p className="text-xs text-[#8a9ab5] mt-0.5">
-              {unreadCount > 0 ? `${unreadCount} unread` : "You are all caught up"}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            {unreadCount > 0 && (
-              <button
-                onClick={onMarkAllRead}
-                className="text-xs font-semibold text-[#0d1f3c] border border-[#e8e4dc] hover:border-[#0d1f3c] px-3 py-1.5 rounded transition-colors"
-              >
-                Mark all read
-              </button>
-            )}
+        {unreadCount > 0 && (
+          <div className="ml-auto flex items-center">
             <button
-              onClick={onClose}
-              aria-label="Close"
-              className="text-[#8a9ab5] hover:text-[#0d1f3c] text-lg leading-none px-1"
+              onClick={onMarkAllRead}
+              className="text-xs font-semibold text-[#0d1f3c] border border-[#e8e4dc] hover:border-[#0d1f3c] px-3 py-1.5 rounded-lg transition-colors"
             >
-              ×
+              Mark all read
             </button>
           </div>
-        </div>
-        <div className="max-h-[60vh] overflow-y-auto divide-y divide-[#e8e4dc]">
+        )}
+      </ModalHeader>
+      <div className="max-h-[60vh] overflow-y-auto divide-y divide-[#e8e4dc]">
           {error && (
             <div className="p-4 bg-red-50 text-xs text-red-700">
               Couldn't load notifications: {error}
@@ -1200,9 +1184,8 @@ function NotificationsModal({
               </div>
             ))
           )}
-        </div>
       </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -1461,24 +1444,15 @@ function MatterDetail({
           onConfirm={confirmBreakGlass}
         />
       )}
-      <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-24 bg-black/50 backdrop-blur-sm overflow-y-auto">
-        <div className="bg-white rounded-2xl w-full max-w-4xl border border-[#e8e4dc]">
-          <div className="bg-[#0d1f3c] rounded-t-2xl p-6 flex items-start justify-between">
-            <div>
-              <p className="text-[#c9a84c] text-xs tracking-widest uppercase font-medium mb-1">
-                Matter
-              </p>
-              <h2 className="font-serif text-2xl font-bold text-white">{matter.matter_number}</h2>
-            </div>
-            <button
-              onClick={onClose}
-              className="text-white/40 hover:text-white text-2xl leading-none mt-1"
-            >
-              ×
-            </button>
-          </div>
+      <Modal open onClose={onClose} size="4xl" align="top" labelledBy="matter-detail-title">
+        <ModalHeader
+          eyebrow="Matter"
+          title={matter.matter_number}
+          titleId="matter-detail-title"
+          onClose={onClose}
+        />
 
-          <div className="p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <ModalBody className="p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
               <div className="bg-[#f7f5f0] rounded-xl p-6 grid grid-cols-2 gap-4">
                 {(
@@ -1564,7 +1538,7 @@ function MatterDetail({
                   <select
                     value={status}
                     onChange={(e) => setStatus(e.target.value as Matter["status"])}
-                    className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-3 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] mb-3"
+                    className={`${MODAL_INPUT_CLASS} mb-3`}
                   >
                     {statusChoices(savedStatus, currentUser.role === "admin").map((s) => (
                       <option key={s}>{s}</option>
@@ -1573,7 +1547,7 @@ function MatterDetail({
                   <button
                     onClick={saveStatus}
                     disabled={savingStatus || status === savedStatus}
-                    className="w-full bg-[#0d1f3c] hover:bg-[#162d52] text-white text-sm font-semibold py-2.5 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    className={`w-full ${MODAL_BUTTON_PRIMARY_CLASS}`}
                   >
                     {savingStatus ? "Saving…" : "Save Status"}
                   </button>
@@ -1613,7 +1587,7 @@ function MatterDetail({
                     value={assignedId ?? ""}
                     onChange={(e) => void reassign(e.target.value)}
                     disabled={assignBusy}
-                    className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-3 py-2.5 text-sm text-[#0d1f3c] disabled:opacity-50"
+                    className={MODAL_INPUT_CLASS}
                   >
                     <option value="">Unassigned</option>
                     {lawyers.map((l) => (
@@ -1683,7 +1657,7 @@ function MatterDetail({
                       <select
                         value={addId}
                         onChange={(e) => setAddId(e.target.value)}
-                        className="flex-1 bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-3 py-2 text-sm text-[#0d1f3c]"
+                        className={`${MODAL_INPUT_CLASS} flex-1`}
                       >
                         <option value="">Add a lawyer…</option>
                         {lawyers
@@ -1702,7 +1676,7 @@ function MatterDetail({
                       <button
                         onClick={() => void addMember()}
                         disabled={!addId || teamBusy}
-                        className="bg-[#0d1f3c] text-white text-xs font-semibold px-4 py-2.5 rounded disabled:opacity-40"
+                        className={`${MODAL_BUTTON_PRIMARY_CLASS} px-4`}
                       >
                         {teamBusy ? "Saving…" : "Add"}
                       </button>
@@ -1783,9 +1757,8 @@ function MatterDetail({
                 )}
               </div>
             </div>
-          </div>
-        </div>
-      </div>
+        </ModalBody>
+      </Modal>
       {showRestricted && <RestrictedScreen onReturn={() => setShowRestricted(false)} />}
       {showUpload && (
         <UploadDocumentModal
@@ -2315,29 +2288,39 @@ function DeleteConfirmModal({
   onConfirm: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl max-w-sm w-full p-8 text-center border border-[#e8e4dc]">
-        <div className="text-4xl mb-4">⚠️</div>
-        <h2 className="font-serif text-xl font-bold text-[#0d1f3c] mb-2">Delete Account?</h2>
-        <p className="text-[#2c3347] text-sm leading-relaxed mb-6">
+    <Modal open onClose={onCancel} size="sm" labelledBy="delete-account-title">
+      <ModalBody className="px-6 pt-7 pb-5 text-center">
+        <div className="mx-auto mb-4 grid h-11 w-11 place-items-center rounded-full border border-red-100 bg-red-50 text-lg text-red-600">
+          <span aria-hidden="true">⚠</span>
+        </div>
+        <h3
+          id="delete-account-title"
+          className="font-serif text-lg font-bold text-[#0d1f3c] mb-2"
+        >
+          Delete Account?
+        </h3>
+        <p className="text-sm text-[#2c3347] mb-1 break-words">
           This action will permanently remove <strong>{userName}</strong>'s account from the system.
         </p>
-        <div className="flex gap-3">
-          <button
-            onClick={onCancel}
-            className="flex-1 border border-[#e8e4dc] hover:border-[#0d1f3c] text-[#0d1f3c] text-sm font-medium py-3 rounded transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            className="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-3 rounded transition-colors"
-          >
-            Confirm Delete
-          </button>
-        </div>
-      </div>
-    </div>
+        <p className="text-xs text-[#8a9ab5]">This cannot be undone from here.</p>
+      </ModalBody>
+      <ModalFooter className="flex gap-3 px-6 pb-6 pt-1">
+        <button
+          type="button"
+          onClick={onCancel}
+          className={`flex-1 ${MODAL_BUTTON_SECONDARY_CLASS}`}
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={onConfirm}
+          className={`flex-1 ${MODAL_BUTTON_DANGER_CLASS}`}
+        >
+          Confirm Delete
+        </button>
+      </ModalFooter>
+    </Modal>
   );
 }
 
@@ -4434,18 +4417,9 @@ function AdminPortalView({
 
 function ViewUserModal({ user, onClose }: { user: Profile; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl w-full max-w-2xl border border-[#e8e4dc] shadow-xl max-h-[90vh] overflow-y-auto">
-        <div className="bg-[#0d1f3c] rounded-t-2xl p-6 flex items-center justify-between sticky top-0 z-10">
-          <h2 className="font-serif text-xl font-bold text-white">User Details</h2>
-          <button
-            onClick={onClose}
-            className="text-white/40 hover:text-white text-2xl leading-none"
-          >
-            ×
-          </button>
-        </div>
-        <div className="p-7 space-y-6">
+    <Modal open onClose={onClose} size="2xl" labelledBy="view-user-title">
+      <ModalHeader title="User Details" titleId="view-user-title" onClose={onClose} />
+      <ModalBody className="p-7 space-y-6">
           {/* Profile Header */}
           <div className="flex items-start gap-4 pb-6 border-b border-[#e8e4dc]">
             <div className="w-16 h-16 rounded-full bg-[#c9a84c]/20 flex items-center justify-center text-[#c9a84c] text-2xl font-bold">
@@ -4463,7 +4437,7 @@ function ViewUserModal({ user, onClose }: { user: Profile; onClose: () => void }
           {/* Account Information */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-wide block mb-1">
+              <label className={MODAL_LABEL_CLASS}>
                 User ID
               </label>
               <p className="text-sm text-[#0d1f3c] font-mono bg-[#f7f5f0] px-3 py-2 rounded border border-[#e8e4dc]">
@@ -4471,7 +4445,7 @@ function ViewUserModal({ user, onClose }: { user: Profile; onClose: () => void }
               </p>
             </div>
             <div>
-              <label className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-wide block mb-1">
+              <label className={MODAL_LABEL_CLASS}>
                 Status
               </label>
               <div className="pt-1">
@@ -4479,13 +4453,13 @@ function ViewUserModal({ user, onClose }: { user: Profile; onClose: () => void }
               </div>
             </div>
             <div>
-              <label className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-wide block mb-1">
+              <label className={MODAL_LABEL_CLASS}>
                 Phone
               </label>
               <p className="text-sm text-[#0d1f3c]">{user.phone || "Not provided"}</p>
             </div>
             <div>
-              <label className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-wide block mb-1">
+              <label className={MODAL_LABEL_CLASS}>
                 City
               </label>
               <p className="text-sm text-[#0d1f3c]">{user.city || "Not provided"}</p>
@@ -4495,7 +4469,7 @@ function ViewUserModal({ user, onClose }: { user: Profile; onClose: () => void }
           {/* Address */}
           {user.address && (
             <div>
-              <label className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-wide block mb-1">
+              <label className={MODAL_LABEL_CLASS}>
                 Address
               </label>
               <p className="text-sm text-[#0d1f3c]">{user.address}</p>
@@ -4505,7 +4479,7 @@ function ViewUserModal({ user, onClose }: { user: Profile; onClose: () => void }
           {/* Date of Birth */}
           {user.date_of_birth && (
             <div>
-              <label className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-wide block mb-1">
+              <label className={MODAL_LABEL_CLASS}>
                 Date of Birth
               </label>
               <p className="text-sm text-[#0d1f3c]">
@@ -4517,13 +4491,13 @@ function ViewUserModal({ user, onClose }: { user: Profile; onClose: () => void }
           {/* Timestamps */}
           <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#e8e4dc]">
             <div>
-              <label className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-wide block mb-1">
+              <label className={MODAL_LABEL_CLASS}>
                 Account Created
               </label>
               <p className="text-sm text-[#0d1f3c]">{new Date(user.created_at).toLocaleString()}</p>
             </div>
             <div>
-              <label className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-wide block mb-1">
+              <label className={MODAL_LABEL_CLASS}>
                 Last Updated
               </label>
               <p className="text-sm text-[#0d1f3c]">{new Date(user.updated_at).toLocaleString()}</p>
@@ -4532,16 +4506,12 @@ function ViewUserModal({ user, onClose }: { user: Profile; onClose: () => void }
 
           {/* Close Button */}
           <div className="pt-4">
-            <button
-              onClick={onClose}
-              className="w-full bg-[#0d1f3c] hover:bg-[#162d52] text-white text-sm font-semibold py-3 rounded transition-colors"
-            >
+            <button onClick={onClose} className={`w-full ${MODAL_BUTTON_PRIMARY_CLASS}`}>
               Close
             </button>
           </div>
-        </div>
-      </div>
-    </div>
+      </ModalBody>
+    </Modal>
   );
 }
 
@@ -4681,35 +4651,23 @@ function EditUserModal({
       .join(" ") + (form.suffix.trim() ? `, ${form.suffix.trim()}` : "");
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/50 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-white rounded-2xl w-full max-w-lg border border-[#e8e4dc] shadow-xl my-8 flex flex-col max-h-[calc(100vh-4rem)]">
-        {/* Header: who is being edited, not just "Edit User" — the old modal
-            never said whose account the form belonged to. */}
-        <div className="bg-[#0d1f3c] rounded-t-2xl px-6 py-5 flex items-center gap-4">
-          <div className="w-11 h-11 rounded-full bg-[#c9a84c]/15 border border-[#c9a84c]/40 flex items-center justify-center flex-shrink-0">
-            <span className="font-serif text-lg font-bold text-[#c9a84c]">
-              {(user.first_name || user.full_name || "?").trim().charAt(0).toUpperCase()}
-            </span>
-          </div>
-          <div className="min-w-0 flex-1">
-            <h2 className="font-serif text-lg font-bold text-white leading-tight truncate">
-              Edit Account
-            </h2>
-            <p className="text-xs text-white/60 truncate">
-              {user.full_name} · {user.email}
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            aria-label="Close"
-            className="text-white/40 hover:text-white text-2xl leading-none flex-shrink-0"
-          >
-            ×
-          </button>
-        </div>
+    <Modal
+      open
+      onClose={onClose}
+      size="lg"
+      labelledBy="edit-user-title"
+      dismissible={!loading}
+    >
+      <ModalHeader
+        title="Edit Account"
+        titleId="edit-user-title"
+        description={`${user.full_name} · ${user.email}`}
+        onClose={onClose}
+        closeDisabled={loading}
+      />
 
-        <form onSubmit={handleSubmit} className="flex flex-col min-h-0 flex-1">
-          <div className="p-6 sm:p-7 overflow-y-auto space-y-6">
+      <form onSubmit={handleSubmit}>
+        <ModalBody className="p-6 sm:p-7 space-y-6 max-h-[60vh] overflow-y-auto">
             {/* Identity */}
             <div>
               <h3 className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-widest mb-3">
@@ -4719,7 +4677,7 @@ function EditUserModal({
                 so the form edits the parts rather than the derived field. */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                  <label className={MODAL_LABEL_CLASS}>
                     Honorific
                   </label>
                   <input
@@ -4728,11 +4686,11 @@ function EditUserModal({
                     onChange={(e) => setForm({ ...form, honorific: e.target.value })}
                     disabled={loading}
                     placeholder="Atty."
-                    className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                    className={MODAL_INPUT_CLASS}
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                  <label className={MODAL_LABEL_CLASS}>
                     Nickname
                   </label>
                   <input
@@ -4740,11 +4698,11 @@ function EditUserModal({
                     value={form.nickname}
                     onChange={(e) => setForm({ ...form, nickname: e.target.value })}
                     disabled={loading}
-                    className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                    className={MODAL_INPUT_CLASS}
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                  <label className={MODAL_LABEL_CLASS}>
                     First Name *
                   </label>
                   <input
@@ -4753,11 +4711,11 @@ function EditUserModal({
                     onChange={(e) => setForm({ ...form, firstName: e.target.value })}
                     disabled={loading}
                     required
-                    className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                    className={MODAL_INPUT_CLASS}
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                  <label className={MODAL_LABEL_CLASS}>
                     Middle Name
                   </label>
                   <input
@@ -4765,11 +4723,11 @@ function EditUserModal({
                     value={form.middleName}
                     onChange={(e) => setForm({ ...form, middleName: e.target.value })}
                     disabled={loading}
-                    className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                    className={MODAL_INPUT_CLASS}
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                  <label className={MODAL_LABEL_CLASS}>
                     Last Name *
                   </label>
                   <input
@@ -4778,11 +4736,11 @@ function EditUserModal({
                     onChange={(e) => setForm({ ...form, lastName: e.target.value })}
                     disabled={loading}
                     required
-                    className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                    className={MODAL_INPUT_CLASS}
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                  <label className={MODAL_LABEL_CLASS}>
                     Suffix
                   </label>
                   <input
@@ -4791,7 +4749,7 @@ function EditUserModal({
                     onChange={(e) => setForm({ ...form, suffix: e.target.value })}
                     disabled={loading}
                     placeholder="Jr., III"
-                    className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                    className={MODAL_INPUT_CLASS}
                   />
                 </div>
               </div>
@@ -4807,7 +4765,7 @@ function EditUserModal({
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                  <label className={MODAL_LABEL_CLASS}>
                     Phone
                   </label>
                   <input
@@ -4815,11 +4773,11 @@ function EditUserModal({
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
                     disabled={loading}
-                    className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                    className={MODAL_INPUT_CLASS}
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                  <label className={MODAL_LABEL_CLASS}>
                     City
                   </label>
                   <input
@@ -4827,11 +4785,11 @@ function EditUserModal({
                     value={form.city}
                     onChange={(e) => setForm({ ...form, city: e.target.value })}
                     disabled={loading}
-                    className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                    className={MODAL_INPUT_CLASS}
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                  <label className={MODAL_LABEL_CLASS}>
                     Address
                   </label>
                   <input
@@ -4839,7 +4797,7 @@ function EditUserModal({
                     value={form.address}
                     onChange={(e) => setForm({ ...form, address: e.target.value })}
                     disabled={loading}
-                    className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                    className={MODAL_INPUT_CLASS}
                   />
                 </div>
               </div>
@@ -4853,7 +4811,7 @@ function EditUserModal({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Role */}
                 <div>
-                  <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                  <label className={MODAL_LABEL_CLASS}>
                     Role *
                   </label>
                   <select
@@ -4866,7 +4824,7 @@ function EditUserModal({
                       })
                     }
                     disabled={loading || isLastAdmin}
-                    className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                    className={MODAL_INPUT_CLASS}
                   >
                     <option value="client">Client</option>
                     <option value="lawyer">Lawyer</option>
@@ -4877,14 +4835,14 @@ function EditUserModal({
                 {/* Position at the firm (lawyers & staff) */}
                 {form.role !== "client" && (
                   <div>
-                    <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                    <label className={MODAL_LABEL_CLASS}>
                       Position at the Firm
                     </label>
                     <select
                       value={form.position}
                       onChange={(e) => setForm({ ...form, position: e.target.value })}
                       disabled={loading}
-                      className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                      className={MODAL_INPUT_CLASS}
                     >
                       <option value="">Select position…</option>
                       {LAW_FIRM_POSITIONS.map((p) => (
@@ -4906,10 +4864,9 @@ function EditUserModal({
 
             {/* Error message */}
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
-                <span className="text-red-500 text-sm">⚠️</span>
-                <p className="text-red-700 text-xs leading-relaxed">{error}</p>
-              </div>
+              <p role="alert" className={MODAL_ERROR_CLASS}>
+                {error}
+              </p>
             )}
 
             {/* Note about email */}
@@ -4918,29 +4875,28 @@ function EditUserModal({
                 ℹ️ Email address cannot be changed. Contact support if email change is required.
               </p>
             </div>
-          </div>
+        </ModalBody>
 
-          {/* Action bar, pinned under the scroll area so Save is always reachable */}
-          <div className="border-t border-[#e8e4dc] px-6 py-4 flex gap-3 bg-white rounded-b-2xl">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={loading}
-              className="flex-1 border border-[#e8e4dc] text-[#0d1f3c] text-sm font-medium py-3 rounded transition-colors hover:bg-[#f7f5f0] disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 bg-[#0d1f3c] hover:bg-[#162d52] text-white text-sm font-semibold py-3 rounded transition-colors disabled:opacity-50"
-            >
-              {loading ? "Saving…" : "Save Changes"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        {/* Action bar, pinned under the scroll area so Save is always reachable */}
+        <ModalFooter className="border-t border-[#e8e4dc] px-6 py-4 flex gap-3 bg-white">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            className={`flex-1 ${MODAL_BUTTON_SECONDARY_CLASS}`}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className={`flex-1 ${MODAL_BUTTON_PRIMARY_CLASS}`}
+          >
+            {loading ? "Saving…" : "Save Changes"}
+          </button>
+        </ModalFooter>
+      </form>
+    </Modal>
   );
 }
 
@@ -5075,18 +5031,20 @@ function ManageUserModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl w-full max-w-md border border-[#e8e4dc] shadow-xl">
-        <div className="bg-[#0d1f3c] rounded-t-2xl p-6 flex items-center justify-between">
-          <h2 className="font-serif text-xl font-bold text-white">Manage User</h2>
-          <button
-            onClick={onClose}
-            className="text-white/40 hover:text-white text-2xl leading-none"
-          >
-            ×
-          </button>
-        </div>
-        <div className="p-7 space-y-6">
+    <Modal
+      open
+      onClose={onClose}
+      size="md"
+      labelledBy="manage-user-title"
+      dismissible={!loading}
+    >
+      <ModalHeader
+        title="Manage User"
+        titleId="manage-user-title"
+        onClose={onClose}
+        closeDisabled={loading}
+      />
+      <ModalBody className="p-7 space-y-6">
           {/* User Info */}
           <div className="pb-4 border-b border-[#e8e4dc]">
             <p className="text-lg font-bold text-[#0d1f3c]">{user.full_name}</p>
@@ -5100,14 +5058,14 @@ function ManageUserModal({
           {!showDeactivateConfirm && (
             <>
               <div>
-                <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-2">
+                <label className={MODAL_LABEL_CLASS}>
                   Change User Role
                 </label>
                 <select
                   value={selectedRole}
                   onChange={(e) => setSelectedRole(e.target.value as "client" | "lawyer" | "admin")}
                   disabled={loading || isLastAdmin}
-                  className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                  className={MODAL_INPUT_CLASS}
                 >
                   <option value="client">Client</option>
                   <option value="lawyer">Lawyer</option>
@@ -5122,7 +5080,7 @@ function ManageUserModal({
                 <button
                   onClick={handleRoleChange}
                   disabled={loading || selectedRole === user.role || isLastAdmin}
-                  className="w-full mt-3 bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] text-sm font-semibold py-2.5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full mt-3 bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] text-sm font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? "Updating..." : "Update Role"}
                 </button>
@@ -5130,7 +5088,7 @@ function ManageUserModal({
 
               {/* Deactivate Section */}
               <div className="pt-4 border-t border-[#e8e4dc]">
-                <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-2">
+                <label className={MODAL_LABEL_CLASS}>
                   Account Actions
                 </label>
                 {isInactive ? (
@@ -5143,7 +5101,7 @@ function ManageUserModal({
                     <button
                       onClick={handleReactivate}
                       disabled={loading}
-                      className="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-sm font-semibold py-2.5 rounded border border-emerald-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-sm font-semibold py-3 rounded-lg border border-emerald-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {loading ? "Reactivating..." : "Reactivate Account"}
                     </button>
@@ -5153,7 +5111,7 @@ function ManageUserModal({
                     <button
                       onClick={() => setShowDeactivateConfirm(true)}
                       disabled={loading || isLastAdmin}
-                      className="w-full bg-amber-50 hover:bg-amber-100 text-amber-700 text-sm font-semibold py-2.5 rounded border border-amber-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full bg-amber-50 hover:bg-amber-100 text-amber-700 text-sm font-semibold py-3 rounded-lg border border-amber-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Deactivate Account
                     </button>
@@ -5186,14 +5144,14 @@ function ManageUserModal({
                 <button
                   onClick={() => setShowDeactivateConfirm(false)}
                   disabled={loading}
-                  className="flex-1 border border-[#e8e4dc] text-[#0d1f3c] text-sm font-medium py-3 rounded transition-colors hover:bg-[#f7f5f0] disabled:opacity-50"
+                  className={`flex-1 ${MODAL_BUTTON_SECONDARY_CLASS}`}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDeactivate}
                   disabled={loading}
-                  className="flex-1 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold py-3 rounded transition-colors disabled:opacity-50"
+                  className="flex-1 inline-flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold py-3 rounded-lg transition-all duration-200 hover:shadow-[0_8px_24px_-4px_rgb(217_119_6/0.4)] active:scale-[0.99] disabled:opacity-40 disabled:pointer-events-none"
                 >
                   {loading ? "Deactivating..." : "Deactivate"}
                 </button>
@@ -5203,10 +5161,9 @@ function ManageUserModal({
 
           {/* Error message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
-              <span className="text-red-500 text-sm">⚠️</span>
-              <p className="text-red-700 text-xs leading-relaxed">{error}</p>
-            </div>
+            <p role="alert" className={MODAL_ERROR_CLASS}>
+              {error}
+            </p>
           )}
 
           {/* Close button (when not in deactivate confirm) */}
@@ -5215,15 +5172,14 @@ function ManageUserModal({
               <button
                 onClick={onClose}
                 disabled={loading}
-                className="w-full border border-[#e8e4dc] text-[#0d1f3c] text-sm font-medium py-3 rounded transition-colors hover:bg-[#f7f5f0] disabled:opacity-50"
+                className={`w-full ${MODAL_BUTTON_SECONDARY_CLASS}`}
               >
                 Close
               </button>
             </div>
           )}
-        </div>
-      </div>
-    </div>
+      </ModalBody>
+    </Modal>
   );
 }
 
@@ -5381,22 +5337,18 @@ function CreateUserModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/50 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-white rounded-2xl w-full max-w-md border border-[#e8e4dc] shadow-xl my-8">
-        <div className="bg-[#0d1f3c] rounded-t-2xl p-6 flex items-center justify-between">
-          <h2 className="font-serif text-xl font-bold text-white">Add User Account</h2>
-          <button
-            onClick={onClose}
-            className="text-white/40 hover:text-white text-2xl leading-none"
-          >
-            ×
-          </button>
-        </div>
-        <div className="p-7">
-          <form onSubmit={handleSubmit} className="space-y-4">
+    <Modal open onClose={onClose} size="md" labelledBy="create-user-title" dismissible={!loading}>
+      <ModalHeader
+        title="Add User Account"
+        titleId="create-user-title"
+        onClose={onClose}
+        closeDisabled={loading}
+      />
+      <ModalBody className="p-7">
+        <form onSubmit={handleSubmit} className="space-y-4">
             {/* Full Name */}
             <div>
-              <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+              <label className={MODAL_LABEL_CLASS}>
                 Full Name *
               </label>
               <input
@@ -5404,14 +5356,14 @@ function CreateUserModal({
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 disabled={loading}
-                className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                className={MODAL_INPUT_CLASS}
                 placeholder="Enter full name"
               />
             </div>
 
             {/* Email */}
             <div>
-              <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+              <label className={MODAL_LABEL_CLASS}>
                 Email Address *
               </label>
               <input
@@ -5419,14 +5371,14 @@ function CreateUserModal({
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 disabled={loading}
-                className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                className={MODAL_INPUT_CLASS}
                 placeholder="user@example.com"
               />
             </div>
 
             {/* Password */}
             <div>
-              <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+              <label className={MODAL_LABEL_CLASS}>
                 Password *
               </label>
               <div className="relative">
@@ -5435,7 +5387,7 @@ function CreateUserModal({
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   disabled={loading}
-                  className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50 pr-10"
+                  className={`${MODAL_INPUT_CLASS} pr-10`}
                   placeholder="Minimum 6 characters"
                 />
                 <button
@@ -5451,7 +5403,7 @@ function CreateUserModal({
 
             {/* Confirm Password */}
             <div>
-              <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+              <label className={MODAL_LABEL_CLASS}>
                 Confirm Password *
               </label>
               <div className="relative">
@@ -5460,7 +5412,7 @@ function CreateUserModal({
                   value={form.confirmPassword}
                   onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
                   disabled={loading}
-                  className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50 pr-10"
+                  className={`${MODAL_INPUT_CLASS} pr-10`}
                   placeholder="Re-enter password"
                 />
                 <button
@@ -5476,7 +5428,7 @@ function CreateUserModal({
 
             {/* Phone */}
             <div>
-              <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+              <label className={MODAL_LABEL_CLASS}>
                 Phone (optional)
               </label>
               <input
@@ -5484,14 +5436,14 @@ function CreateUserModal({
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 disabled={loading}
-                className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                className={MODAL_INPUT_CLASS}
                 placeholder="+63 9XX XXX XXXX"
               />
             </div>
 
             {/* Role */}
             <div>
-              <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+              <label className={MODAL_LABEL_CLASS}>
                 Role *
               </label>
               <select
@@ -5504,7 +5456,7 @@ function CreateUserModal({
                   })
                 }
                 disabled={loading}
-                className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                className={MODAL_INPUT_CLASS}
               >
                 <option value="client">Client</option>
                 <option value="lawyer">Lawyer</option>
@@ -5515,14 +5467,14 @@ function CreateUserModal({
             {/* Position at the firm (lawyers & staff) */}
             {form.role !== "client" && (
               <div>
-                <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                <label className={MODAL_LABEL_CLASS}>
                   Position at the Firm
                 </label>
                 <select
                   value={form.position}
                   onChange={(e) => setForm({ ...form, position: e.target.value })}
                   disabled={loading}
-                  className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                  className={MODAL_INPUT_CLASS}
                 >
                   <option value="">Select position…</option>
                   {LAW_FIRM_POSITIONS.map((p) => (
@@ -5539,10 +5491,9 @@ function CreateUserModal({
 
             {/* Error message */}
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
-                <span className="text-red-500 text-sm">⚠️</span>
-                <p className="text-red-700 text-xs leading-relaxed">{error}</p>
-              </div>
+              <p role="alert" className={MODAL_ERROR_CLASS}>
+                {error}
+              </p>
             )}
 
             {/* Security note */}
@@ -5559,22 +5510,21 @@ function CreateUserModal({
                 type="button"
                 onClick={onClose}
                 disabled={loading}
-                className="flex-1 border border-[#e8e4dc] text-[#0d1f3c] text-sm font-medium py-3 rounded transition-colors hover:bg-[#f7f5f0] disabled:opacity-50"
+                className={`flex-1 ${MODAL_BUTTON_SECONDARY_CLASS}`}
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-[#0d1f3c] hover:bg-[#162d52] text-white text-sm font-semibold py-3 rounded transition-colors disabled:opacity-50"
+                className={`flex-1 ${MODAL_BUTTON_PRIMARY_CLASS}`}
               >
                 {loading ? "Creating..." : "Create Account"}
               </button>
             </div>
-          </form>
-        </div>
-      </div>
-    </div>
+        </form>
+      </ModalBody>
+    </Modal>
   );
 }
 
