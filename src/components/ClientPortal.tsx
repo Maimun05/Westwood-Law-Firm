@@ -4079,7 +4079,7 @@ function AdminPortalView({
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-3">
                             <img
-                              src={l.profile_image ?? ""}
+                              src={l.profile_image || "/lawyers/placeholder.svg"}
                               alt={l.full_name}
                               className="w-8 h-8 rounded-full object-cover object-top"
                             />
