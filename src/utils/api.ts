@@ -16,6 +16,8 @@ export type InquiryPayload = {
   method?: string;
   message: string;
   practiceArea?: string;
+  /** Registration flow only: the seminar this inquiry is for. */
+  seminarId?: string;
 };
 
 // Signed-out visitors' inquiries are emailed to the firm and hidden from
@@ -55,6 +57,10 @@ export async function submitInquiry(data: InquiryPayload, options?: { notifyFirm
       p_method: data.method || null,
       p_message: data.message,
       p_subject: data.concern || null,
+      // Null for every form but seminar registration. The RPC refuses an id
+      // that is not in seminar_events, so a stale page cannot file a
+      // registration against a delisted seminar.
+      p_seminar_id: data.seminarId || null,
     });
 
     if (error) throw error;

@@ -81,6 +81,10 @@ const MIGRATIONS = [
     file: "20261012_admin_view_only_documents.sql",
     note: "admins become view-only on documents: no table or storage uploads, deletes uploader-only",
   },
+  {
+    file: "20261013_seminar_registrations.sql",
+    note: "seminar registrations get inquiries.seminar_id + submit_inquiry(p_seminar_id); seminar_email_log for the admin bulk email",
+  },
 ];
 
 const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the practice areas created
@@ -90,13 +94,18 @@ const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the p
 -- rewrites the policies the earlier files leave behind. 20261007 swaps the
 -- content tables' admin policies for the private.is_admin() helper, so it runs
 -- after 20261003 installs it. 20261008 references public.inquiries, which
--- 20261006's RPC populates, and private.is_lawyer_or_admin(), so it runs last.`;
+-- 20261006's RPC populates, and private.is_lawyer_or_admin(), so it runs last
+-- of the originals. 20261013 replaces the submit_inquiry that 20261006 creates,
+-- so it runs after 20261006, and it backfills from the rows that RPC wrote.`;
 
 const VERIFICATION = `-- ############################################################################
 -- ## VERIFICATION  —  read the result grid, not the "Success" toast
 -- ############################################################################
 -- Every row in the first result should say present = true.
 -- The second result shows row counts; content tables must not be 0.
+-- The last row of the second result counts seminar registrations that the
+-- backfill managed to link — 0 is fine if the seminars were never registered
+-- for, or if no message text matched a listed title exactly.
 -- The third result is security checks; every one must read PASS.
 
 SELECT 'public_lawyers view'        AS object, to_regclass('public.public_lawyers')                IS NOT NULL AS present
@@ -123,7 +132,14 @@ UNION ALL SELECT 'inquiry-attachments bucket',  EXISTS (SELECT 1 FROM storage.bu
 UNION ALL SELECT 'inquiries.firm_notified_at',  EXISTS (SELECT 1 FROM information_schema.columns
                                                  WHERE table_schema='public' AND table_name='inquiries'
                                                    AND column_name='firm_notified_at')
-UNION ALL SELECT 'service_role UPDATE inquiries', has_table_privilege('service_role', 'public.inquiries', 'UPDATE');
+UNION ALL SELECT 'service_role UPDATE inquiries', has_table_privilege('service_role', 'public.inquiries', 'UPDATE')
+UNION ALL SELECT 'inquiries.seminar_id column',  EXISTS (SELECT 1 FROM information_schema.columns
+                                                 WHERE table_schema='public' AND table_name='inquiries'
+                                                   AND column_name='seminar_id')
+UNION ALL SELECT 'inquiries_seminar_id_idx',     to_regclass('public.inquiries_seminar_id_idx')      IS NOT NULL
+UNION ALL SELECT 'submit_inquiry() 8-arg',       to_regprocedure('public.submit_inquiry(text,text,text,text,text,text,text,text)') IS NOT NULL
+UNION ALL SELECT 'old 7-arg submit_inquiry gone', to_regprocedure('public.submit_inquiry(text,text,text,text,text,text,text)') IS NULL
+UNION ALL SELECT 'seminar_email_log table',      to_regclass('public.seminar_email_log')             IS NOT NULL;
 
 SELECT 'practice_areas' AS table_name, count(*) AS rows FROM public.practice_areas
 UNION ALL SELECT 'articles',            count(*) FROM public.articles
@@ -133,7 +149,8 @@ UNION ALL SELECT 'seminar_events',      count(*) FROM public.seminar_events
 UNION ALL SELECT 'corporate_clients',   count(*) FROM public.corporate_clients
 UNION ALL SELECT 'retainer_packages',   count(*) FROM public.retainer_packages
 UNION ALL SELECT 'profiles (lawyers)',  count(*) FROM public.profiles WHERE role = 'lawyer'
-UNION ALL SELECT 'public_lawyers view', count(*) FROM public.public_lawyers;
+UNION ALL SELECT 'public_lawyers view', count(*) FROM public.public_lawyers
+UNION ALL SELECT 'inquiries linked to a seminar', count(*) FROM public.inquiries WHERE seminar_id IS NOT NULL;
 
 -- Security checks: every row must read PASS.
 --
@@ -281,7 +298,20 @@ UNION ALL SELECT 'the documents bucket refuses admin uploads',
                          WHERE schemaname = 'storage' AND tablename = 'objects'
                            AND policyname = 'documents_storage_insert'
                            AND with_check LIKE '%is_admin%')
-            THEN 'PASS' ELSE 'FAIL' END;
+            THEN 'PASS' ELSE 'FAIL' END
+UNION ALL SELECT 'anon can still submit inquiries',
+       CASE WHEN to_regprocedure('public.submit_inquiry(text,text,text,text,text,text,text,text)') IS NULL THEN 'FAIL'
+            WHEN has_function_privilege('anon', 'public.submit_inquiry(text,text,text,text,text,text,text,text)', 'EXECUTE')
+            THEN 'PASS' ELSE 'FAIL' END
+UNION ALL SELECT 'seminar_email_log is admin-read-only',
+       CASE WHEN to_regclass('public.seminar_email_log') IS NULL THEN 'FAIL'
+            WHEN NOT (SELECT relrowsecurity FROM pg_class WHERE oid = to_regclass('public.seminar_email_log')) THEN 'FAIL'
+            WHEN has_table_privilege('anon', 'public.seminar_email_log', 'SELECT') THEN 'FAIL'
+            WHEN has_table_privilege('authenticated', 'public.seminar_email_log', 'INSERT') THEN 'FAIL'
+            WHEN NOT EXISTS (SELECT 1 FROM pg_policies
+                             WHERE schemaname = 'public' AND tablename = 'seminar_email_log'
+                               AND policyname = 'seminar_email_log_select_admin')
+            THEN 'FAIL' ELSE 'PASS' END;
 `;
 
 const bar = (ch) => ch.repeat(76);
