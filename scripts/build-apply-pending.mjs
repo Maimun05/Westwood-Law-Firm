@@ -89,6 +89,10 @@ const MIGRATIONS = [
     file: "20261014_audit_log_browser_writes.sql",
     note: "the live audit_logs 403: grants + INSERT/SELECT policies for the browser audit path",
   },
+  {
+    file: "20261015_matter_notes_encryption.sql",
+    note: "encrypt matter_notes.body at rest via Vault; read via public.matter_notes_thread",
+  },
 ];
 
 const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the practice areas created
@@ -102,7 +106,10 @@ const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the p
 -- of the originals. 20261013 replaces the submit_inquiry that 20261006 creates,
 -- so it runs after 20261006, and it backfills from the rows that RPC wrote.
 -- 20261014 re-asserts the audit_logs policies for the browser write path and
--- calls private.is_admin(), so it runs after 20261003 installs that helper.`;
+-- calls private.is_admin(), so it runs after 20261003 installs that helper.
+-- 20261015 encrypts matter_notes.body and replaces private.on_matter_note_insert()
+-- once more (20261001 creates it, 20261004 rewrites it), so it runs after
+-- 20261004 and after 20261005's grants.`;
 
 const VERIFICATION = `-- ############################################################################
 -- ## VERIFICATION  —  read the result grid, not the "Success" toast
@@ -154,7 +161,14 @@ UNION ALL SELECT 'audit_logs own-rows select',   EXISTS (SELECT 1 FROM pg_polici
 UNION ALL SELECT 'audit_logs admin select',      EXISTS (SELECT 1 FROM pg_policies
                                                  WHERE schemaname='public' AND tablename='audit_logs'
                                                    AND policyname='audit_logs_select_admin_policy')
-UNION ALL SELECT 'seminar_email_log table',      to_regclass('public.seminar_email_log')             IS NOT NULL;
+UNION ALL SELECT 'seminar_email_log table',      to_regclass('public.seminar_email_log')             IS NOT NULL
+UNION ALL SELECT 'matter_notes_thread view',     to_regclass('public.matter_notes_thread')           IS NOT NULL
+UNION ALL SELECT 'matter_notes.body_encrypted',  EXISTS (SELECT 1 FROM information_schema.columns
+                                                 WHERE table_schema='public' AND table_name='matter_notes'
+                                                   AND column_name='body_encrypted')
+UNION ALL SELECT 'matter_notes_encrypt trigger', EXISTS (SELECT 1 FROM pg_trigger
+                                                 WHERE tgname='matter_notes_encrypt')
+UNION ALL SELECT 'private.matter_note_key()',    to_regprocedure('private.matter_note_key()')         IS NOT NULL;
 
 SELECT 'practice_areas' AS table_name, count(*) AS rows FROM public.practice_areas
 UNION ALL SELECT 'articles',            count(*) FROM public.articles
@@ -334,6 +348,19 @@ UNION ALL SELECT 'the audit trail accepts browser writes and is append-only for 
             WHEN has_table_privilege('anon', 'public.audit_logs', 'SELECT') THEN 'FAIL'
             WHEN has_table_privilege('authenticated', 'public.audit_logs', 'UPDATE')
               OR has_table_privilege('authenticated', 'public.audit_logs', 'DELETE')
+            THEN 'FAIL' ELSE 'PASS' END
+UNION ALL SELECT 'no matter message is stored as plain text',
+       CASE WHEN EXISTS (SELECT 1 FROM public.matter_notes WHERE NOT body_encrypted)
+            THEN 'FAIL' ELSE 'PASS' END
+UNION ALL SELECT 'the matter read view is security_invoker',
+       CASE WHEN EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+                         WHERE n.nspname = 'public' AND c.relname = 'matter_notes_thread'
+                           AND EXISTS (SELECT 1 FROM unnest(COALESCE(c.reloptions, '{}'::text[])) o
+                                       WHERE o = 'security_invoker=true'))
+            THEN 'PASS' ELSE 'FAIL' END
+UNION ALL SELECT 'a client cannot read the matter-notes key',
+       CASE WHEN to_regprocedure('private.matter_note_key()') IS NULL THEN 'FAIL'
+            WHEN has_function_privilege('authenticated', 'private.matter_note_key()', 'EXECUTE')
             THEN 'FAIL' ELSE 'PASS' END;
 `;
 

@@ -102,6 +102,33 @@ CREATE TABLE IF NOT EXISTS storage.objects (
   name TEXT, owner_id TEXT, metadata JSONB, created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Supabase Vault, for 20261015. The real extension encrypts secrets with a root
+-- key held outside the database; this stub stores them in plain text, which is
+-- enough to exercise the wrapper/RLS path but proves nothing about the real
+-- encryption. 20261015's preflight refuses to run without these objects, so
+-- without the stub the whole chain (and the combined paste file) aborts.
+CREATE SCHEMA IF NOT EXISTS vault;
+CREATE TABLE IF NOT EXISTS vault.secrets (
+  id UUID PRIMARY KEY DEFAULT extensions.gen_random_uuid(),
+  name TEXT UNIQUE,
+  secret TEXT,
+  description TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE OR REPLACE VIEW vault.decrypted_secrets AS
+  SELECT id, name, description, secret AS decrypted_secret, created_at
+  FROM vault.secrets;
+CREATE OR REPLACE FUNCTION vault.create_secret(
+  new_secret TEXT, new_name TEXT DEFAULT NULL, new_description TEXT DEFAULT NULL
+) RETURNS UUID LANGUAGE plpgsql AS $$
+DECLARE v UUID;
+BEGIN
+  INSERT INTO vault.secrets(name, secret, description)
+  VALUES (new_name, new_secret, new_description)
+  RETURNING id INTO v;
+  RETURN v;
+END $$;
+
 -- Supabase grants anon/authenticated/service_role blanket table privileges in
 -- public and lets RLS be the only gate. Without this the harness reports
 -- "permission denied for table X" for every insert and the RLS assertions are
@@ -111,7 +138,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authen
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO anon, authenticated, service_role;
 SQL
 [ $? -eq 0 ] || { echo "  stub failed"; exit 1; }
-echo "  roles, auth schema, storage schema, pgcrypto"
+echo "  roles, auth schema, storage schema, pgcrypto, vault stub"
 
 echo "== 3. Base schema =="
 $PSQL -f "$REPO/supabase/schema-production.sql" >/dev/null 2>"$WORKDIR/base.err"
@@ -832,6 +859,81 @@ grants_ok "audit_logs is append-only for authenticated and closed to anon" \
       AND NOT has_table_privilege('anon', 'public.audit_logs', 'SELECT')
       AND NOT has_table_privilege('anon', 'public.audit_logs', 'INSERT');" \
   "t"
+
+echo
+echo "== 6e. Matter messages are encrypted at rest =="
+# 20261015. body is stored as base64 ciphertext; the only plain-text copy of a
+# message is the 140-char preview the notification trigger writes (asserted in
+# section 6 already). The read view must decrypt for an authorized caller and
+# expose nothing to a non-member, and the key must be unreachable.
+PLAIN=$($PSQL -tA -c "SELECT count(*) FROM public.matter_notes
+                      WHERE matter_id = '$M_CLIENT'
+                        AND body = 'Hello, I have a question.';" 2>&1 | tr -d '[:space:]')
+if [ "$PLAIN" = "0" ]; then
+  pass "no matter message is stored as plain text"
+else
+  fail "a matter message is still stored as plain text (got '$PLAIN')"
+fi
+
+ENC=$($PSQL -tA -c "SELECT count(*) FROM public.matter_notes
+                    WHERE matter_id = '$M_CLIENT' AND body_encrypted;" 2>&1 | tr -d '[:space:]')
+ALL=$($PSQL -tA -c "SELECT count(*) FROM public.matter_notes WHERE matter_id = '$M_CLIENT';" 2>&1 | tr -d '[:space:]')
+if [ "$ENC" = "$ALL" ] && [ "$ALL" != "0" ]; then
+  pass "every note on the matter is marked encrypted ($ENC/$ALL)"
+else
+  fail "not every note is marked encrypted (got $ENC/$ALL)"
+fi
+
+DEC=$($PSQL -tA -c "SET request.jwt.claim.sub = '$LAWYER'; SET ROLE authenticated;
+  SELECT count(*) FROM public.matter_notes_thread
+  WHERE matter_id = '$M_CLIENT' AND body = 'Hello, I have a question.';" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "$DEC" = "1" ]; then
+  pass "the read view decrypts the message for the assigned lawyer"
+else
+  fail "the read view did not decrypt the message (got '$DEC')"
+fi
+
+GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$CLIENT'; SET ROLE authenticated;
+  SELECT count(*) FROM public.matter_notes_thread
+  WHERE matter_id = '$M_CLIENT' AND body = 'Hello, I have a question.';" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "$GOT" = "1" ]; then
+  pass "the client reads their own message decrypted"
+else
+  fail "the client cannot read their own message (got '$GOT')"
+fi
+
+GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$STRANGER'; SET ROLE authenticated;
+  SELECT count(*) FROM public.matter_notes_thread WHERE matter_id = '$M_CLIENT';" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "$GOT" = "0" ]; then
+  pass "a stranger sees no rows through the read view"
+else
+  fail "a stranger sees rows through the read view (got '$GOT')"
+fi
+
+grants_ok "authenticated can decrypt, but cannot read the key" \
+  "SELECT has_function_privilege('authenticated', 'private.decrypt_matter_note(text)', 'EXECUTE')
+      AND NOT has_function_privilege('authenticated', 'private.matter_note_key()', 'EXECUTE');" \
+  "t"
+
+can_exec "a client CANNOT read the matter-notes key" authenticated "$CLIENT" deny "private.matter_note_key()"
+
+# Idempotency: re-applying the migration must NOT double-encrypt. The backfill
+# only touches rows with body_encrypted = false, so the stored message has to
+# still decrypt to its original text afterwards.
+if $PSQL -f "$REPO/supabase/migrations/20261015_matter_notes_encryption.sql" \
+     >/dev/null 2>"$WORKDIR/enc.err"; then
+  DEC2=$($PSQL -tA -c "SET request.jwt.claim.sub = '$CLIENT'; SET ROLE authenticated;
+    SELECT count(*) FROM public.matter_notes_thread
+    WHERE matter_id = '$M_CLIENT' AND body = 'Hello, I have a question.';" 2>&1 | tail -1 | tr -d '[:space:]')
+  if [ "$DEC2" = "1" ]; then
+    pass "re-applying 20261015 does not double-encrypt the stored message"
+  else
+    fail "re-applying 20261015 broke the stored message (got '$DEC2')"
+  fi
+else
+  fail "20261015 could not be re-applied on its own"
+  grep -i error "$WORKDIR/enc.err" | head -3
+fi
 
 echo
 echo "== 7. Content payloads match the real columns =="
