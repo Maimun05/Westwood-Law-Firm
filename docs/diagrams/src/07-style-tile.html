@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="_base.css" />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap");
+
+      :root {
+        --ink: #0b1b35;
+        --ink-deep: #061120;
+        --brass: #a08232;
+        --brass-lt: #c49d3f;
+        --parch: #f3efe6;
+        --parch-lt: #fbf9f4;
+        --oxblood: #6b2737;
+        --rule: #e0dacd;
+        --rule-strong: #cdc4b2;
+        --muted: #7c7362;
+      }
+
+      html,
+      body {
+        background: var(--parch);
+        font-family: "EB Garamond", Georgia, serif;
+      }
+
+      .panel {
+        position: absolute;
+        background: var(--parch-lt);
+        border: 1px solid var(--rule);
+        border-radius: 4px;
+        padding: 20px 22px;
+      }
+      .panel-h {
+        font-family: "EB Garamond", serif;
+        font-size: 11.5px;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        color: var(--brass);
+        border-bottom: 1px solid var(--rule);
+        padding-bottom: 9px;
+        margin-bottom: 15px;
+      }
+      .cap {
+        font-family: Inter, sans-serif;
+        font-size: 9.5px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #9a8f7a;
+      }
+
+      /* ── Seal ── */
+      .seal-txt {
+        font-family: "EB Garamond", serif;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 2.6px;
+        fill: var(--ink);
+      }
+      .seal-note {
+        text-align: center;
+        margin-top: 10px;
+      }
+
+      /* ── Monogram ── */
+      .mono {
+        position: relative;
+        width: 92px;
+        height: 92px;
+        border: 1px solid var(--brass);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+      }
+      .mono::after {
+        content: "";
+        position: absolute;
+        inset: 5px;
+        border: 1px solid var(--brass);
+        border-radius: 50%;
+        opacity: 0.55;
+      }
+      .mono span {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 46px;
+        font-weight: 600;
+        color: var(--ink);
+        line-height: 1;
+      }
+
+      /* ── Letterhead lockup ── */
+      .lockup {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .lockup img {
+        height: 50px;
+        width: 50px;
+        object-fit: contain;
+      }
+      .lockup .wm {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        color: var(--ink);
+        line-height: 1;
+      }
+      .lockup .sub {
+        font-family: "EB Garamond", serif;
+        font-size: 9.5px;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-top: 5px;
+      }
+      .rule-double {
+        border-top: 2px solid var(--ink);
+        border-bottom: 1px solid var(--rule-strong);
+        height: 4px;
+        margin: 14px 0;
+      }
+      .colophon {
+        font-family: "EB Garamond", serif;
+        font-size: 12px;
+        color: var(--muted);
+        letter-spacing: 0.04em;
+      }
+
+      /* ── Swatches ── */
+      .sw-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+      .sw-chip {
+        height: 52px;
+        border-radius: 3px;
+        border: 1px solid rgba(11, 27, 53, 0.08);
+      }
+      .sw-nm {
+        font-family: "EB Garamond", serif;
+        font-size: 13px;
+        color: var(--ink);
+        margin-top: 6px;
+        line-height: 1.2;
+      }
+      .sw-hx {
+        font-family: Inter, sans-serif;
+        font-size: 9.5px;
+        letter-spacing: 0.08em;
+        color: #9a8f7a;
+      }
+
+      /* ── Type specimens ── */
+      .t-row {
+        padding-bottom: 8px;
+        margin-bottom: 8px;
+        border-bottom: 1px solid var(--rule);
+      }
+      .t-row:last-child {
+        border-bottom: 0;
+        margin-bottom: 0;
+        padding-bottom: 0;
+      }
+      .s-eyebrow {
+        font-family: "EB Garamond", serif;
+        font-size: 13px;
+        letter-spacing: 0.26em;
+        text-transform: uppercase;
+        color: var(--brass);
+      }
+      .s-display {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 34px;
+        font-weight: 600;
+        color: var(--ink);
+        line-height: 1.05;
+      }
+      .s-head {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--ink);
+      }
+      .s-body {
+        font-family: "EB Garamond", serif;
+        font-size: 15px;
+        line-height: 1.5;
+        color: #3a4559;
+      }
+      .s-num {
+        font-family: "EB Garamond", serif;
+        font-size: 22px;
+        color: var(--ink);
+        font-variant-numeric: oldstyle-nums;
+        font-feature-settings: "onum" 1;
+      }
+      .s-quote {
+        font-family: "EB Garamond", serif;
+        font-style: italic;
+        font-size: 17px;
+        line-height: 1.45;
+        color: var(--ink);
+        border-left: 2px solid var(--brass);
+        padding-left: 14px;
+      }
+      .s-cap {
+        font-family: Inter, sans-serif;
+        font-size: 11.5px;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+      }
+
+      /* ── Buttons ── */
+      .btn-p {
+        font-family: "EB Garamond", serif;
+        font-size: 12.5px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #fbf9f4;
+        background: var(--ink);
+        border: 1px solid var(--ink);
+        border-radius: 3px;
+        padding: 12px 22px;
+      }
+      .btn-s {
+        font-family: "EB Garamond", serif;
+        font-size: 12.5px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--ink);
+        background: transparent;
+        border: 1px solid var(--ink);
+        border-radius: 3px;
+        padding: 12px 22px;
+      }
+      .btn-g {
+        font-family: "EB Garamond", serif;
+        font-size: 12.5px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--brass);
+        background: transparent;
+        border: 1px solid var(--brass);
+        border-radius: 3px;
+        padding: 12px 22px;
+      }
+      .btn-l {
+        font-family: "EB Garamond", serif;
+        font-size: 15px;
+        color: var(--ink);
+        border-bottom: 1px solid var(--brass);
+        padding-bottom: 2px;
+      }
+
+      /* ── Tags ── */
+      .tag {
+        font-family: "EB Garamond", serif;
+        font-size: 10.5px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--ink);
+        border: 1px solid var(--rule-strong);
+        border-radius: 2px;
+        padding: 4px 9px;
+        margin-right: 8px;
+      }
+      .tag.ox {
+        color: var(--oxblood);
+        border-color: var(--oxblood);
+      }
+      .tag.br {
+        color: var(--brass);
+        border-color: var(--brass);
+      }
+
+      /* ── Spec card ── */
+      .spec-card {
+        position: relative;
+        background: #fffdf9;
+        border: 1px solid var(--rule);
+        border-radius: 3px;
+        padding: 18px 18px 16px;
+      }
+      .spec-rule {
+        height: 3px;
+        width: 42px;
+        background: var(--brass);
+        margin-bottom: 12px;
+      }
+      .spec-eyebrow {
+        font-family: "EB Garamond", serif;
+        font-size: 10px;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        color: var(--brass);
+        margin-bottom: 6px;
+      }
+      .spec-title {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--ink);
+        line-height: 1.15;
+      }
+      .spec-body {
+        font-family: "EB Garamond", serif;
+        font-size: 14px;
+        line-height: 1.6;
+        color: #3a4559;
+        margin-top: 7px;
+      }
+      .spec-meta {
+        font-family: "EB Garamond", serif;
+        font-size: 10.5px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-top: 12px;
+        border-top: 1px solid var(--rule);
+        padding-top: 10px;
+      }
+
+      /* ── Field ── */
+      .fld span {
+        display: block;
+        font-family: "EB Garamond", serif;
+        font-size: 10px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      .fld input {
+        width: 100%;
+        font-family: "EB Garamond", serif;
+        font-size: 15px;
+        color: var(--ink);
+        background: #fffdf9;
+        border: 1px solid var(--rule-strong);
+        border-radius: 3px;
+        padding: 11px 13px;
+        outline: none;
+      }
+      .fld input::placeholder {
+        color: #b3aa97;
+      }
+      .fld.focus input {
+        border-color: var(--brass);
+        box-shadow: inset 3px 0 0 var(--brass);
+      }
+
+      /* ── Rules specimen ── */
+      .rl {
+        margin-bottom: 14px;
+      }
+      .rl .line {
+        margin-bottom: 6px;
+      }
+      .hair {
+        height: 1px;
+        background: var(--brass);
+      }
+      .dbl {
+        height: 4px;
+        border-top: 2px solid var(--ink);
+        border-bottom: 1px solid var(--rule-strong);
+      }
+      .tone-note {
+        font-family: "EB Garamond", serif;
+        font-size: 13.5px;
+        line-height: 1.6;
+        color: #3a4559;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="canvas">
+      <header style="position: absolute; left: 64px; top: 40px; right: 64px">
+        <div class="eyebrow" style="color: var(--brass)">Westwood Law Firm</div>
+        <h1 class="title" style="font-family: 'Cormorant Garamond', serif">Visual Direction — Heritage / Crest</h1>
+        <div class="header-note" style="position: absolute; right: 0; top: 14px">
+          Style Tile · Proposal<br />
+          <span style="font-size: 14px">Seal · monogram · antique brass · old-style serif</span>
+        </div>
+        <div class="header-rule" style="top: 118px; background: var(--brass)"></div>
+      </header>
+
+      <!-- ── Column A ─────────────────────────────────────────────────────── -->
+      <div class="panel" style="left: 64px; top: 185px; width: 600px; height: 470px">
+        <div class="panel-h">The seal</div>
+        <div style="display: flex; justify-content: center">
+          <svg viewBox="0 0 300 300" width="368" height="368" role="img" aria-label="Proposed firm seal">
+            <defs>
+              <path id="sealTop" d="M 22,150 A 128,128 0 0 1 278,150" fill="none" />
+              <path id="sealBot" d="M 22,150 A 128,128 0 0 0 278,150" fill="none" />
+            </defs>
+            <circle cx="150" cy="150" r="146" fill="none" stroke="#a08232" stroke-width="1.6" />
+            <circle cx="150" cy="150" r="139" fill="none" stroke="#a08232" stroke-width="0.9" />
+            <text class="seal-txt">
+              <textPath href="#sealTop" startOffset="50%" text-anchor="middle">
+                WESTWOOD LAW FIRM
+              </textPath>
+            </text>
+            <text class="seal-txt">
+              <textPath href="#sealBot" startOffset="50%" text-anchor="middle">
+                EST. 1998 · SAN JUAN CITY
+              </textPath>
+            </text>
+            <image
+              href="westwood-emblem-brass.png"
+              x="65"
+              y="65"
+              width="170"
+              height="170"
+            />
+          </svg>
+        </div>
+        <div class="seal-note">
+          <div class="cap">Circular seal · double ring · engraved emblem</div>
+        </div>
+      </div>
+
+      <div class="panel" style="left: 64px; top: 671px; width: 600px; height: 319px">
+        <div class="panel-h">Monogram &amp; letterhead</div>
+        <div style="display: flex; align-items: center; gap: 22px">
+          <div class="mono"><span>W</span></div>
+          <div class="lockup">
+            <img src="westwood-emblem-ink.png" alt="" />
+            <div>
+              <div class="wm">WESTWOOD</div>
+              <div class="sub">Law Firm</div>
+            </div>
+          </div>
+        </div>
+        <div class="rule-double"></div>
+        <div class="colophon">
+          Suite 1004 Atlanta Center · 31 Annapolis St., Greenhills<br />
+          1502 San Juan City · Metropolitan Manila, Philippines
+        </div>
+      </div>
+
+      <!-- ── Column B ─────────────────────────────────────────────────────── -->
+      <div class="panel" style="left: 696px; top: 185px; width: 580px; height: 250px">
+        <div class="panel-h">Palette</div>
+        <div class="sw-grid">
+          <div>
+            <div class="sw-chip" style="background: #0b1b35"></div>
+            <div class="sw-nm">Ink Navy</div>
+            <div class="sw-hx">#0B1B35</div>
+          </div>
+          <div>
+            <div class="sw-chip" style="background: #061120"></div>
+            <div class="sw-nm">Ink Deep</div>
+            <div class="sw-hx">#061120</div>
+          </div>
+          <div>
+            <div class="sw-chip" style="background: #a08232"></div>
+            <div class="sw-nm">Antique Brass</div>
+            <div class="sw-hx">#A08232</div>
+          </div>
+          <div>
+            <div class="sw-chip" style="background: #c49d3f"></div>
+            <div class="sw-nm">Brass Light</div>
+            <div class="sw-hx">#C49D3F</div>
+          </div>
+          <div>
+            <div class="sw-chip" style="background: #f3efe6"></div>
+            <div class="sw-nm">Parchment</div>
+            <div class="sw-hx">#F3EFE6</div>
+          </div>
+          <div>
+            <div class="sw-chip" style="background: #6b2737"></div>
+            <div class="sw-nm">Oxblood</div>
+            <div class="sw-hx">#6B2737 · rare accent</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="left: 696px; top: 451px; width: 580px; height: 539px">
+        <div class="panel-h">Typography</div>
+
+        <div class="t-row">
+          <div class="cap" style="margin-bottom: 6px">Eyebrow · small caps — EB Garamond</div>
+          <div class="s-eyebrow">Established 1998</div>
+        </div>
+
+        <div class="t-row">
+          <div class="cap" style="margin-bottom: 6px">Display — Cormorant Garamond 600</div>
+          <div class="s-display">Counsel of Consequence</div>
+        </div>
+
+        <div class="t-row">
+          <div class="cap" style="margin-bottom: 6px">Heading — Cormorant Garamond 600</div>
+          <div class="s-head">Practice Areas</div>
+        </div>
+
+        <div class="t-row">
+          <div class="cap" style="margin-bottom: 6px">Body — EB Garamond</div>
+          <p class="s-body">
+            We represent clients across twelve practice areas — from labor and corporate law to
+            immigration and litigation — with every matter handled by counsel in that field.
+          </p>
+        </div>
+
+        <div class="t-row">
+          <div class="cap" style="margin-bottom: 6px">Numerals — old-style figures</div>
+          <div class="s-num">1998 · §12 · 1,234 · 98.6%</div>
+        </div>
+
+        <div class="t-row">
+          <div class="cap" style="margin-bottom: 8px">Pull-quote — EB Garamond italic</div>
+          <div class="s-quote">Counsel in the field, not merely a firm of general practice.</div>
+        </div>
+
+        <div class="t-row">
+          <div class="cap" style="margin-bottom: 6px">Caption / UI — Inter (functional only)</div>
+          <div class="s-cap">Reference WI-2026-014 · Filed 04 Oct 2026 · #A08232</div>
+        </div>
+      </div>
+
+      <!-- ── Column C ─────────────────────────────────────────────────────── -->
+      <div class="panel" style="left: 1308px; top: 185px; width: 548px; height: 560px">
+        <div class="panel-h">Components</div>
+
+        <div class="cap" style="margin-bottom: 10px">Buttons — squared, small-caps label</div>
+        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px">
+          <button class="btn-p">Send Inquiry</button>
+          <button class="btn-s">Our Lawyers</button>
+        </div>
+        <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 22px">
+          <button class="btn-g">View Profile</button>
+          <a class="btn-l">Read the full article</a>
+        </div>
+
+        <div class="cap" style="margin-bottom: 10px">Status tags — ruled, not pills</div>
+        <div style="margin-bottom: 22px">
+          <span class="tag br">Converted</span>
+          <span class="tag">Under Review</span>
+          <span class="tag ox">Confidential</span>
+        </div>
+
+        <div class="cap" style="margin-bottom: 10px">Card — brass rule, hairline border</div>
+        <div class="spec-card" style="margin-bottom: 20px">
+          <div class="spec-rule"></div>
+          <div class="spec-eyebrow">Practice Area</div>
+          <div class="spec-title">Labor &amp; Industrial Relations</div>
+          <p class="spec-body">
+            Representation before the NLRC and DOLE, from preventive advice to full litigation.
+          </p>
+          <div class="spec-meta">12 lawyers · Est. 1998</div>
+        </div>
+
+        <div class="cap" style="margin-bottom: 8px">Field — brass focus rule</div>
+        <label class="fld focus">
+          <span>Email address</span>
+          <input value="juan@email.com" />
+        </label>
+      </div>
+
+      <div class="panel" style="left: 1308px; top: 761px; width: 548px; height: 229px">
+        <div class="panel-h">Rules, texture &amp; tone</div>
+        <div class="rl">
+          <div class="line hair"></div>
+          <div class="cap">Hairline rule — brass, 1px</div>
+        </div>
+        <div class="rl">
+          <div class="line dbl"></div>
+          <div class="cap">Double rule — ink over hairline</div>
+        </div>
+        <div class="tone-note">
+          Flat ink on paper: no glow, no drop shadow, no spring easing. Depth comes from rules and
+          spacing, not elevation.
+        </div>
+      </div>
+
+      <div class="legend" style="border-top-color: var(--rule)">
+        <b style="color: var(--ink)">Proposal</b>
+        <span
+          >A direction, not a decision — nothing here is implemented. React on the seal, the brass,
+          and the serif before any component changes.</span
+        >
+      </div>
+    </div>
+  </body>
+</html>

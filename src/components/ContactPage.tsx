@@ -8,7 +8,7 @@ import { submitInquiry } from "@/utils/api";
 
 import { useAuth } from "@/hooks/useAuth";
 
-import { FIRM_EMAIL, FIRM_EMAIL_HREF } from "@/lib/firm";
+import { FIRM_EMAIL, FIRM_EMAIL_HREF, FIRM_DIRECTIONS_URL } from "@/lib/firm";
 
 type Page =
   | "home"
@@ -196,21 +196,29 @@ export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) 
               </div>
             </div>
 
-            {/* Map placeholder */}
-            <div className="bg-[#e8e4dc] rounded-xl h-56 flex items-center justify-center overflow-hidden relative">
+            {/* Map — the whole tile opens Google Maps directions in a new tab */}
+            <a
+              href={FIRM_DIRECTIONS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Open Google Maps directions to Westwood Law Firm in Greenhills, San Juan City"
+              className="group block bg-[#e8e4dc] rounded-xl h-56 overflow-hidden relative focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c] focus-visible:ring-offset-2"
+            >
               <img
                 src="https://images.unsplash.com/photo-1598139384902-5a8217874645?w=600&h=300&fit=crop&auto=format"
-                alt="Office location"
+                alt="Map of the Westwood Law Firm office in Greenhills, San Juan City"
                 loading="lazy"
-                className="w-full h-full object-cover opacity-40"
+                className="w-full h-full object-cover opacity-40 transition-transform duration-300 group-hover:scale-105"
               />
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="bg-white rounded-lg px-4 py-2.5 text-sm font-medium text-[#0d1f3c] shadow-lg flex items-center gap-2">
-                  <span>📍</span>
+                <div className="bg-white rounded-lg px-4 py-2.5 text-sm font-medium text-[#0d1f3c] shadow-lg flex items-center gap-2 transition-colors group-hover:bg-[#0d1f3c] group-hover:text-white">
+                  <IconMapPin className="w-4 h-4 text-[#c9a84c] flex-shrink-0" />
                   <span>Greenhills, San Juan City</span>
+                  <span className="text-[#c9a84c]">·</span>
+                  <span className="text-[#c9a84c] group-hover:text-[#e2c87a]">Get directions</span>
                 </div>
               </div>
-            </div>
+            </a>
           </div>
 
           {/* Right column — contact form + info */}

@@ -4,6 +4,7 @@ import { signIn } from "@/lib/auth";
 import { submitConsultation } from "@/utils/api";
 import { useAuth } from "@/hooks/useAuth";
 import { PracticeAreaIcon, IconArrowRight, IconCheck } from "@/components/Icons";
+import { PORTRAIT_PLACEHOLDER, onPortraitError } from "@/utils/image";
 
 type Page =
   | "home"
@@ -513,7 +514,8 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
                     }`}
                   >
                     <img
-                      src={l.profile_image || "/lawyers/atty-tabao-primary.png"}
+                      src={l.profile_image || PORTRAIT_PLACEHOLDER}
+                      onError={onPortraitError}
                       alt={l.full_name}
                       className="w-10 h-10 rounded-full object-cover object-top flex-shrink-0"
                     />

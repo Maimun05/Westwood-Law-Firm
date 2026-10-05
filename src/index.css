@@ -171,6 +171,16 @@ body,
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+
+  /* Scroll-reveal content is hidden by opacity/transform until JS marks it
+     visible. Neutralising durations above is not enough — the starting state
+     would remain, blanking whole sections if the observer never runs. Force
+     the revealed state so reduced-motion users always see the content. */
+  .reveal,
+  .reveal-x {
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 body {
@@ -510,6 +520,168 @@ select {
 }
 .stagger-6 {
   animation-delay: 600ms;
+}
+
+/* ── Scroll Reveal ──────────────────────────────────────────────────────────
+   Elements start hidden and are marked .is-visible by useReveal when they
+   enter the viewport. Only transform/opacity animate — no layout, no CLS.
+   The reduced-motion block above forces the revealed state so content can
+   never stay hidden if the observer never runs. */
+.reveal {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0);
+  transition:
+    opacity 700ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms),
+    transform 700ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Horizontal variant for rules/dividers — draws in from the left. */
+.reveal-x {
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition:
+    opacity 700ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms),
+    transform 900ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms);
+}
+.reveal-x.is-visible {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+/* ── Hero Depth ── */
+@keyframes hero-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translate3d(0, 0, 0) scale(1.06);
+  }
+}
+
+/* Multi-stop radial falloff is already soft, so no filter: blur() — blur on a
+   large element is the expensive part. rgb(196 157 63) is --color-gold. */
+@utility hero-glow {
+  background: radial-gradient(
+    closest-side,
+    rgb(196 157 63 / 0.2) 0%,
+    rgb(196 157 63 / 0.07) 42%,
+    transparent 72%
+  );
+  animation: hero-glow-pulse 14s ease-in-out infinite;
+}
+
+@keyframes grid-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-80px, -80px, 0);
+  }
+}
+
+/* pattern-grid uses 80px cells, so a -80px loop is seamless. */
+@utility animate-grid-drift {
+  animation: grid-drift 60s linear infinite;
+}
+
+@keyframes underline-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* scaleX (compositor-accelerated) rather than SVG stroke-dashoffset, whose
+   length math breaks across the fluid clamp() headline breakpoints. */
+.hero-underline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.14em;
+  height: 3px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, var(--color-gold), var(--color-gold-light));
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: underline-draw 900ms cubic-bezier(0.16, 1, 0.3, 1) 700ms forwards;
+}
+
+@keyframes scroll-cue {
+  0% {
+    transform: translateY(-120%);
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(420%);
+    opacity: 0;
+  }
+}
+
+.scroll-cue-track {
+  position: relative;
+  width: 1px;
+  height: 3rem;
+  overflow: hidden;
+  background: linear-gradient(to bottom, rgb(255 255 255 / 0.25), transparent);
+}
+.scroll-cue-track::after {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: 0;
+  width: 3px;
+  height: 0.75rem;
+  border-radius: 9999px;
+  background: var(--color-gold);
+  animation: scroll-cue 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* ── Cursor Spotlight ──
+   A gold radial highlight that tracks the pointer. Coordinates are set as
+   --mx/--my by useSpotlight, falling back to centre. Inert on touch, where
+   hover/mousemove never fire. */
+.spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms ease;
+  background: radial-gradient(
+    240px circle at var(--mx, 50%) var(--my, 50%),
+    rgb(196 157 63 / 0.16),
+    transparent 60%
+  );
+}
+.spotlight:hover::before {
+  opacity: 1;
+}
+
+/* ── Ken Burns ── */
+@keyframes kenburns {
+  from {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.08) translate3d(-1.5%, -1.5%, 0);
+  }
+}
+
+@utility animate-kenburns {
+  animation: kenburns 20s ease-in-out infinite alternate;
 }
 
 /* ── Modal Shell ────────────────────────────────────────────────────────────

@@ -13,17 +13,9 @@ import {
 } from "@/lib/content";
 import { IconSearch, IconCheck } from "@/components/Icons";
 import { onPortraitError } from "@/utils/image";
-import { submitInquiry } from "@/utils/api";
-import { useAuth } from "@/hooks/useAuth";
-import {
-  MODAL_BUTTON_SECONDARY_CLASS,
-  MODAL_ERROR_CLASS,
-  MODAL_INPUT_CLASS,
-  MODAL_LABEL_CLASS,
-  Modal,
-  ModalBody,
-  ModalHeader,
-} from "@/components/ui/Modal";
+import { formatSeminarDate } from "@/utils/seminar";
+import RetainerPackageCard from "@/components/RetainerPackageCard";
+import SeminarRegistrationModal from "@/components/SeminarRegistrationModal";
 
 type Page =
   | "home"
@@ -47,20 +39,6 @@ type InsightsResourcesPageProps = {
 // matched none of the seeded categories (Corporate and Commercial Laws, Labor
 // and Industrial Relations, ...), so picking any option showed an empty grid.
 const ALL_CATEGORIES = "All";
-
-// seminar_events.date is a TIMESTAMPTZ, so it arrives as a full ISO string and
-// used to be printed verbatim ("2026-10-15T00:00:00+08:00"). Show the date the
-// firm would write on a flyer instead. Manila time, to match the office.
-const formatSeminarDate = (value: string) => {
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return d.toLocaleDateString("en-PH", {
-    timeZone: "Asia/Manila",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-};
 
 export default function InsightsResourcesPage({
   onNavigate,
@@ -89,10 +67,6 @@ export default function InsightsResourcesPage({
   // the visitor saw "Registered!" and the firm never heard about it.
   const [registered, setRegistered] = useState<string[]>([]);
   const [registering, setRegistering] = useState<SeminarEvent | null>(null);
-  const [regForm, setRegForm] = useState({ name: "", email: "", phone: "" });
-  const [regSending, setRegSending] = useState(false);
-  const [regError, setRegError] = useState("");
-  const { user } = useAuth();
   const [articles, setArticles] = useState<Article[]>([]);
   const [lawyers, setLawyers] = useState<Lawyer[]>([]);
   const [faqs, setFaqs] = useState<FAQ[]>([]);
@@ -129,53 +103,7 @@ export default function InsightsResourcesPage({
     loadData();
   }, []);
 
-  const openRegistration = (event: SeminarEvent) => {
-    setRegForm({
-      name: user?.fullName || "",
-      email: user?.email || "",
-      phone: user?.phone || "",
-    });
-    setRegError("");
-    setRegistering(event);
-  };
-
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!registering) return;
-    setRegError("");
-
-    if (!regForm.name.trim() || !regForm.email.trim()) {
-      setRegError("Please enter your name and email address.");
-      return;
-    }
-
-    setRegSending(true);
-    const result = await submitInquiry({
-      name: regForm.name,
-      email: regForm.email,
-      phone: regForm.phone,
-      concern: "Seminar registration",
-      practiceArea: "",
-      message: [
-        `I would like to register for the following seminar:`,
-        ``,
-        `Seminar: ${registering.title}`,
-        `Date: ${registering.date}`,
-        `Time: ${registering.time}`,
-        `Location: ${registering.location}`,
-        `Speaker: ${registering.speaker}`,
-      ].join("\n"),
-    });
-    setRegSending(false);
-
-    if (!result.success) {
-      setRegError("We could not record your registration. Please try again, or email us directly.");
-      return;
-    }
-
-    setRegistered((prev) => [...prev, registering.id]);
-    setRegistering(null);
-  };
+  const openRegistration = (event: SeminarEvent) => setRegistering(event);
 
   const article = articleId ? articles.find((a) => a.id === articleId) : null;
 
@@ -519,80 +447,11 @@ export default function InsightsResourcesPage({
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {retainerPackages.map((pkg) => (
-                <div
+                <RetainerPackageCard
                   key={pkg.id}
-                  className={`rounded-xl p-7 border-2 flex flex-col ${
-                    pkg.is_active && pkg.display_order === 2
-                      ? "bg-[#0d1f3c] border-[#c9a84c]"
-                      : "bg-white border-[#e8e4dc]"
-                  }`}
-                >
-                  {pkg.display_order === 2 && (
-                    <span className="text-xs font-semibold bg-[#c9a84c] text-[#0d1f3c] px-3 py-1 rounded-full self-start mb-5">
-                      Most Popular
-                    </span>
-                  )}
-                  <h3
-                    className={`font-serif text-2xl font-bold mb-1 ${
-                      pkg.display_order === 2 ? "text-white" : "text-[#0d1f3c]"
-                    }`}
-                  >
-                    {pkg.name}
-                  </h3>
-                  {pkg.tagline && (
-                    <p
-                      className={`text-xs uppercase tracking-wide mb-2 ${
-                        pkg.display_order === 2 ? "text-[#c9a84c]" : "text-[#c9a84c]"
-                      }`}
-                    >
-                      {pkg.tagline}
-                    </p>
-                  )}
-                  <p
-                    className={`text-sm mb-5 ${
-                      pkg.display_order === 2 ? "text-white/60" : "text-[#8a9ab5]"
-                    }`}
-                  >
-                    {pkg.description}
-                  </p>
-                  {/* price_display holds the text the firm wants shown ("From ₱25,000/mo",
-                      "Contact for quote"). `price` is a numeric column and is empty for
-                      every seeded package, so the cards used to render a blank line. */}
-                  <div className="text-sm font-semibold mb-6 text-[#c9a84c]">
-                    {pkg.price_display ||
-                      (pkg.price != null && String(pkg.price).trim() !== ""
-                        ? `₱${pkg.price}`
-                        : "Contact for quote")}
-                  </div>
-                  <ul className="space-y-3 flex-1 mb-6">
-                    {(pkg.features || []).map((f) => (
-                      <li key={f} className="flex items-start gap-3">
-                        <IconCheck
-                          className={`w-3.5 h-3.5 flex-shrink-0 mt-0.5 ${
-                            pkg.display_order === 2 ? "text-[#c9a84c]" : "text-[#c9a84c]"
-                          }`}
-                        />
-                        <span
-                          className={`text-sm ${
-                            pkg.display_order === 2 ? "text-white/80" : "text-[#2c3347]"
-                          }`}
-                        >
-                          {f}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                  <button
-                    onClick={() => onNavigate("contact")}
-                    className={`w-full py-3 rounded text-sm font-semibold transition-colors ${
-                      pkg.display_order === 2
-                        ? "bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c]"
-                        : "border border-[#0d1f3c] text-[#0d1f3c] hover:bg-[#0d1f3c] hover:text-white"
-                    }`}
-                  >
-                    {pkg.cta_text}
-                  </button>
-                </div>
+                  pkg={pkg}
+                  onSelect={() => onNavigate("contact")}
+                />
               ))}
             </div>
             <div className="bg-[#f7f5f0] rounded-xl p-6 border border-[#e8e4dc]">
@@ -668,101 +527,11 @@ export default function InsightsResourcesPage({
       </div>
 
       {/* Seminar registration modal */}
-      {registering && (
-        <Modal
-          open
-          onClose={() => setRegistering(null)}
-          size="lg"
-          labelledBy="seminar-register-title"
-          dismissible={!regSending}
-        >
-          <ModalHeader
-            tone="light"
-            title="Register for this Seminar"
-            titleId="seminar-register-title"
-            description={`${registering.title} · ${registering.date} · ${registering.time}`}
-            onClose={() => setRegistering(null)}
-            closeDisabled={regSending}
-          />
-
-          <ModalBody className="p-6">
-            <form onSubmit={handleRegister} className="space-y-4">
-              <div>
-                <label htmlFor="reg-name" className={MODAL_LABEL_CLASS}>
-                  Full Name *
-                </label>
-                <input
-                  id="reg-name"
-                  type="text"
-                  value={regForm.name}
-                  onChange={(e) => setRegForm({ ...regForm, name: e.target.value })}
-                  disabled={regSending}
-                  placeholder="Juan Dela Cruz"
-                  className={MODAL_INPUT_CLASS}
-                />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="reg-email" className={MODAL_LABEL_CLASS}>
-                    Email Address *
-                  </label>
-                  <input
-                    id="reg-email"
-                    type="email"
-                    value={regForm.email}
-                    onChange={(e) => setRegForm({ ...regForm, email: e.target.value })}
-                    disabled={regSending}
-                    placeholder="you@email.com"
-                    className={MODAL_INPUT_CLASS}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="reg-phone" className={MODAL_LABEL_CLASS}>
-                    Phone
-                  </label>
-                  <input
-                    id="reg-phone"
-                    type="tel"
-                    value={regForm.phone}
-                    onChange={(e) => setRegForm({ ...regForm, phone: e.target.value })}
-                    disabled={regSending}
-                    placeholder="(63) 917 000 0000"
-                    className={MODAL_INPUT_CLASS}
-                  />
-                </div>
-              </div>
-
-              {regError && (
-                <p role="alert" className={MODAL_ERROR_CLASS}>
-                  {regError}
-                </p>
-              )}
-
-              <div className="flex gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setRegistering(null)}
-                  disabled={regSending}
-                  className={`flex-1 ${MODAL_BUTTON_SECONDARY_CLASS}`}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={regSending}
-                  className="flex-1 bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] font-semibold py-3 rounded-lg transition-all text-sm active:scale-[0.99] disabled:opacity-40 disabled:pointer-events-none"
-                >
-                  {regSending ? "Registering…" : "Confirm Registration"}
-                </button>
-              </div>
-
-              <p className="text-xs text-[#8a9ab5] leading-relaxed text-center">
-                The firm will confirm your slot by email. Seats are subject to availability.
-              </p>
-            </form>
-          </ModalBody>
-        </Modal>
-      )}
+      <SeminarRegistrationModal
+        event={registering}
+        onClose={() => setRegistering(null)}
+        onRegistered={(id) => setRegistered((prev) => [...prev, id])}
+      />
     </div>
   );
 }

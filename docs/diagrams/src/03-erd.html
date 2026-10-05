@@ -141,7 +141,8 @@
         <path class="rel" d="M 396 500 C 412 500, 413 620, 429 620" marker-end="url(#arr2)" />
         <path class="rel" d="M 234 534 L 234 550" marker-end="url(#arr2)" />
         <path class="rel" d="M 234 652 L 234 668" marker-end="url(#arr2)" />
-        <path class="rel" d="M 606 806 L 606 822" marker-end="url(#arr2)" />
+        <path class="rel" d="M 595 534 L 595 844" marker-end="url(#arr2)" />
+        <path class="rel" d="M 761 780 C 778 780, 778 892, 794 892" marker-end="url(#arr2)" />
         <path class="rel" d="M 761 600 C 778 600, 778 274, 794 274" marker-end="url(#arr2)" />
         <path class="rel" d="M 761 640 C 778 640, 778 469, 794 469" marker-end="url(#arr2)" />
         <path class="rel" d="M 761 680 C 778 680, 778 697, 794 697" marker-end="url(#arr2)" />
@@ -219,7 +220,7 @@
       </div>
 
       <!-- ── Column 2: intake & matters ─────────────────────────────────────── -->
-      <div class="tbl" style="left: 429px; top: 190px; height: 322px">
+      <div class="tbl" style="left: 429px; top: 190px; height: 344px">
         <div class="tbl-h">inquiries <span class="hint">intake</span></div>
         <div class="r pk">
           <span class="b pk">PK</span><span class="c">id</span><span class="t">uuid</span>
@@ -245,11 +246,14 @@
         <div class="r">
           <span class="c">preferred_contact_method</span><span class="t">text</span>
         </div>
+        <div class="r">
+          <span class="c">firm_notified_at</span><span class="t">timestamptz</span>
+        </div>
         <div class="r"><span class="c">created_at</span><span class="t">timestamptz</span></div>
         <div class="pad"></div>
       </div>
 
-      <div class="tbl" style="left: 429px; top: 528px; height: 278px">
+      <div class="tbl" style="left: 429px; top: 550px; height: 278px">
         <div class="tbl-h">matters <span class="hint">hub</span></div>
         <div class="r pk">
           <span class="b pk">PK</span><span class="c">id</span><span class="t">uuid</span>
@@ -273,7 +277,23 @@
         <div class="pad"></div>
       </div>
 
-      <div class="tbl" style="left: 429px; top: 822px; height: 124px">
+      <div class="tbl" style="left: 429px; top: 844px; height: 168px">
+        <div class="tbl-h">inquiry_attachments <span class="hint">files</span></div>
+        <div class="r pk">
+          <span class="b pk">PK</span><span class="c">id</span><span class="t">uuid</span>
+        </div>
+        <div class="r">
+          <span class="b fk">FK</span><span class="c">inquiry_id</span
+          ><span class="t">uuid → inquiries</span>
+        </div>
+        <div class="r"><span class="c">storage_path</span><span class="t">text</span></div>
+        <div class="r"><span class="c">file_name</span><span class="t">text</span></div>
+        <div class="r"><span class="c">mime_type</span><span class="t">text</span></div>
+        <div class="r"><span class="c">size_bytes</span><span class="t">bigint</span></div>
+        <div class="pad"></div>
+      </div>
+
+      <div class="tbl" style="left: 794px; top: 830px; height: 124px">
         <div class="tbl-h">matter_members <span class="hint">team</span></div>
         <div class="r pk">
           <span class="b pk">PK</span><span class="b fk">FK</span><span class="c">matter_id</span

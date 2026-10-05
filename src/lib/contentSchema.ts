@@ -166,6 +166,33 @@ export const JSONB_LIST_FIELDS = new Set(["features"]);
 const NUMBER_FIELDS = new Set(["display_order", "capacity"]);
 
 /**
+ * Columns that can stand in for a readable id, most specific first.
+ * `slug` is the intended URL key; `title`/`name` are the human headline.
+ */
+const ID_SOURCE_FIELDS = ["slug", "title", "name"];
+
+export function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/**
+ * Derive a readable id for a new row from its slug/title/name, so the admin
+ * does not have to invent a text primary key (these tables have no database
+ * default for it). Returns "" when none of those columns is filled.
+ */
+export function deriveId(draft: Record<string, unknown>): string {
+  for (const f of ID_SOURCE_FIELDS) {
+    const v = draft[f];
+    if (typeof v === "string" && v.trim()) return slugify(v);
+  }
+  return "";
+}
+
+/**
  * Check a form draft against the table's NOT NULL columns.
  * Returns a human-readable message, or null when the draft is sendable.
  *
@@ -185,7 +212,7 @@ export function validateDraft(
     if (v === null || v === undefined || String(v).trim() === "") {
       const label = f.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
       return f === "id"
-        ? 'Id is required — it is the primary key, e.g. "labor" or "essential".'
+        ? "The id is generated from the name, title or slug — fill one of those in."
         : `${label} is required.`;
     }
   }

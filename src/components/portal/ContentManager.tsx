@@ -7,6 +7,7 @@ import {
   deleteContent,
   setContentPublished,
   validateDraft,
+  deriveId,
   draftToPayload,
   type ContentKind,
 } from "@/lib/services/contentAdmin";
@@ -335,20 +336,25 @@ function ContentForm({
   const cfg = CONTENT_CONFIG[kind];
   const [draft, setDraft] = useState<Row>(() => (row ? toDraft(kind, row) : emptyDraft(kind)));
   const [error, setError] = useState("");
+  // On create the id is derived from the slug/title/name so the admin does not
+  // have to invent a text primary key; typing in the field overrides it.
+  const [idEdited, setIdEdited] = useState(false);
 
   const isNew = row === null;
+  const effectiveId = isNew && !idEdited ? deriveId(draft) : String(draft.id ?? "");
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     // The tables have different NOT NULL columns, so the required set comes
     // from the config rather than being guessed here.
-    const problem = validateDraft(kind, draft, isNew);
+    const payloadDraft = { ...draft, id: effectiveId };
+    const problem = validateDraft(kind, payloadDraft, isNew);
     if (problem) {
       setError(problem);
       return;
     }
     setError("");
-    onSave(draft);
+    onSave(payloadDraft);
   };
 
   return (
@@ -423,14 +429,24 @@ function ContentForm({
                     id={id}
                     type={NUMBER_FIELDS.has(f) ? "number" : DATE_FIELDS.has(f) ? "date" : "text"}
                     value={
-                      DATE_FIELDS.has(f) && typeof value === "string"
-                        ? value.slice(0, 10)
-                        : String(value ?? "")
+                      f === "id"
+                        ? effectiveId
+                        : DATE_FIELDS.has(f) && typeof value === "string"
+                          ? value.slice(0, 10)
+                          : String(value ?? "")
                     }
                     disabled={lockedId}
-                    onChange={(e) => setDraft({ ...draft, [f]: e.target.value })}
+                    onChange={(e) => {
+                      if (f === "id") setIdEdited(true);
+                      setDraft({ ...draft, [f]: e.target.value });
+                    }}
                     className={`${MODAL_INPUT_CLASS} ${lockedId ? "opacity-60" : ""}`}
                   />
+                )}
+                {f === "id" && isNew && (
+                  <p className="text-[11px] text-[#8a9ab5] mt-1">
+                    Generated from the title or slug. Type here to override.
+                  </p>
                 )}
                 {f === "content" && (
                   <p className="text-[11px] text-[#8a9ab5] mt-1">

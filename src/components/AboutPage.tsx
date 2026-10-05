@@ -8,6 +8,7 @@ import {
   type CorporateClient,
 } from "@/lib/content";
 import { IconMapPin, IconPhone, IconEnvelope } from "@/components/Icons";
+import { PORTRAIT_PLACEHOLDER, onPortraitError } from "@/utils/image";
 import { useAuth } from "@/hooks/useAuth";
 import { FIRM_EMAIL } from "@/lib/firm";
 
@@ -260,7 +261,8 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
                           portrait that cut the forehead and chin off. 240px
                           leaves the whole head plus shoulders visible. */}
                       <img
-                        src={l.profile_image || "/lawyers/atty-tabao-primary.png"}
+                        src={l.profile_image || PORTRAIT_PLACEHOLDER}
+                        onError={onPortraitError}
                         alt={l.full_name}
                         className="w-full h-60 object-cover object-top group-hover:scale-105 transition-transform duration-500"
                       />
