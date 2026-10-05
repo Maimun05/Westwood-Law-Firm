@@ -1211,6 +1211,16 @@ function MatterDetail({
     ok: boolean;
   } | null>(null);
 
+  // The Conflict Check card gets its own busy/message state: its button moves
+  // the matter in one click, and the feedback must appear where it was clicked
+  // (the shared statusMsg is rendered in the Update Status card further up).
+  const [ccBusy, setCcBusy] = useState(false);
+
+  const [ccMsg, setCcMsg] = useState<{
+    text: string;
+    ok: boolean;
+  } | null>(null);
+
   const [matterDocs, setMatterDocs] = useState<Document[]>([]);
 
   const [showUpload, setShowUpload] = useState(false);
@@ -1274,6 +1284,35 @@ function MatterDetail({
         ok: true,
       });
     }
+  };
+
+  // One click: move the matter to Conflict Check and keep the Update Status
+  // card in step. This used to only change the dropdown's local value without
+  // saving anything, so the button looked like it did nothing.
+  const moveToConflictCheck = async () => {
+    setCcBusy(true);
+
+    setCcMsg(null);
+
+    const { error } = await updateMatterStatus(matter.id, "Conflict Check");
+
+    setCcBusy(false);
+
+    if (error) {
+      setCcMsg({ text: error, ok: false });
+      return;
+    }
+
+    setStatus("Conflict Check");
+
+    setSavedStatus("Conflict Check");
+
+    onMatterUpdated?.(matter.id, { status: "Conflict Check" });
+
+    setCcMsg({
+      text: "Matter moved to Conflict Check. The client has been notified.",
+      ok: true,
+    });
   };
 
   const [showRestricted, setShowRestricted] = useState(false);
@@ -1684,8 +1723,9 @@ function MatterDetail({
                   Run a conflict check before accepting this matter.
                 </p>
                 <button
-                  onClick={() => setStatus("Conflict Check")}
+                  onClick={() => void moveToConflictCheck()}
                   disabled={
+                    ccBusy ||
                     !statusChoices(savedStatus, true).includes("Conflict Check") ||
                     savedStatus === "Conflict Check"
                   }
@@ -1693,8 +1733,23 @@ function MatterDetail({
                 >
                   {savedStatus === "Conflict Check"
                     ? "Conflict check in progress"
-                    : "Move to Conflict Check"}
+                    : ccBusy
+                      ? "Moving…"
+                      : "Move to Conflict Check"}
                 </button>
+                {!statusChoices(savedStatus, true).includes("Conflict Check") &&
+                  savedStatus !== "Conflict Check" && (
+                    <p className="text-[11px] text-amber-700/90 mt-2 leading-relaxed">
+                      {savedStatus === "New Inquiry"
+                        ? "Move the matter to “Under Review” first — that step comes before a conflict check."
+                        : "This matter has already moved past the conflict-check stage."}
+                    </p>
+                  )}
+                {ccMsg && (
+                  <p className={`text-xs mt-2 ${ccMsg.ok ? "text-green-700" : "text-red-600"}`}>
+                    {ccMsg.text}
+                  </p>
+                )}
               </div>
             )}
 
