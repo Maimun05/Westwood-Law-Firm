@@ -1042,6 +1042,18 @@ export interface Database {
         };
         Relationships: [];
       };
+      matter_notes_thread: {
+        Row: {
+          id: string;
+          matter_id: string;
+          author_id: string;
+          visibility: "internal" | "client";
+          created_at: string;
+          updated_at: string;
+          body: string;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       attach_inquiry_files: {

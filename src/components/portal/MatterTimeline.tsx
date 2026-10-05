@@ -73,7 +73,10 @@ export default function MatterTimeline({
         .order("created_at", { ascending: true })
         .limit(100),
       supabase
-        .from("matter_notes")
+        // Read through the decrypting view (20261015). The base table stores
+        // body as ciphertext; the view applies the same matter_notes RLS, so
+        // what each role can see is still decided by the database.
+        .from("matter_notes_thread")
         .select("id,body,visibility,created_at,author_id")
         .eq("matter_id", matterId)
         .order("created_at", { ascending: true })
