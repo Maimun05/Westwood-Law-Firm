@@ -191,9 +191,7 @@ export default function UploadDocumentModal({
               role="button"
               tabIndex={0}
               className={`rounded-xl border-2 border-dashed px-4 py-8 text-center transition-all duration-200 ${
-                uploading
-                  ? "cursor-default border-[#e8e4dc] opacity-60"
-                  : "cursor-pointer"
+                uploading ? "cursor-default border-[#e8e4dc] opacity-60" : "cursor-pointer"
               } ${
                 dragging
                   ? "border-[#c9a84c] bg-[#c9a84c]/10 scale-[1.01] shadow-[var(--shadow-gold-sm)]"

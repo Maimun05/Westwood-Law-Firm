@@ -370,7 +370,9 @@ function ContentForm({
         <ModalHeader
           tone="light"
           eyebrow={cfg.label}
-          title={isNew ? `New ${cfg.label.replace(/s$/, "")}` : `Edit ${cfg.label.replace(/s$/, "")}`}
+          title={
+            isNew ? `New ${cfg.label.replace(/s$/, "")}` : `Edit ${cfg.label.replace(/s$/, "")}`
+          }
           titleId="content-form-title"
           onClose={onCancel}
           closeDisabled={busy}
@@ -474,11 +476,7 @@ function ContentForm({
           >
             Cancel
           </button>
-          <button
-            type="submit"
-            disabled={busy}
-            className={`flex-1 ${MODAL_BUTTON_PRIMARY_CLASS}`}
-          >
+          <button type="submit" disabled={busy} className={`flex-1 ${MODAL_BUTTON_PRIMARY_CLASS}`}>
             {busy ? "Saving…" : isNew ? "Create" : "Save changes"}
           </button>
         </ModalFooter>

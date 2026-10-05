@@ -77,9 +77,7 @@ export default function BreakGlassModal({
             className={`${MODAL_INPUT_CLASS} resize-none`}
           />
           <p
-            className={`mt-1.5 text-xs tabular-nums ${
-              ok ? "text-emerald-600" : "text-[#8a9ab5]"
-            }`}
+            className={`mt-1.5 text-xs tabular-nums ${ok ? "text-emerald-600" : "text-[#8a9ab5]"}`}
           >
             {reason.trim().length} / 15 characters
           </p>

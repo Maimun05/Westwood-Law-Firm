@@ -39,11 +39,7 @@ export default function RetainerPackageCard({ pkg, onSelect }: RetainerPackageCa
           {pkg.tagline}
         </p>
       )}
-      <p
-        className={`text-sm mb-5 ${
-          pkg.display_order === 2 ? "text-white/60" : "text-[#8a9ab5]"
-        }`}
-      >
+      <p className={`text-sm mb-5 ${pkg.display_order === 2 ? "text-white/60" : "text-[#8a9ab5]"}`}>
         {pkg.description}
       </p>
       {/* price_display holds the text the firm wants shown ("From ₱25,000/mo",
@@ -64,9 +60,7 @@ export default function RetainerPackageCard({ pkg, onSelect }: RetainerPackageCa
               }`}
             />
             <span
-              className={`text-sm ${
-                pkg.display_order === 2 ? "text-white/80" : "text-[#2c3347]"
-              }`}
+              className={`text-sm ${pkg.display_order === 2 ? "text-white/80" : "text-[#2c3347]"}`}
             >
               {f}
             </span>

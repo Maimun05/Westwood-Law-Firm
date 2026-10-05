@@ -164,9 +164,9 @@ function useFocusTrap(panelRef: RefObject<HTMLDivElement | null>, active: boolea
       const panel = panelRef.current;
       if (!panel || !isTopmost(panel)) return;
 
-      const items = Array.from(
-        panel.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
-      ).filter(isTabbable);
+      const items = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+        isTabbable,
+      );
 
       if (items.length === 0) {
         event.preventDefault();
@@ -196,7 +196,10 @@ function useFocusTrap(panelRef: RefObject<HTMLDivElement | null>, active: boolea
 
 type AccessibleName =
   | { /** id of the element holding the dialog title */ labelledBy: string; label?: never }
-  | { /** accessible name for dialogs with no visible title element */ label: string; labelledBy?: never };
+  | {
+      /** accessible name for dialogs with no visible title element */ label: string;
+      labelledBy?: never;
+    };
 
 export type ModalProps = AccessibleName & {
   open: boolean;
@@ -392,13 +395,7 @@ export function ModalBody({
   );
 }
 
-export function ModalFooter({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
+export function ModalFooter({ children, className }: { children: ReactNode; className?: string }) {
   return <div className={className ?? "px-6 pb-6 pt-1 flex gap-3"}>{children}</div>;
 }
 

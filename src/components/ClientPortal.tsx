@@ -447,328 +447,318 @@ function CreateAccountModal({
       />
 
       <ModalBody className="p-8">
-          {done ? (
-            <div className="text-center py-8">
-              <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
-                <svg
-                  className="w-10 h-10 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={3}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              <h3 className="font-serif text-2xl font-bold text-[#0d1f3c] mb-3">Welcome Aboard!</h3>
-              <p className="text-[#8a9ab5] text-sm leading-relaxed mb-8 max-w-sm mx-auto">
-                Your account has been successfully created. You can now access our secure client
-                portal.
-              </p>
-              <button onClick={onClose} className={`w-full ${MODAL_BUTTON_PRIMARY_CLASS}`}>
-                Continue to Sign In
-              </button>
-            </div>
-          ) : (
-            <>
-              {/* Progress indicator */}
-              <div className="flex items-center justify-center gap-2 mb-8">
-                {[1, 2, 3].map((s) => (
-                  <div key={s} className="flex items-center">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                        step >= s
-                          ? "bg-gradient-to-br from-[#c9a84c] to-[#b89840] text-white shadow-md"
-                          : "bg-[#e8e4dc] text-[#8a9ab5]"
-                      }`}
-                    >
-                      {s}
-                    </div>
-                    {s < 3 && (
-                      <div
-                        className={`w-12 h-1 mx-1 rounded transition-all ${
-                          step > s ? "bg-gradient-to-r from-[#c9a84c] to-[#b89840]" : "bg-[#e8e4dc]"
-                        }`}
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              <form
-                onSubmit={
-                  step === 3
-                    ? handleSubmit
-                    : (e) => {
-                        e.preventDefault();
-                        handleNext();
-                      }
-                }
-                className="space-y-5"
+        {done ? (
+          <div className="text-center py-8">
+            <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
+              <svg
+                className="w-10 h-10 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
               >
-                {/* Step 1: Basic Info */}
-                {step === 1 && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className={MODAL_LABEL_CLASS}>
-                          First Name *
-                        </label>
-                        <input
-                          type="text"
-                          value={form.firstName}
-                          onChange={(e) => {
-                            setForm({ ...form, firstName: e.target.value });
-                            setError("");
-                          }}
-                          placeholder="Juan"
-                          className={MODAL_INPUT_CLASS}
-                          autoFocus
-                        />
-                      </div>
-                      <div>
-                        <label className={MODAL_LABEL_CLASS}>
-                          Last Name *
-                        </label>
-                        <input
-                          type="text"
-                          value={form.lastName}
-                          onChange={(e) => {
-                            setForm({ ...form, lastName: e.target.value });
-                            setError("");
-                          }}
-                          placeholder="Dela Cruz"
-                          className={MODAL_INPUT_CLASS}
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className={MODAL_LABEL_CLASS}>
-                          Middle Name{" "}
-                          <span className="text-[#8a9ab5] normal-case font-normal">(Optional)</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={form.middleName}
-                          onChange={(e) => {
-                            setForm({ ...form, middleName: e.target.value });
-                            setError("");
-                          }}
-                          placeholder="Santos"
-                          className={MODAL_INPUT_CLASS}
-                        />
-                      </div>
-                      <div>
-                        <label className={MODAL_LABEL_CLASS}>
-                          Suffix{" "}
-                          <span className="text-[#8a9ab5] normal-case font-normal">(Optional)</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={form.suffix}
-                          onChange={(e) => {
-                            setForm({ ...form, suffix: e.target.value });
-                            setError("");
-                          }}
-                          placeholder="Jr., Sr., III"
-                          className={MODAL_INPUT_CLASS}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className={MODAL_LABEL_CLASS}>
-                        Email Address *
-                      </label>
-                      <input
-                        type="email"
-                        value={form.email}
-                        onChange={(e) => {
-                          setForm({ ...form, email: e.target.value });
-                          setError("");
-                        }}
-                        placeholder="your@email.com"
-                        className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
-                      />
-                    </div>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={3}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+            <h3 className="font-serif text-2xl font-bold text-[#0d1f3c] mb-3">Welcome Aboard!</h3>
+            <p className="text-[#8a9ab5] text-sm leading-relaxed mb-8 max-w-sm mx-auto">
+              Your account has been successfully created. You can now access our secure client
+              portal.
+            </p>
+            <button onClick={onClose} className={`w-full ${MODAL_BUTTON_PRIMARY_CLASS}`}>
+              Continue to Sign In
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* Progress indicator */}
+            <div className="flex items-center justify-center gap-2 mb-8">
+              {[1, 2, 3].map((s) => (
+                <div key={s} className="flex items-center">
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                      step >= s
+                        ? "bg-gradient-to-br from-[#c9a84c] to-[#b89840] text-white shadow-md"
+                        : "bg-[#e8e4dc] text-[#8a9ab5]"
+                    }`}
+                  >
+                    {s}
                   </div>
-                )}
-
-                {/* Step 2: Password */}
-                {step === 2 && (
-                  <div className="space-y-4">
-                    <div>
-                      <label className={MODAL_LABEL_CLASS}>
-                        Password *
-                      </label>
-                      <input
-                        type="password"
-                        value={form.password}
-                        onChange={(e) => {
-                          setForm({ ...form, password: e.target.value });
-                          setError("");
-                        }}
-                        placeholder="Minimum 6 characters"
-                        className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
-                        autoFocus
-                      />
-                    </div>
-                    <div>
-                      <label className={MODAL_LABEL_CLASS}>
-                        Confirm Password *
-                      </label>
-                      <input
-                        type="password"
-                        value={form.confirm}
-                        onChange={(e) => {
-                          setForm({ ...form, confirm: e.target.value });
-                          setError("");
-                        }}
-                        placeholder="Re-enter password"
-                        className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
-                      />
-                    </div>
-                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-                      <div className="flex gap-3">
-                        <span className="text-blue-500 text-lg">ℹ️</span>
-                        <div>
-                          <p className="text-xs font-semibold text-blue-900 mb-1">
-                            Password Requirements
-                          </p>
-                          <p className="text-xs text-blue-700 leading-relaxed">
-                            Must be at least 6 characters long for security.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 3: Additional Info */}
-                {step === 3 && (
-                  <div className="space-y-4">
-                    <div>
-                      <label className={MODAL_LABEL_CLASS}>
-                        Phone Number{" "}
-                        <span className="text-[#8a9ab5] normal-case font-normal">(Optional)</span>
-                      </label>
-                      <input
-                        type="tel"
-                        value={form.phone}
-                        onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                        placeholder="+63 9XX XXX XXXX"
-                        className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
-                        autoFocus
-                      />
-                    </div>
-                    <div>
-                      <label className={MODAL_LABEL_CLASS}>
-                        Address{" "}
-                        <span className="text-[#8a9ab5] normal-case font-normal">(Optional)</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={form.address}
-                        onChange={(e) => setForm({ ...form, address: e.target.value })}
-                        placeholder="Street address"
-                        className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
-                      />
-                    </div>
-                    <div>
-                      <label className={MODAL_LABEL_CLASS}>
-                        City{" "}
-                        <span className="text-[#8a9ab5] normal-case font-normal">(Optional)</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={form.city}
-                        onChange={(e) => setForm({ ...form, city: e.target.value })}
-                        placeholder="City"
-                        className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
-                      />
-                    </div>
-                    <div>
-                      <label className={MODAL_LABEL_CLASS}>
-                        Date of Birth{" "}
-                        <span className="text-[#8a9ab5] normal-case font-normal">(Optional)</span>
-                      </label>
-                      <input
-                        type="date"
-                        value={form.dateOfBirth}
-                        onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
-                        className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
-                      />
-                    </div>
-                    <div className="bg-gradient-to-br from-[#f7f5f0] to-[#eae6dd] rounded-xl p-5 border border-[#e8e4dc]">
-                      <div className="flex items-start gap-3 mb-3">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center flex-shrink-0">
-                          <span className="text-white text-lg">👤</span>
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-[#2c3347] uppercase tracking-wider mb-1">
-                            Account Type
-                          </p>
-                          <p className="text-sm font-bold text-[#0d1f3c]">Client Account</p>
-                        </div>
-                      </div>
-                      <p className="text-xs text-[#8a9ab5] leading-relaxed">
-                        Lawyer and Admin accounts are created and managed directly by Westwood Law
-                        Firm administration.
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {error && (
-                  <p role="alert" className={MODAL_ERROR_CLASS}>
-                    {error}
-                  </p>
-                )}
-
-                <div className="flex gap-3 pt-2">
-                  {step > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setStep(step - 1);
-                        setError("");
-                      }}
-                      className={`flex-1 ${MODAL_BUTTON_SECONDARY_CLASS}`}
-                    >
-                      Back
-                    </button>
-                  )}
-                  {step < 3 ? (
-                    <button type="submit" className={`flex-1 ${MODAL_BUTTON_PRIMARY_CLASS}`}>
-                      Continue
-                    </button>
-                  ) : (
-                    <button
-                      type="submit"
-                      className="flex-1 bg-gradient-to-r from-[#c9a84c] to-[#b89840] hover:from-[#e2c87a] hover:to-[#c9a84c] text-[#0d1f3c] text-sm font-bold py-3 rounded-lg transition-all shadow-lg shadow-[#c9a84c]/30 active:scale-[0.99] disabled:opacity-40 disabled:pointer-events-none"
-                      disabled={loading}
-                    >
-                      {loading ? "Creating account…" : "Create Account"}
-                    </button>
+                  {s < 3 && (
+                    <div
+                      className={`w-12 h-1 mx-1 rounded transition-all ${
+                        step > s ? "bg-gradient-to-r from-[#c9a84c] to-[#b89840]" : "bg-[#e8e4dc]"
+                      }`}
+                    />
                   )}
                 </div>
+              ))}
+            </div>
 
-                {step === 1 && (
+            <form
+              onSubmit={
+                step === 3
+                  ? handleSubmit
+                  : (e) => {
+                      e.preventDefault();
+                      handleNext();
+                    }
+              }
+              className="space-y-5"
+            >
+              {/* Step 1: Basic Info */}
+              {step === 1 && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className={MODAL_LABEL_CLASS}>First Name *</label>
+                      <input
+                        type="text"
+                        value={form.firstName}
+                        onChange={(e) => {
+                          setForm({ ...form, firstName: e.target.value });
+                          setError("");
+                        }}
+                        placeholder="Juan"
+                        className={MODAL_INPUT_CLASS}
+                        autoFocus
+                      />
+                    </div>
+                    <div>
+                      <label className={MODAL_LABEL_CLASS}>Last Name *</label>
+                      <input
+                        type="text"
+                        value={form.lastName}
+                        onChange={(e) => {
+                          setForm({ ...form, lastName: e.target.value });
+                          setError("");
+                        }}
+                        placeholder="Dela Cruz"
+                        className={MODAL_INPUT_CLASS}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className={MODAL_LABEL_CLASS}>
+                        Middle Name{" "}
+                        <span className="text-[#8a9ab5] normal-case font-normal">(Optional)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={form.middleName}
+                        onChange={(e) => {
+                          setForm({ ...form, middleName: e.target.value });
+                          setError("");
+                        }}
+                        placeholder="Santos"
+                        className={MODAL_INPUT_CLASS}
+                      />
+                    </div>
+                    <div>
+                      <label className={MODAL_LABEL_CLASS}>
+                        Suffix{" "}
+                        <span className="text-[#8a9ab5] normal-case font-normal">(Optional)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={form.suffix}
+                        onChange={(e) => {
+                          setForm({ ...form, suffix: e.target.value });
+                          setError("");
+                        }}
+                        placeholder="Jr., Sr., III"
+                        className={MODAL_INPUT_CLASS}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className={MODAL_LABEL_CLASS}>Email Address *</label>
+                    <input
+                      type="email"
+                      value={form.email}
+                      onChange={(e) => {
+                        setForm({ ...form, email: e.target.value });
+                        setError("");
+                      }}
+                      placeholder="your@email.com"
+                      className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Step 2: Password */}
+              {step === 2 && (
+                <div className="space-y-4">
+                  <div>
+                    <label className={MODAL_LABEL_CLASS}>Password *</label>
+                    <input
+                      type="password"
+                      value={form.password}
+                      onChange={(e) => {
+                        setForm({ ...form, password: e.target.value });
+                        setError("");
+                      }}
+                      placeholder="Minimum 6 characters"
+                      className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
+                      autoFocus
+                    />
+                  </div>
+                  <div>
+                    <label className={MODAL_LABEL_CLASS}>Confirm Password *</label>
+                    <input
+                      type="password"
+                      value={form.confirm}
+                      onChange={(e) => {
+                        setForm({ ...form, confirm: e.target.value });
+                        setError("");
+                      }}
+                      placeholder="Re-enter password"
+                      className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
+                    />
+                  </div>
+                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                    <div className="flex gap-3">
+                      <span className="text-blue-500 text-lg">ℹ️</span>
+                      <div>
+                        <p className="text-xs font-semibold text-blue-900 mb-1">
+                          Password Requirements
+                        </p>
+                        <p className="text-xs text-blue-700 leading-relaxed">
+                          Must be at least 6 characters long for security.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: Additional Info */}
+              {step === 3 && (
+                <div className="space-y-4">
+                  <div>
+                    <label className={MODAL_LABEL_CLASS}>
+                      Phone Number{" "}
+                      <span className="text-[#8a9ab5] normal-case font-normal">(Optional)</span>
+                    </label>
+                    <input
+                      type="tel"
+                      value={form.phone}
+                      onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                      placeholder="+63 9XX XXX XXXX"
+                      className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
+                      autoFocus
+                    />
+                  </div>
+                  <div>
+                    <label className={MODAL_LABEL_CLASS}>
+                      Address{" "}
+                      <span className="text-[#8a9ab5] normal-case font-normal">(Optional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={form.address}
+                      onChange={(e) => setForm({ ...form, address: e.target.value })}
+                      placeholder="Street address"
+                      className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
+                    />
+                  </div>
+                  <div>
+                    <label className={MODAL_LABEL_CLASS}>
+                      City{" "}
+                      <span className="text-[#8a9ab5] normal-case font-normal">(Optional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={form.city}
+                      onChange={(e) => setForm({ ...form, city: e.target.value })}
+                      placeholder="City"
+                      className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
+                    />
+                  </div>
+                  <div>
+                    <label className={MODAL_LABEL_CLASS}>
+                      Date of Birth{" "}
+                      <span className="text-[#8a9ab5] normal-case font-normal">(Optional)</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={form.dateOfBirth}
+                      onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
+                      className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
+                    />
+                  </div>
+                  <div className="bg-gradient-to-br from-[#f7f5f0] to-[#eae6dd] rounded-xl p-5 border border-[#e8e4dc]">
+                    <div className="flex items-start gap-3 mb-3">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center flex-shrink-0">
+                        <span className="text-white text-lg">👤</span>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-[#2c3347] uppercase tracking-wider mb-1">
+                          Account Type
+                        </p>
+                        <p className="text-sm font-bold text-[#0d1f3c]">Client Account</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-[#8a9ab5] leading-relaxed">
+                      Lawyer and Admin accounts are created and managed directly by Westwood Law
+                      Firm administration.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {error && (
+                <p role="alert" className={MODAL_ERROR_CLASS}>
+                  {error}
+                </p>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                {step > 1 && (
                   <button
                     type="button"
-                    onClick={onClose}
-                    className="w-full text-center text-[#8a9ab5] hover:text-[#0d1f3c] text-sm transition-colors py-2 font-medium"
+                    onClick={() => {
+                      setStep(step - 1);
+                      setError("");
+                    }}
+                    className={`flex-1 ${MODAL_BUTTON_SECONDARY_CLASS}`}
                   >
-                    Cancel
+                    Back
                   </button>
                 )}
-              </form>
-            </>
-          )}
+                {step < 3 ? (
+                  <button type="submit" className={`flex-1 ${MODAL_BUTTON_PRIMARY_CLASS}`}>
+                    Continue
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    className="flex-1 bg-gradient-to-r from-[#c9a84c] to-[#b89840] hover:from-[#e2c87a] hover:to-[#c9a84c] text-[#0d1f3c] text-sm font-bold py-3 rounded-lg transition-all shadow-lg shadow-[#c9a84c]/30 active:scale-[0.99] disabled:opacity-40 disabled:pointer-events-none"
+                    disabled={loading}
+                  >
+                    {loading ? "Creating account…" : "Create Account"}
+                  </button>
+                )}
+              </div>
+
+              {step === 1 && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="w-full text-center text-[#8a9ab5] hover:text-[#0d1f3c] text-sm transition-colors py-2 font-medium"
+                >
+                  Cancel
+                </button>
+              )}
+            </form>
+          </>
+        )}
       </ModalBody>
     </Modal>
   );
@@ -830,9 +820,7 @@ function SignIn({ onNavigate }: { onNavigate: (p: Page) => void }) {
           <div className="bg-white rounded-2xl border border-[#e8e4dc] p-8 shadow-sm mb-4">
             <form onSubmit={handleSubmit} className="space-y-4 mb-6">
               <div>
-                <label className={MODAL_LABEL_CLASS}>
-                  Email
-                </label>
+                <label className={MODAL_LABEL_CLASS}>Email</label>
                 <input
                   type="email"
                   value={email}
@@ -1082,112 +1070,112 @@ function NotificationsModal({
         )}
       </ModalHeader>
       <div className="max-h-[60vh] overflow-y-auto divide-y divide-[#e8e4dc]">
-          {error && (
-            <div className="p-4 bg-red-50 text-xs text-red-700">
-              Couldn't load notifications: {error}
-            </div>
-          )}
-          {loading && items.length === 0 ? (
-            <p className="p-8 text-center text-sm text-[#8a9ab5]">Loading notifications…</p>
-          ) : items.length === 0 ? (
-            <div className="p-10 text-center">
-              <p className="text-3xl mb-2">🔔</p>
-              <p className="text-sm text-[#2c3347] font-medium">No notifications yet</p>
-              <p className="text-xs text-[#8a9ab5] mt-1">
-                You'll be notified about new documents, matter updates and appointments.
-              </p>
-            </div>
-          ) : (
-            items.map((n) => (
-              <div
-                key={n.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => {
+        {error && (
+          <div className="p-4 bg-red-50 text-xs text-red-700">
+            Couldn't load notifications: {error}
+          </div>
+        )}
+        {loading && items.length === 0 ? (
+          <p className="p-8 text-center text-sm text-[#8a9ab5]">Loading notifications…</p>
+        ) : items.length === 0 ? (
+          <div className="p-10 text-center">
+            <p className="text-3xl mb-2">🔔</p>
+            <p className="text-sm text-[#2c3347] font-medium">No notifications yet</p>
+            <p className="text-xs text-[#8a9ab5] mt-1">
+              You'll be notified about new documents, matter updates and appointments.
+            </p>
+          </div>
+        ) : (
+          items.map((n) => (
+            <div
+              key={n.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => {
+                if (!n.read) onMarkRead(n.id);
+
+                if (n.link) onOpenLink(n.link);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+
                   if (!n.read) onMarkRead(n.id);
 
                   if (n.link) onOpenLink(n.link);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-
-                    if (!n.read) onMarkRead(n.id);
-
-                    if (n.link) onOpenLink(n.link);
-                  }
-                }}
-                className={`flex items-start gap-4 p-5 cursor-pointer hover:bg-[#f7f5f0] transition-colors ${
-                  n.read ? "" : "bg-[#c9a84c]/5"
-                }`}
-              >
-                <span className="text-xl flex-shrink-0 mt-0.5" aria-hidden>
-                  {n.link === "documents"
-                    ? "📄"
-                    : n.link === "matters"
-                      ? "📋"
-                      : n.link === "appointments"
-                        ? "📅"
-                        : n.type === "success"
-                          ? "✅"
-                          : n.type === "warning"
-                            ? "⚠️"
-                            : n.type === "error"
-                              ? "⛔"
-                              : "🔔"}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-3">
-                    <p
-                      className={`text-sm font-semibold ${
-                        n.read ? "text-[#2c3347]" : "text-[#0d1f3c]"
-                      }`}
-                    >
-                      {n.title}
-                    </p>
-                    {!n.read && (
-                      <span className="text-xs bg-[#c9a84c] text-[#0d1f3c] font-semibold px-2 py-0.5 rounded-full flex-shrink-0">
-                        New
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-[#8a9ab5] leading-relaxed mt-0.5 break-words">
-                    {n.message}
+                }
+              }}
+              className={`flex items-start gap-4 p-5 cursor-pointer hover:bg-[#f7f5f0] transition-colors ${
+                n.read ? "" : "bg-[#c9a84c]/5"
+              }`}
+            >
+              <span className="text-xl flex-shrink-0 mt-0.5" aria-hidden>
+                {n.link === "documents"
+                  ? "📄"
+                  : n.link === "matters"
+                    ? "📋"
+                    : n.link === "appointments"
+                      ? "📅"
+                      : n.type === "success"
+                        ? "✅"
+                        : n.type === "warning"
+                          ? "⚠️"
+                          : n.type === "error"
+                            ? "⛔"
+                            : "🔔"}
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-3">
+                  <p
+                    className={`text-sm font-semibold ${
+                      n.read ? "text-[#2c3347]" : "text-[#0d1f3c]"
+                    }`}
+                  >
+                    {n.title}
                   </p>
-                  <p className="text-xs text-[#8a9ab5] mt-1.5">
-                    {(() => {
-                      const then = new Date(n.created_at).getTime();
-                      if (Number.isNaN(then)) return "";
-                      const secs = Math.max(0, Math.round((Date.now() - then) / 1000));
-                      if (secs < 45) return "Just now";
-                      const mins = Math.round(secs / 60);
-                      if (mins < 60) return `${mins} min ago`;
-                      const hours = Math.round(mins / 60);
-                      if (hours < 24) return `${hours} hr ago`;
-                      const days = Math.round(hours / 24);
-                      if (days < 7) return `${days} day${days === 1 ? "" : "s"} ago`;
-                      return new Date(n.created_at).toLocaleDateString(undefined, {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      });
-                    })()}
-                  </p>
+                  {!n.read && (
+                    <span className="text-xs bg-[#c9a84c] text-[#0d1f3c] font-semibold px-2 py-0.5 rounded-full flex-shrink-0">
+                      New
+                    </span>
+                  )}
                 </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(n.id);
-                  }}
-                  aria-label="Delete notification"
-                  title="Delete"
-                  className="text-[#8a9ab5] hover:text-red-500 text-lg leading-none px-1"
-                >
-                  ×
-                </button>
+                <p className="text-xs text-[#8a9ab5] leading-relaxed mt-0.5 break-words">
+                  {n.message}
+                </p>
+                <p className="text-xs text-[#8a9ab5] mt-1.5">
+                  {(() => {
+                    const then = new Date(n.created_at).getTime();
+                    if (Number.isNaN(then)) return "";
+                    const secs = Math.max(0, Math.round((Date.now() - then) / 1000));
+                    if (secs < 45) return "Just now";
+                    const mins = Math.round(secs / 60);
+                    if (mins < 60) return `${mins} min ago`;
+                    const hours = Math.round(mins / 60);
+                    if (hours < 24) return `${hours} hr ago`;
+                    const days = Math.round(hours / 24);
+                    if (days < 7) return `${days} day${days === 1 ? "" : "s"} ago`;
+                    return new Date(n.created_at).toLocaleDateString(undefined, {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    });
+                  })()}
+                </p>
               </div>
-            ))
-          )}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(n.id);
+                }}
+                aria-label="Delete notification"
+                title="Delete"
+                className="text-[#8a9ab5] hover:text-red-500 text-lg leading-none px-1"
+              >
+                ×
+              </button>
+            </div>
+          ))
+        )}
       </div>
     </Modal>
   );
@@ -1457,310 +1445,304 @@ function MatterDetail({
         />
 
         <ModalBody className="p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-6">
-              <div className="bg-[#f7f5f0] rounded-xl p-6 grid grid-cols-2 gap-4">
-                {(
-                  [
-                    ["Client", <Person key="c" id={matter.client_id} />],
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-[#f7f5f0] rounded-xl p-6 grid grid-cols-2 gap-4">
+              {(
+                [
+                  ["Client", <Person key="c" id={matter.client_id} />],
 
-                    ["Practice Area", pa?.name ?? matter.practice_area],
+                  ["Practice Area", pa?.name ?? matter.practice_area],
 
-                    ["Lawyer", lawyer ? lawyer.full_name : "Unassigned"],
+                  ["Lawyer", lawyer ? lawyer.full_name : "Unassigned"],
 
-                    ["Priority", matter.priority],
+                  ["Priority", matter.priority],
 
-                    ["Date Opened", matter.date_opened],
-                  ] as [string, ReactNode][]
-                ).map(([label, value]) => (
-                  <div key={label}>
-                    <p className="text-xs text-[#8a9ab5] uppercase tracking-wide font-semibold mb-1">
-                      {label}
-                    </p>
-                    <p
-                      className={`text-sm font-medium ${
-                        label === "Priority" ? priorityColors[matter.priority] : "text-[#0d1f3c]"
-                      }`}
-                    >
-                      {value}
-                    </p>
-                  </div>
-                ))}
-                <div>
+                  ["Date Opened", matter.date_opened],
+                ] as [string, ReactNode][]
+              ).map(([label, value]) => (
+                <div key={label}>
                   <p className="text-xs text-[#8a9ab5] uppercase tracking-wide font-semibold mb-1">
-                    Status
+                    {label}
                   </p>
-                  <Badge text={status} />
+                  <p
+                    className={`text-sm font-medium ${
+                      label === "Priority" ? priorityColors[matter.priority] : "text-[#0d1f3c]"
+                    }`}
+                  >
+                    {value}
+                  </p>
                 </div>
+              ))}
+              <div>
+                <p className="text-xs text-[#8a9ab5] uppercase tracking-wide font-semibold mb-1">
+                  Status
+                </p>
+                <Badge text={status} />
               </div>
+            </div>
 
-              <div className="bg-white rounded-xl p-6 border border-[#e8e4dc]">
-                <h3 className="font-serif text-base font-bold text-[#0d1f3c] mb-2">Description</h3>
-                <p className="text-sm text-[#2c3347] leading-relaxed">{matter.description}</p>
-                {currentUser.role === "admin" && (
-                  <p className="text-xs text-[#8a9ab5] mt-3 italic">
-                    Some information in this matter is restricted due to confidentiality.
-                  </p>
-                )}
-              </div>
+            <div className="bg-white rounded-xl p-6 border border-[#e8e4dc]">
+              <h3 className="font-serif text-base font-bold text-[#0d1f3c] mb-2">Description</h3>
+              <p className="text-sm text-[#2c3347] leading-relaxed">{matter.description}</p>
+              {currentUser.role === "admin" && (
+                <p className="text-xs text-[#8a9ab5] mt-3 italic">
+                  Some information in this matter is restricted due to confidentiality.
+                </p>
+              )}
+            </div>
 
-              <div className="bg-white rounded-xl p-6 border border-[#e8e4dc]">
-                <h3 className="font-serif text-base font-bold text-[#0d1f3c] mb-5">
-                  Activity Timeline
-                </h3>
-                <div className="relative">
-                  {auditLogs.length > 0 ? (
-                    <>
-                      <div className="absolute left-2 top-0 bottom-0 w-px bg-[#e8e4dc]" />
-                      <div className="space-y-5">
-                        {auditLogs.slice(0, 7).map((log) => (
-                          <div key={log.id} className="flex gap-4 pl-8 relative">
-                            <div className="absolute left-0 top-1 w-4 h-4 rounded-full bg-[#c9a84c]/20 border-2 border-[#c9a84c] flex-shrink-0" />
-                            <div>
-                              <p className="text-sm font-medium text-[#0d1f3c]">
-                                {log.event_description}
-                              </p>
-                              <p className="text-xs text-[#8a9ab5] mt-0.5">
-                                {log.user_email || "System"} ·{" "}
-                                {new Date(log.created_at || "").toLocaleDateString()}
-                              </p>
-                            </div>
+            <div className="bg-white rounded-xl p-6 border border-[#e8e4dc]">
+              <h3 className="font-serif text-base font-bold text-[#0d1f3c] mb-5">
+                Activity Timeline
+              </h3>
+              <div className="relative">
+                {auditLogs.length > 0 ? (
+                  <>
+                    <div className="absolute left-2 top-0 bottom-0 w-px bg-[#e8e4dc]" />
+                    <div className="space-y-5">
+                      {auditLogs.slice(0, 7).map((log) => (
+                        <div key={log.id} className="flex gap-4 pl-8 relative">
+                          <div className="absolute left-0 top-1 w-4 h-4 rounded-full bg-[#c9a84c]/20 border-2 border-[#c9a84c] flex-shrink-0" />
+                          <div>
+                            <p className="text-sm font-medium text-[#0d1f3c]">
+                              {log.event_description}
+                            </p>
+                            <p className="text-xs text-[#8a9ab5] mt-0.5">
+                              {log.user_email || "System"} ·{" "}
+                              {new Date(log.created_at || "").toLocaleDateString()}
+                            </p>
                           </div>
-                        ))}
-                      </div>
-                    </>
-                  ) : (
-                    <p className="text-sm text-[#8a9ab5] text-center py-4">No recent activity</p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {(currentUser.role === "admin" || currentUser.role === "lawyer") && (
-                <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
-                  <h3 className="text-sm font-semibold text-[#0d1f3c] mb-3">Update Status</h3>
-                  <select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value as Matter["status"])}
-                    className={`${MODAL_INPUT_CLASS} mb-3`}
-                  >
-                    {statusChoices(savedStatus, currentUser.role === "admin").map((s) => (
-                      <option key={s}>{s}</option>
-                    ))}
-                  </select>
-                  <button
-                    onClick={saveStatus}
-                    disabled={savingStatus || status === savedStatus}
-                    className={`w-full ${MODAL_BUTTON_PRIMARY_CLASS}`}
-                  >
-                    {savingStatus ? "Saving…" : "Save Status"}
-                  </button>
-                  {statusMsg && (
-                    <p
-                      className={`text-xs mt-2 ${statusMsg.ok ? "text-green-700" : "text-red-600"}`}
-                    >
-                      {statusMsg.text}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {currentUser.role === "admin" && (
-                <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
-                  <h3 className="text-sm font-semibold text-[#0d1f3c] mb-3">Assigned Lawyer</h3>
-                  {lawyer ? (
-                    <div className="flex items-center gap-3 mb-3">
-                      <img
-                        src={lawyer.profile_image || "/lawyers/placeholder.svg"}
-                        alt=""
-                        className="w-9 h-9 rounded-full object-cover object-top bg-[#f7f5f0]"
-                      />
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-[#0d1f3c] truncate">
-                          {lawyer.full_name}
-                        </p>
-                        <p className="text-xs text-[#8a9ab5]">{lawyer.position || "Lawyer"}</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-amber-600 font-medium mb-3">
-                      No lawyer assigned yet
-                    </p>
-                  )}
-                  <select
-                    value={assignedId ?? ""}
-                    onChange={(e) => void reassign(e.target.value)}
-                    disabled={assignBusy}
-                    className={MODAL_INPUT_CLASS}
-                  >
-                    <option value="">Unassigned</option>
-                    {lawyers.map((l) => (
-                      <option key={l.id} value={l.id}>
-                        {l.full_name}
-                      </option>
-                    ))}
-                  </select>
-                  {assignBusy && <p className="text-xs mt-2 text-[#8a9ab5]">Saving…</p>}
-                  {assignMsg && (
-                    <p
-                      className={`text-xs mt-2 ${assignMsg.ok ? "text-green-700" : "text-red-600"}`}
-                    >
-                      {assignMsg.text}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {currentUser.role !== "client" && (
-                <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
-                  <h3 className="text-sm font-semibold text-[#0d1f3c] mb-1">Matter Team</h3>
-                  <p className="text-xs text-[#8a9ab5] mb-3">
-                    Everyone here can read this matter&rsquo;s internal notes and documents.
-                  </p>
-
-                  <div className="space-y-2 mb-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm text-[#0d1f3c]">
-                        {lawyer ? (
-                          lawyer.full_name
-                        ) : (
-                          <span className="text-amber-600">No assigned lawyer</span>
-                        )}
-                      </span>
-                      <span className="text-[10px] font-semibold uppercase tracking-wide text-[#c9a84c]">
-                        Lead
-                      </span>
-                    </div>
-                    {team.map((m) => {
-                      const member = lawyers.find((l) => l.id === m.lawyer_id);
-
-                      return (
-                        <div key={m.lawyer_id} className="flex items-center justify-between gap-2">
-                          <span className="text-sm text-[#2c3347]">
-                            {member?.full_name ?? "Unknown lawyer"}
-                          </span>
-                          {canManageTeam && (
-                            <button
-                              onClick={() => void removeMember(m.lawyer_id)}
-                              disabled={teamBusy}
-                              className="text-xs text-[#8a9ab5] hover:text-red-600 disabled:opacity-40"
-                            >
-                              Remove
-                            </button>
-                          )}
                         </div>
-                      );
-                    })}
-                    {team.length === 0 && (
-                      <p className="text-xs text-[#8a9ab5]">No additional lawyers.</p>
-                    )}
-                  </div>
-
-                  {canManageTeam && (
-                    <div className="flex items-center gap-2">
-                      <select
-                        value={addId}
-                        onChange={(e) => setAddId(e.target.value)}
-                        className={`${MODAL_INPUT_CLASS} flex-1`}
-                      >
-                        <option value="">Add a lawyer…</option>
-                        {lawyers
-
-                          .filter(
-                            (l) =>
-                              l.id !== matter.lawyer_id && !team.some((m) => m.lawyer_id === l.id),
-                          )
-
-                          .map((l) => (
-                            <option key={l.id} value={l.id}>
-                              {l.full_name}
-                            </option>
-                          ))}
-                      </select>
-                      <button
-                        onClick={() => void addMember()}
-                        disabled={!addId || teamBusy}
-                        className={`${MODAL_BUTTON_PRIMARY_CLASS} px-4`}
-                      >
-                        {teamBusy ? "Saving…" : "Add"}
-                      </button>
+                      ))}
                     </div>
-                  )}
-
-                  {teamMsg && (
-                    <p className={`text-xs mt-2 ${teamMsg.ok ? "text-green-700" : "text-red-600"}`}>
-                      {teamMsg.text}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {currentUser.role === "admin" && (
-                <div className="bg-amber-50 rounded-xl p-5 border border-amber-200">
-                  <h3 className="text-sm font-semibold text-amber-800 mb-2">Conflict Check</h3>
-                  <p className="text-xs text-amber-700 leading-relaxed mb-3">
-                    Run a conflict check before accepting this matter.
-                  </p>
-                  <button
-                    onClick={() => setStatus("Conflict Check")}
-                    disabled={
-                      !statusChoices(savedStatus, true).includes("Conflict Check") ||
-                      savedStatus === "Conflict Check"
-                    }
-                    className="w-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold py-2.5 rounded transition-colors disabled:opacity-40"
-                  >
-                    {savedStatus === "Conflict Check"
-                      ? "Conflict check in progress"
-                      : "Move to Conflict Check"}
-                  </button>
-                </div>
-              )}
-
-              <MatterTimeline
-                matterId={matter.id}
-                role={currentUser.role}
-                userId={currentUser.id}
-                names={Object.fromEntries(lawyers.map((l) => [l.id, l.full_name]))}
-                clientId={matter.client_id}
-              />
-
-              <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-semibold text-[#0d1f3c]">Documents</h3>
-                  <button
-                    onClick={() => setShowUpload(true)}
-                    className="text-xs font-semibold text-[#c9a84c] hover:underline"
-                  >
-                    + Upload
-                  </button>
-                </div>
-                {matterDocs.length === 0 ? (
-                  <p className="text-xs text-[#8a9ab5]">No documents yet.</p>
+                  </>
                 ) : (
-                  <div className="space-y-3">
-                    {matterDocs.map((doc) => (
-                      <div
-                        key={doc.id}
-                        className="border-b border-[#f7f5f0] pb-3 last:border-0 last:pb-0"
-                      >
-                        <p className="text-xs font-medium text-[#0d1f3c] leading-snug break-words mb-1">
-                          {doc.name}
-                        </p>
-                        <div className="flex items-center justify-between gap-2">
-                          <DocAccessBadge level={doc.access_level} />
-                          <button
-                            onClick={() => openMatterDoc(doc)}
-                            className="text-xs text-[#c9a84c] hover:underline"
-                          >
-                            Open
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <p className="text-sm text-[#8a9ab5] text-center py-4">No recent activity</p>
                 )}
               </div>
             </div>
+          </div>
+
+          <div className="space-y-4">
+            {(currentUser.role === "admin" || currentUser.role === "lawyer") && (
+              <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
+                <h3 className="text-sm font-semibold text-[#0d1f3c] mb-3">Update Status</h3>
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value as Matter["status"])}
+                  className={`${MODAL_INPUT_CLASS} mb-3`}
+                >
+                  {statusChoices(savedStatus, currentUser.role === "admin").map((s) => (
+                    <option key={s}>{s}</option>
+                  ))}
+                </select>
+                <button
+                  onClick={saveStatus}
+                  disabled={savingStatus || status === savedStatus}
+                  className={`w-full ${MODAL_BUTTON_PRIMARY_CLASS}`}
+                >
+                  {savingStatus ? "Saving…" : "Save Status"}
+                </button>
+                {statusMsg && (
+                  <p className={`text-xs mt-2 ${statusMsg.ok ? "text-green-700" : "text-red-600"}`}>
+                    {statusMsg.text}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {currentUser.role === "admin" && (
+              <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
+                <h3 className="text-sm font-semibold text-[#0d1f3c] mb-3">Assigned Lawyer</h3>
+                {lawyer ? (
+                  <div className="flex items-center gap-3 mb-3">
+                    <img
+                      src={lawyer.profile_image || "/lawyers/placeholder.svg"}
+                      alt=""
+                      className="w-9 h-9 rounded-full object-cover object-top bg-[#f7f5f0]"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-[#0d1f3c] truncate">
+                        {lawyer.full_name}
+                      </p>
+                      <p className="text-xs text-[#8a9ab5]">{lawyer.position || "Lawyer"}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-amber-600 font-medium mb-3">No lawyer assigned yet</p>
+                )}
+                <select
+                  value={assignedId ?? ""}
+                  onChange={(e) => void reassign(e.target.value)}
+                  disabled={assignBusy}
+                  className={MODAL_INPUT_CLASS}
+                >
+                  <option value="">Unassigned</option>
+                  {lawyers.map((l) => (
+                    <option key={l.id} value={l.id}>
+                      {l.full_name}
+                    </option>
+                  ))}
+                </select>
+                {assignBusy && <p className="text-xs mt-2 text-[#8a9ab5]">Saving…</p>}
+                {assignMsg && (
+                  <p className={`text-xs mt-2 ${assignMsg.ok ? "text-green-700" : "text-red-600"}`}>
+                    {assignMsg.text}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {currentUser.role !== "client" && (
+              <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
+                <h3 className="text-sm font-semibold text-[#0d1f3c] mb-1">Matter Team</h3>
+                <p className="text-xs text-[#8a9ab5] mb-3">
+                  Everyone here can read this matter&rsquo;s internal notes and documents.
+                </p>
+
+                <div className="space-y-2 mb-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm text-[#0d1f3c]">
+                      {lawyer ? (
+                        lawyer.full_name
+                      ) : (
+                        <span className="text-amber-600">No assigned lawyer</span>
+                      )}
+                    </span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-[#c9a84c]">
+                      Lead
+                    </span>
+                  </div>
+                  {team.map((m) => {
+                    const member = lawyers.find((l) => l.id === m.lawyer_id);
+
+                    return (
+                      <div key={m.lawyer_id} className="flex items-center justify-between gap-2">
+                        <span className="text-sm text-[#2c3347]">
+                          {member?.full_name ?? "Unknown lawyer"}
+                        </span>
+                        {canManageTeam && (
+                          <button
+                            onClick={() => void removeMember(m.lawyer_id)}
+                            disabled={teamBusy}
+                            className="text-xs text-[#8a9ab5] hover:text-red-600 disabled:opacity-40"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {team.length === 0 && (
+                    <p className="text-xs text-[#8a9ab5]">No additional lawyers.</p>
+                  )}
+                </div>
+
+                {canManageTeam && (
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={addId}
+                      onChange={(e) => setAddId(e.target.value)}
+                      className={`${MODAL_INPUT_CLASS} flex-1`}
+                    >
+                      <option value="">Add a lawyer…</option>
+                      {lawyers
+
+                        .filter(
+                          (l) =>
+                            l.id !== matter.lawyer_id && !team.some((m) => m.lawyer_id === l.id),
+                        )
+
+                        .map((l) => (
+                          <option key={l.id} value={l.id}>
+                            {l.full_name}
+                          </option>
+                        ))}
+                    </select>
+                    <button
+                      onClick={() => void addMember()}
+                      disabled={!addId || teamBusy}
+                      className={`${MODAL_BUTTON_PRIMARY_CLASS} px-4`}
+                    >
+                      {teamBusy ? "Saving…" : "Add"}
+                    </button>
+                  </div>
+                )}
+
+                {teamMsg && (
+                  <p className={`text-xs mt-2 ${teamMsg.ok ? "text-green-700" : "text-red-600"}`}>
+                    {teamMsg.text}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {currentUser.role === "admin" && (
+              <div className="bg-amber-50 rounded-xl p-5 border border-amber-200">
+                <h3 className="text-sm font-semibold text-amber-800 mb-2">Conflict Check</h3>
+                <p className="text-xs text-amber-700 leading-relaxed mb-3">
+                  Run a conflict check before accepting this matter.
+                </p>
+                <button
+                  onClick={() => setStatus("Conflict Check")}
+                  disabled={
+                    !statusChoices(savedStatus, true).includes("Conflict Check") ||
+                    savedStatus === "Conflict Check"
+                  }
+                  className="w-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold py-2.5 rounded transition-colors disabled:opacity-40"
+                >
+                  {savedStatus === "Conflict Check"
+                    ? "Conflict check in progress"
+                    : "Move to Conflict Check"}
+                </button>
+              </div>
+            )}
+
+            <MatterTimeline
+              matterId={matter.id}
+              role={currentUser.role}
+              userId={currentUser.id}
+              names={Object.fromEntries(lawyers.map((l) => [l.id, l.full_name]))}
+              clientId={matter.client_id}
+            />
+
+            <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-[#0d1f3c]">Documents</h3>
+                <button
+                  onClick={() => setShowUpload(true)}
+                  className="text-xs font-semibold text-[#c9a84c] hover:underline"
+                >
+                  + Upload
+                </button>
+              </div>
+              {matterDocs.length === 0 ? (
+                <p className="text-xs text-[#8a9ab5]">No documents yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {matterDocs.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="border-b border-[#f7f5f0] pb-3 last:border-0 last:pb-0"
+                    >
+                      <p className="text-xs font-medium text-[#0d1f3c] leading-snug break-words mb-1">
+                        {doc.name}
+                      </p>
+                      <div className="flex items-center justify-between gap-2">
+                        <DocAccessBadge level={doc.access_level} />
+                        <button
+                          onClick={() => openMatterDoc(doc)}
+                          className="text-xs text-[#c9a84c] hover:underline"
+                        >
+                          Open
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </ModalBody>
       </Modal>
       {showRestricted && <RestrictedScreen onReturn={() => setShowRestricted(false)} />}
@@ -2297,10 +2279,7 @@ function DeleteConfirmModal({
         <div className="mx-auto mb-4 grid h-11 w-11 place-items-center rounded-full border border-red-100 bg-red-50 text-lg text-red-600">
           <span aria-hidden="true">⚠</span>
         </div>
-        <h3
-          id="delete-account-title"
-          className="font-serif text-lg font-bold text-[#0d1f3c] mb-2"
-        >
+        <h3 id="delete-account-title" className="font-serif text-lg font-bold text-[#0d1f3c] mb-2">
           Delete Account?
         </h3>
         <p className="text-sm text-[#2c3347] mb-1 break-words">
@@ -2316,11 +2295,7 @@ function DeleteConfirmModal({
         >
           Cancel
         </button>
-        <button
-          type="button"
-          onClick={onConfirm}
-          className={`flex-1 ${MODAL_BUTTON_DANGER_CLASS}`}
-        >
+        <button type="button" onClick={onConfirm} className={`flex-1 ${MODAL_BUTTON_DANGER_CLASS}`}>
           Confirm Delete
         </button>
       </ModalFooter>
@@ -4424,96 +4399,80 @@ function ViewUserModal({ user, onClose }: { user: Profile; onClose: () => void }
     <Modal open onClose={onClose} size="2xl" labelledBy="view-user-title">
       <ModalHeader title="User Details" titleId="view-user-title" onClose={onClose} />
       <ModalBody className="p-7 space-y-6">
-          {/* Profile Header */}
-          <div className="flex items-start gap-4 pb-6 border-b border-[#e8e4dc]">
-            <div className="w-16 h-16 rounded-full bg-[#c9a84c]/20 flex items-center justify-center text-[#c9a84c] text-2xl font-bold">
-              {user.full_name?.charAt(0).toUpperCase() || "U"}
-            </div>
-            <div className="flex-1">
-              <h3 className="text-xl font-bold text-[#0d1f3c]">{user.full_name}</h3>
-              <p className="text-sm text-[#8a9ab5] mt-1">{user.email}</p>
-              <div className="mt-2">
-                <RoleBadge role={user.role} />
-              </div>
+        {/* Profile Header */}
+        <div className="flex items-start gap-4 pb-6 border-b border-[#e8e4dc]">
+          <div className="w-16 h-16 rounded-full bg-[#c9a84c]/20 flex items-center justify-center text-[#c9a84c] text-2xl font-bold">
+            {user.full_name?.charAt(0).toUpperCase() || "U"}
+          </div>
+          <div className="flex-1">
+            <h3 className="text-xl font-bold text-[#0d1f3c]">{user.full_name}</h3>
+            <p className="text-sm text-[#8a9ab5] mt-1">{user.email}</p>
+            <div className="mt-2">
+              <RoleBadge role={user.role} />
             </div>
           </div>
+        </div>
 
-          {/* Account Information */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={MODAL_LABEL_CLASS}>
-                User ID
-              </label>
-              <p className="text-sm text-[#0d1f3c] font-mono bg-[#f7f5f0] px-3 py-2 rounded border border-[#e8e4dc]">
-                {user.id}
-              </p>
-            </div>
-            <div>
-              <label className={MODAL_LABEL_CLASS}>
-                Status
-              </label>
-              <div className="pt-1">
-                <Badge text="Active" />
-              </div>
-            </div>
-            <div>
-              <label className={MODAL_LABEL_CLASS}>
-                Phone
-              </label>
-              <p className="text-sm text-[#0d1f3c]">{user.phone || "Not provided"}</p>
-            </div>
-            <div>
-              <label className={MODAL_LABEL_CLASS}>
-                City
-              </label>
-              <p className="text-sm text-[#0d1f3c]">{user.city || "Not provided"}</p>
+        {/* Account Information */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className={MODAL_LABEL_CLASS}>User ID</label>
+            <p className="text-sm text-[#0d1f3c] font-mono bg-[#f7f5f0] px-3 py-2 rounded border border-[#e8e4dc]">
+              {user.id}
+            </p>
+          </div>
+          <div>
+            <label className={MODAL_LABEL_CLASS}>Status</label>
+            <div className="pt-1">
+              <Badge text="Active" />
             </div>
           </div>
-
-          {/* Address */}
-          {user.address && (
-            <div>
-              <label className={MODAL_LABEL_CLASS}>
-                Address
-              </label>
-              <p className="text-sm text-[#0d1f3c]">{user.address}</p>
-            </div>
-          )}
-
-          {/* Date of Birth */}
-          {user.date_of_birth && (
-            <div>
-              <label className={MODAL_LABEL_CLASS}>
-                Date of Birth
-              </label>
-              <p className="text-sm text-[#0d1f3c]">
-                {new Date(user.date_of_birth).toLocaleDateString()}
-              </p>
-            </div>
-          )}
-
-          {/* Timestamps */}
-          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#e8e4dc]">
-            <div>
-              <label className={MODAL_LABEL_CLASS}>
-                Account Created
-              </label>
-              <p className="text-sm text-[#0d1f3c]">{new Date(user.created_at).toLocaleString()}</p>
-            </div>
-            <div>
-              <label className={MODAL_LABEL_CLASS}>
-                Last Updated
-              </label>
-              <p className="text-sm text-[#0d1f3c]">{new Date(user.updated_at).toLocaleString()}</p>
-            </div>
+          <div>
+            <label className={MODAL_LABEL_CLASS}>Phone</label>
+            <p className="text-sm text-[#0d1f3c]">{user.phone || "Not provided"}</p>
           </div>
-
-          {/* Close Button */}
-          <div className="pt-4">
-            <button onClick={onClose} className={`w-full ${MODAL_BUTTON_PRIMARY_CLASS}`}>
-              Close
-            </button>
+          <div>
+            <label className={MODAL_LABEL_CLASS}>City</label>
+            <p className="text-sm text-[#0d1f3c]">{user.city || "Not provided"}</p>
           </div>
+        </div>
+
+        {/* Address */}
+        {user.address && (
+          <div>
+            <label className={MODAL_LABEL_CLASS}>Address</label>
+            <p className="text-sm text-[#0d1f3c]">{user.address}</p>
+          </div>
+        )}
+
+        {/* Date of Birth */}
+        {user.date_of_birth && (
+          <div>
+            <label className={MODAL_LABEL_CLASS}>Date of Birth</label>
+            <p className="text-sm text-[#0d1f3c]">
+              {new Date(user.date_of_birth).toLocaleDateString()}
+            </p>
+          </div>
+        )}
+
+        {/* Timestamps */}
+        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#e8e4dc]">
+          <div>
+            <label className={MODAL_LABEL_CLASS}>Account Created</label>
+            <p className="text-sm text-[#0d1f3c]">{new Date(user.created_at).toLocaleString()}</p>
+          </div>
+          <div>
+            <label className={MODAL_LABEL_CLASS}>Last Updated</label>
+            <p className="text-sm text-[#0d1f3c]">{new Date(user.updated_at).toLocaleString()}</p>
+          </div>
+        </div>
+
+        {/* Close Button */}
+        <div className="pt-4">
+          <button onClick={onClose} className={`w-full ${MODAL_BUTTON_PRIMARY_CLASS}`}>
+            Close
+          </button>
+        </div>
       </ModalBody>
     </Modal>
   );
@@ -4655,13 +4614,7 @@ function EditUserModal({
       .join(" ") + (form.suffix.trim() ? `, ${form.suffix.trim()}` : "");
 
   return (
-    <Modal
-      open
-      onClose={onClose}
-      size="lg"
-      labelledBy="edit-user-title"
-      dismissible={!loading}
-    >
+    <Modal open onClose={onClose} size="lg" labelledBy="edit-user-title" dismissible={!loading}>
       <ModalHeader
         title="Edit Account"
         titleId="edit-user-title"
@@ -4672,213 +4625,191 @@ function EditUserModal({
 
       <form onSubmit={handleSubmit}>
         <ModalBody className="p-6 sm:p-7 space-y-6 max-h-[60vh] overflow-y-auto">
-            {/* Identity */}
-            <div>
-              <h3 className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-widest mb-3">
-                Identity
-              </h3>
-              {/* Name parts — full_name is composed from these by the database,
+          {/* Identity */}
+          <div>
+            <h3 className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-widest mb-3">
+              Identity
+            </h3>
+            {/* Name parts — full_name is composed from these by the database,
                 so the form edits the parts rather than the derived field. */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className={MODAL_LABEL_CLASS}>
-                    Honorific
-                  </label>
-                  <input
-                    type="text"
-                    value={form.honorific}
-                    onChange={(e) => setForm({ ...form, honorific: e.target.value })}
-                    disabled={loading}
-                    placeholder="Atty."
-                    className={MODAL_INPUT_CLASS}
-                  />
-                </div>
-                <div>
-                  <label className={MODAL_LABEL_CLASS}>
-                    Nickname
-                  </label>
-                  <input
-                    type="text"
-                    value={form.nickname}
-                    onChange={(e) => setForm({ ...form, nickname: e.target.value })}
-                    disabled={loading}
-                    className={MODAL_INPUT_CLASS}
-                  />
-                </div>
-                <div>
-                  <label className={MODAL_LABEL_CLASS}>
-                    First Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={form.firstName}
-                    onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                    disabled={loading}
-                    required
-                    className={MODAL_INPUT_CLASS}
-                  />
-                </div>
-                <div>
-                  <label className={MODAL_LABEL_CLASS}>
-                    Middle Name
-                  </label>
-                  <input
-                    type="text"
-                    value={form.middleName}
-                    onChange={(e) => setForm({ ...form, middleName: e.target.value })}
-                    disabled={loading}
-                    className={MODAL_INPUT_CLASS}
-                  />
-                </div>
-                <div>
-                  <label className={MODAL_LABEL_CLASS}>
-                    Last Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={form.lastName}
-                    onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                    disabled={loading}
-                    required
-                    className={MODAL_INPUT_CLASS}
-                  />
-                </div>
-                <div>
-                  <label className={MODAL_LABEL_CLASS}>
-                    Suffix
-                  </label>
-                  <input
-                    type="text"
-                    value={form.suffix}
-                    onChange={(e) => setForm({ ...form, suffix: e.target.value })}
-                    disabled={loading}
-                    placeholder="Jr., III"
-                    className={MODAL_INPUT_CLASS}
-                  />
-                </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={MODAL_LABEL_CLASS}>Honorific</label>
+                <input
+                  type="text"
+                  value={form.honorific}
+                  onChange={(e) => setForm({ ...form, honorific: e.target.value })}
+                  disabled={loading}
+                  placeholder="Atty."
+                  className={MODAL_INPUT_CLASS}
+                />
               </div>
-              <p className="text-xs text-[#8a9ab5] mt-3 bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-3 py-2">
-                Displayed as: <strong className="text-[#0d1f3c]">{composedName || "—"}</strong>
-              </p>
-            </div>
-
-            {/* Contact */}
-            <div className="pt-5 border-t border-[#e8e4dc]">
-              <h3 className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-widest mb-3">
-                Contact
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className={MODAL_LABEL_CLASS}>
-                    Phone
-                  </label>
-                  <input
-                    type="tel"
-                    value={form.phone}
-                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                    disabled={loading}
-                    className={MODAL_INPUT_CLASS}
-                  />
-                </div>
-                <div>
-                  <label className={MODAL_LABEL_CLASS}>
-                    City
-                  </label>
-                  <input
-                    type="text"
-                    value={form.city}
-                    onChange={(e) => setForm({ ...form, city: e.target.value })}
-                    disabled={loading}
-                    className={MODAL_INPUT_CLASS}
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className={MODAL_LABEL_CLASS}>
-                    Address
-                  </label>
-                  <input
-                    type="text"
-                    value={form.address}
-                    onChange={(e) => setForm({ ...form, address: e.target.value })}
-                    disabled={loading}
-                    className={MODAL_INPUT_CLASS}
-                  />
-                </div>
+              <div>
+                <label className={MODAL_LABEL_CLASS}>Nickname</label>
+                <input
+                  type="text"
+                  value={form.nickname}
+                  onChange={(e) => setForm({ ...form, nickname: e.target.value })}
+                  disabled={loading}
+                  className={MODAL_INPUT_CLASS}
+                />
+              </div>
+              <div>
+                <label className={MODAL_LABEL_CLASS}>First Name *</label>
+                <input
+                  type="text"
+                  value={form.firstName}
+                  onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                  disabled={loading}
+                  required
+                  className={MODAL_INPUT_CLASS}
+                />
+              </div>
+              <div>
+                <label className={MODAL_LABEL_CLASS}>Middle Name</label>
+                <input
+                  type="text"
+                  value={form.middleName}
+                  onChange={(e) => setForm({ ...form, middleName: e.target.value })}
+                  disabled={loading}
+                  className={MODAL_INPUT_CLASS}
+                />
+              </div>
+              <div>
+                <label className={MODAL_LABEL_CLASS}>Last Name *</label>
+                <input
+                  type="text"
+                  value={form.lastName}
+                  onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                  disabled={loading}
+                  required
+                  className={MODAL_INPUT_CLASS}
+                />
+              </div>
+              <div>
+                <label className={MODAL_LABEL_CLASS}>Suffix</label>
+                <input
+                  type="text"
+                  value={form.suffix}
+                  onChange={(e) => setForm({ ...form, suffix: e.target.value })}
+                  disabled={loading}
+                  placeholder="Jr., III"
+                  className={MODAL_INPUT_CLASS}
+                />
               </div>
             </div>
+            <p className="text-xs text-[#8a9ab5] mt-3 bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-3 py-2">
+              Displayed as: <strong className="text-[#0d1f3c]">{composedName || "—"}</strong>
+            </p>
+          </div>
 
-            {/* Access */}
-            <div className="pt-5 border-t border-[#e8e4dc]">
-              <h3 className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-widest mb-3">
-                Access
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Role */}
+          {/* Contact */}
+          <div className="pt-5 border-t border-[#e8e4dc]">
+            <h3 className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-widest mb-3">
+              Contact
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className={MODAL_LABEL_CLASS}>Phone</label>
+                <input
+                  type="tel"
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  disabled={loading}
+                  className={MODAL_INPUT_CLASS}
+                />
+              </div>
+              <div>
+                <label className={MODAL_LABEL_CLASS}>City</label>
+                <input
+                  type="text"
+                  value={form.city}
+                  onChange={(e) => setForm({ ...form, city: e.target.value })}
+                  disabled={loading}
+                  className={MODAL_INPUT_CLASS}
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className={MODAL_LABEL_CLASS}>Address</label>
+                <input
+                  type="text"
+                  value={form.address}
+                  onChange={(e) => setForm({ ...form, address: e.target.value })}
+                  disabled={loading}
+                  className={MODAL_INPUT_CLASS}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Access */}
+          <div className="pt-5 border-t border-[#e8e4dc]">
+            <h3 className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-widest mb-3">
+              Access
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Role */}
+              <div>
+                <label className={MODAL_LABEL_CLASS}>Role *</label>
+                <select
+                  value={form.role}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      role: e.target.value as "client" | "lawyer" | "admin",
+                      position: "",
+                    })
+                  }
+                  disabled={loading || isLastAdmin}
+                  className={MODAL_INPUT_CLASS}
+                >
+                  <option value="client">Client</option>
+                  <option value="lawyer">Lawyer</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+
+              {/* Position at the firm (lawyers & staff) */}
+              {form.role !== "client" && (
                 <div>
-                  <label className={MODAL_LABEL_CLASS}>
-                    Role *
-                  </label>
+                  <label className={MODAL_LABEL_CLASS}>Position at the Firm</label>
                   <select
-                    value={form.role}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        role: e.target.value as "client" | "lawyer" | "admin",
-                        position: "",
-                      })
-                    }
-                    disabled={loading || isLastAdmin}
+                    value={form.position}
+                    onChange={(e) => setForm({ ...form, position: e.target.value })}
+                    disabled={loading}
                     className={MODAL_INPUT_CLASS}
                   >
-                    <option value="client">Client</option>
-                    <option value="lawyer">Lawyer</option>
-                    <option value="admin">Admin</option>
+                    <option value="">Select position…</option>
+                    {LAW_FIRM_POSITIONS.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
                   </select>
                 </div>
-
-                {/* Position at the firm (lawyers & staff) */}
-                {form.role !== "client" && (
-                  <div>
-                    <label className={MODAL_LABEL_CLASS}>
-                      Position at the Firm
-                    </label>
-                    <select
-                      value={form.position}
-                      onChange={(e) => setForm({ ...form, position: e.target.value })}
-                      disabled={loading}
-                      className={MODAL_INPUT_CLASS}
-                    >
-                      <option value="">Select position…</option>
-                      {LAW_FIRM_POSITIONS.map((p) => (
-                        <option key={p} value={p}>
-                          {p}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-              </div>
-              {isLastAdmin && (
-                <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2.5 mt-3 leading-relaxed">
-                  ⚠️ This is the only active administrator. The role is locked until you promote
-                  someone else to admin, otherwise nobody could manage the firm.
-                </p>
               )}
             </div>
-
-            {/* Error message */}
-            {error && (
-              <p role="alert" className={MODAL_ERROR_CLASS}>
-                {error}
+            {isLastAdmin && (
+              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2.5 mt-3 leading-relaxed">
+                ⚠️ This is the only active administrator. The role is locked until you promote
+                someone else to admin, otherwise nobody could manage the firm.
               </p>
             )}
+          </div>
 
-            {/* Note about email */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-xs text-blue-700 leading-relaxed">
-                ℹ️ Email address cannot be changed. Contact support if email change is required.
-              </p>
-            </div>
+          {/* Error message */}
+          {error && (
+            <p role="alert" className={MODAL_ERROR_CLASS}>
+              {error}
+            </p>
+          )}
+
+          {/* Note about email */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p className="text-xs text-blue-700 leading-relaxed">
+              ℹ️ Email address cannot be changed. Contact support if email change is required.
+            </p>
+          </div>
         </ModalBody>
 
         {/* Action bar, pinned under the scroll area so Save is always reachable */}
@@ -5035,13 +4966,7 @@ function ManageUserModal({
   };
 
   return (
-    <Modal
-      open
-      onClose={onClose}
-      size="md"
-      labelledBy="manage-user-title"
-      dismissible={!loading}
-    >
+    <Modal open onClose={onClose} size="md" labelledBy="manage-user-title" dismissible={!loading}>
       <ModalHeader
         title="Manage User"
         titleId="manage-user-title"
@@ -5049,139 +4974,135 @@ function ManageUserModal({
         closeDisabled={loading}
       />
       <ModalBody className="p-7 space-y-6">
-          {/* User Info */}
-          <div className="pb-4 border-b border-[#e8e4dc]">
-            <p className="text-lg font-bold text-[#0d1f3c]">{user.full_name}</p>
-            <p className="text-sm text-[#8a9ab5] mt-1">{user.email}</p>
-            <div className="mt-2">
-              <RoleBadge role={user.role} />
-            </div>
+        {/* User Info */}
+        <div className="pb-4 border-b border-[#e8e4dc]">
+          <p className="text-lg font-bold text-[#0d1f3c]">{user.full_name}</p>
+          <p className="text-sm text-[#8a9ab5] mt-1">{user.email}</p>
+          <div className="mt-2">
+            <RoleBadge role={user.role} />
           </div>
+        </div>
 
-          {/* Change Role Section */}
-          {!showDeactivateConfirm && (
-            <>
-              <div>
-                <label className={MODAL_LABEL_CLASS}>
-                  Change User Role
-                </label>
-                <select
-                  value={selectedRole}
-                  onChange={(e) => setSelectedRole(e.target.value as "client" | "lawyer" | "admin")}
-                  disabled={loading || isLastAdmin}
-                  className={MODAL_INPUT_CLASS}
-                >
-                  <option value="client">Client</option>
-                  <option value="lawyer">Lawyer</option>
-                  <option value="admin">Admin</option>
-                </select>
-                {isLastAdmin && (
-                  <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2.5 mt-3 leading-relaxed">
-                    ⚠️ This is the only active administrator. The role is locked until you promote
-                    someone else to admin, otherwise nobody could manage the firm.
-                  </p>
-                )}
-                <button
-                  onClick={handleRoleChange}
-                  disabled={loading || selectedRole === user.role || isLastAdmin}
-                  className="w-full mt-3 bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] text-sm font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? "Updating..." : "Update Role"}
-                </button>
-              </div>
-
-              {/* Deactivate Section */}
-              <div className="pt-4 border-t border-[#e8e4dc]">
-                <label className={MODAL_LABEL_CLASS}>
-                  Account Actions
-                </label>
-                {isInactive ? (
-                  <>
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3">
-                      <p className="text-xs text-amber-800 leading-relaxed">
-                        This account is currently <strong>deactivated</strong> and cannot sign in.
-                      </p>
-                    </div>
-                    <button
-                      onClick={handleReactivate}
-                      disabled={loading}
-                      className="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-sm font-semibold py-3 rounded-lg border border-emerald-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {loading ? "Reactivating..." : "Reactivate Account"}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => setShowDeactivateConfirm(true)}
-                      disabled={loading || isLastAdmin}
-                      className="w-full bg-amber-50 hover:bg-amber-100 text-amber-700 text-sm font-semibold py-3 rounded-lg border border-amber-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Deactivate Account
-                    </button>
-                    <p className="text-xs text-[#8a9ab5] mt-2 leading-relaxed">
-                      Deactivating prevents login but preserves all user data. You can reactivate it
-                      later from this same screen.
-                    </p>
-                  </>
-                )}
-                {isSelf && (
-                  <p className="text-xs text-[#8a9ab5] mt-2 leading-relaxed">
-                    ℹ️ This is your own account. Changes take effect the next time you sign in.
-                  </p>
-                )}
-              </div>
-            </>
-          )}
-
-          {/* Deactivate Confirmation */}
-          {showDeactivateConfirm && (
-            <div className="space-y-4">
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                <p className="text-sm text-amber-800 font-semibold mb-2">⚠️ Confirm Deactivation</p>
-                <p className="text-xs text-amber-700 leading-relaxed">
-                  Are you sure you want to deactivate {user.full_name}'s account? They will not be
-                  able to sign in until reactivated.
-                </p>
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowDeactivateConfirm(false)}
-                  disabled={loading}
-                  className={`flex-1 ${MODAL_BUTTON_SECONDARY_CLASS}`}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleDeactivate}
-                  disabled={loading}
-                  className="flex-1 inline-flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold py-3 rounded-lg transition-all duration-200 hover:shadow-[0_8px_24px_-4px_rgb(217_119_6/0.4)] active:scale-[0.99] disabled:opacity-40 disabled:pointer-events-none"
-                >
-                  {loading ? "Deactivating..." : "Deactivate"}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Error message */}
-          {error && (
-            <p role="alert" className={MODAL_ERROR_CLASS}>
-              {error}
-            </p>
-          )}
-
-          {/* Close button (when not in deactivate confirm) */}
-          {!showDeactivateConfirm && (
-            <div className="pt-2">
-              <button
-                onClick={onClose}
-                disabled={loading}
-                className={`w-full ${MODAL_BUTTON_SECONDARY_CLASS}`}
+        {/* Change Role Section */}
+        {!showDeactivateConfirm && (
+          <>
+            <div>
+              <label className={MODAL_LABEL_CLASS}>Change User Role</label>
+              <select
+                value={selectedRole}
+                onChange={(e) => setSelectedRole(e.target.value as "client" | "lawyer" | "admin")}
+                disabled={loading || isLastAdmin}
+                className={MODAL_INPUT_CLASS}
               >
-                Close
+                <option value="client">Client</option>
+                <option value="lawyer">Lawyer</option>
+                <option value="admin">Admin</option>
+              </select>
+              {isLastAdmin && (
+                <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2.5 mt-3 leading-relaxed">
+                  ⚠️ This is the only active administrator. The role is locked until you promote
+                  someone else to admin, otherwise nobody could manage the firm.
+                </p>
+              )}
+              <button
+                onClick={handleRoleChange}
+                disabled={loading || selectedRole === user.role || isLastAdmin}
+                className="w-full mt-3 bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] text-sm font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? "Updating..." : "Update Role"}
               </button>
             </div>
-          )}
+
+            {/* Deactivate Section */}
+            <div className="pt-4 border-t border-[#e8e4dc]">
+              <label className={MODAL_LABEL_CLASS}>Account Actions</label>
+              {isInactive ? (
+                <>
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3">
+                    <p className="text-xs text-amber-800 leading-relaxed">
+                      This account is currently <strong>deactivated</strong> and cannot sign in.
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleReactivate}
+                    disabled={loading}
+                    className="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-sm font-semibold py-3 rounded-lg border border-emerald-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? "Reactivating..." : "Reactivate Account"}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setShowDeactivateConfirm(true)}
+                    disabled={loading || isLastAdmin}
+                    className="w-full bg-amber-50 hover:bg-amber-100 text-amber-700 text-sm font-semibold py-3 rounded-lg border border-amber-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Deactivate Account
+                  </button>
+                  <p className="text-xs text-[#8a9ab5] mt-2 leading-relaxed">
+                    Deactivating prevents login but preserves all user data. You can reactivate it
+                    later from this same screen.
+                  </p>
+                </>
+              )}
+              {isSelf && (
+                <p className="text-xs text-[#8a9ab5] mt-2 leading-relaxed">
+                  ℹ️ This is your own account. Changes take effect the next time you sign in.
+                </p>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Deactivate Confirmation */}
+        {showDeactivateConfirm && (
+          <div className="space-y-4">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <p className="text-sm text-amber-800 font-semibold mb-2">⚠️ Confirm Deactivation</p>
+              <p className="text-xs text-amber-700 leading-relaxed">
+                Are you sure you want to deactivate {user.full_name}'s account? They will not be
+                able to sign in until reactivated.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeactivateConfirm(false)}
+                disabled={loading}
+                className={`flex-1 ${MODAL_BUTTON_SECONDARY_CLASS}`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeactivate}
+                disabled={loading}
+                className="flex-1 inline-flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold py-3 rounded-lg transition-all duration-200 hover:shadow-[0_8px_24px_-4px_rgb(217_119_6/0.4)] active:scale-[0.99] disabled:opacity-40 disabled:pointer-events-none"
+              >
+                {loading ? "Deactivating..." : "Deactivate"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Error message */}
+        {error && (
+          <p role="alert" className={MODAL_ERROR_CLASS}>
+            {error}
+          </p>
+        )}
+
+        {/* Close button (when not in deactivate confirm) */}
+        {!showDeactivateConfirm && (
+          <div className="pt-2">
+            <button
+              onClick={onClose}
+              disabled={loading}
+              className={`w-full ${MODAL_BUTTON_SECONDARY_CLASS}`}
+            >
+              Close
+            </button>
+          </div>
+        )}
       </ModalBody>
     </Modal>
   );
@@ -5350,182 +5271,167 @@ function CreateUserModal({
       />
       <ModalBody className="p-7">
         <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Full Name */}
-            <div>
-              <label className={MODAL_LABEL_CLASS}>
-                Full Name *
-              </label>
+          {/* Full Name */}
+          <div>
+            <label className={MODAL_LABEL_CLASS}>Full Name *</label>
+            <input
+              type="text"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              disabled={loading}
+              className={MODAL_INPUT_CLASS}
+              placeholder="Enter full name"
+            />
+          </div>
+
+          {/* Email */}
+          <div>
+            <label className={MODAL_LABEL_CLASS}>Email Address *</label>
+            <input
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              disabled={loading}
+              className={MODAL_INPUT_CLASS}
+              placeholder="user@example.com"
+            />
+          </div>
+
+          {/* Password */}
+          <div>
+            <label className={MODAL_LABEL_CLASS}>Password *</label>
+            <div className="relative">
               <input
-                type="text"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                type={showPassword ? "text" : "password"}
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
                 disabled={loading}
-                className={MODAL_INPUT_CLASS}
-                placeholder="Enter full name"
+                className={`${MODAL_INPUT_CLASS} pr-10`}
+                placeholder="Minimum 6 characters"
               />
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className={MODAL_LABEL_CLASS}>
-                Email Address *
-              </label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                disabled={loading}
-                className={MODAL_INPUT_CLASS}
-                placeholder="user@example.com"
-              />
-            </div>
-
-            {/* Password */}
-            <div>
-              <label className={MODAL_LABEL_CLASS}>
-                Password *
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  disabled={loading}
-                  className={`${MODAL_INPUT_CLASS} pr-10`}
-                  placeholder="Minimum 6 characters"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a9ab5] hover:text-[#0d1f3c] text-sm"
-                  tabIndex={-1}
-                >
-                  {showPassword ? "Hide" : "Show"}
-                </button>
-              </div>
-            </div>
-
-            {/* Confirm Password */}
-            <div>
-              <label className={MODAL_LABEL_CLASS}>
-                Confirm Password *
-              </label>
-              <div className="relative">
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  value={form.confirmPassword}
-                  onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-                  disabled={loading}
-                  className={`${MODAL_INPUT_CLASS} pr-10`}
-                  placeholder="Re-enter password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a9ab5] hover:text-[#0d1f3c] text-sm"
-                  tabIndex={-1}
-                >
-                  {showConfirmPassword ? "Hide" : "Show"}
-                </button>
-              </div>
-            </div>
-
-            {/* Phone */}
-            <div>
-              <label className={MODAL_LABEL_CLASS}>
-                Phone (optional)
-              </label>
-              <input
-                type="tel"
-                value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                disabled={loading}
-                className={MODAL_INPUT_CLASS}
-                placeholder="+63 9XX XXX XXXX"
-              />
-            </div>
-
-            {/* Role */}
-            <div>
-              <label className={MODAL_LABEL_CLASS}>
-                Role *
-              </label>
-              <select
-                value={form.role}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    role: e.target.value as "client" | "lawyer" | "admin",
-                    position: "",
-                  })
-                }
-                disabled={loading}
-                className={MODAL_INPUT_CLASS}
-              >
-                <option value="client">Client</option>
-                <option value="lawyer">Lawyer</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-
-            {/* Position at the firm (lawyers & staff) */}
-            {form.role !== "client" && (
-              <div>
-                <label className={MODAL_LABEL_CLASS}>
-                  Position at the Firm
-                </label>
-                <select
-                  value={form.position}
-                  onChange={(e) => setForm({ ...form, position: e.target.value })}
-                  disabled={loading}
-                  className={MODAL_INPUT_CLASS}
-                >
-                  <option value="">Select position…</option>
-                  {LAW_FIRM_POSITIONS.map((p) => (
-                    <option key={p} value={p}>
-                      {p}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-[10px] text-[#8a9ab5] mt-1">
-                  Shown on the public "Our Lawyers" page for lawyers.
-                </p>
-              </div>
-            )}
-
-            {/* Error message */}
-            {error && (
-              <p role="alert" className={MODAL_ERROR_CLASS}>
-                {error}
-              </p>
-            )}
-
-            {/* Security note */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-xs text-blue-700 leading-relaxed">
-                🔒 Password is securely encrypted and will never be displayed after account
-                creation.
-              </p>
-            </div>
-
-            {/* Action buttons */}
-            <div className="flex gap-3 pt-1">
               <button
                 type="button"
-                onClick={onClose}
-                disabled={loading}
-                className={`flex-1 ${MODAL_BUTTON_SECONDARY_CLASS}`}
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a9ab5] hover:text-[#0d1f3c] text-sm"
+                tabIndex={-1}
               >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className={`flex-1 ${MODAL_BUTTON_PRIMARY_CLASS}`}
-              >
-                {loading ? "Creating..." : "Create Account"}
+                {showPassword ? "Hide" : "Show"}
               </button>
             </div>
+          </div>
+
+          {/* Confirm Password */}
+          <div>
+            <label className={MODAL_LABEL_CLASS}>Confirm Password *</label>
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                value={form.confirmPassword}
+                onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+                disabled={loading}
+                className={`${MODAL_INPUT_CLASS} pr-10`}
+                placeholder="Re-enter password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a9ab5] hover:text-[#0d1f3c] text-sm"
+                tabIndex={-1}
+              >
+                {showConfirmPassword ? "Hide" : "Show"}
+              </button>
+            </div>
+          </div>
+
+          {/* Phone */}
+          <div>
+            <label className={MODAL_LABEL_CLASS}>Phone (optional)</label>
+            <input
+              type="tel"
+              value={form.phone}
+              onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              disabled={loading}
+              className={MODAL_INPUT_CLASS}
+              placeholder="+63 9XX XXX XXXX"
+            />
+          </div>
+
+          {/* Role */}
+          <div>
+            <label className={MODAL_LABEL_CLASS}>Role *</label>
+            <select
+              value={form.role}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  role: e.target.value as "client" | "lawyer" | "admin",
+                  position: "",
+                })
+              }
+              disabled={loading}
+              className={MODAL_INPUT_CLASS}
+            >
+              <option value="client">Client</option>
+              <option value="lawyer">Lawyer</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+
+          {/* Position at the firm (lawyers & staff) */}
+          {form.role !== "client" && (
+            <div>
+              <label className={MODAL_LABEL_CLASS}>Position at the Firm</label>
+              <select
+                value={form.position}
+                onChange={(e) => setForm({ ...form, position: e.target.value })}
+                disabled={loading}
+                className={MODAL_INPUT_CLASS}
+              >
+                <option value="">Select position…</option>
+                {LAW_FIRM_POSITIONS.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+              <p className="text-[10px] text-[#8a9ab5] mt-1">
+                Shown on the public "Our Lawyers" page for lawyers.
+              </p>
+            </div>
+          )}
+
+          {/* Error message */}
+          {error && (
+            <p role="alert" className={MODAL_ERROR_CLASS}>
+              {error}
+            </p>
+          )}
+
+          {/* Security note */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p className="text-xs text-blue-700 leading-relaxed">
+              🔒 Password is securely encrypted and will never be displayed after account creation.
+            </p>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex gap-3 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className={`flex-1 ${MODAL_BUTTON_SECONDARY_CLASS}`}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className={`flex-1 ${MODAL_BUTTON_PRIMARY_CLASS}`}
+            >
+              {loading ? "Creating..." : "Create Account"}
+            </button>
+          </div>
         </form>
       </ModalBody>
     </Modal>
