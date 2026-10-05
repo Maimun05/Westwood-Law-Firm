@@ -2,38 +2,41 @@
 // send-seminar-email — email every registrant of one seminar
 // ============================================================================
 // Called from the admin portal (Website Content → Seminars → Registrants).
-// The admin composes the subject and the body in a dialog; this function does
-// the sending, so RESEND_API_KEY never reaches the browser.
+// The admin composes the subject and the message in a dialog; this function
+// does the sending, so the mailbox password never reaches the browser.
+//
+// SENDER: the firm's Gmail account, over SMTP with an App Password. Resend
+// would have been the first choice, but Resend can only send from a verified
+// domain, and westwoodlaw.ph's DNS is parked at ParkLogic with no way to
+// publish the DKIM/SPF records — so a domain-verified sender is not available.
+// Gmail needs no DNS: the account is already the firm's public contact
+// address, and Google signs the messages on the way out. Port 465, because
+// Supabase's runtime refuses outgoing connections to 25 and 587. Free Gmail
+// allows roughly 500 recipients a day, which is why one send is capped at 200
+// and the log records exactly what went out.
 //
 // Auth is the admin-create-user shape: resolve the caller's JWT to a user
 // (401), require profiles.role = 'admin' (403), and only then build the
 // service-role client. That client reads the registrants — inquiries rows are
 // not admin-readable by email through RLS — and writes the send log.
 //
-// Sending is sequential, one request per recipient, ~150 ms apart. Resend's
-// batch endpoint needs an audience, and the log has to say which address
-// failed and why. 429 responses are honoured through Retry-After and retried
-// once. At most 250 recipients per call: a bigger list would run past the
-// edge function's wall clock and should be split.
-//
 // The message is one template with a single {name} placeholder, replaced per
 // recipient (an empty name falls back to the address's local part).
 //
-// Secrets (supabase secrets set ...):
-//   RESEND_API_KEY      (required) API key from resend.com
-//   SEMINAR_FROM_EMAIL  (optional) e.g. "Westwood Law Firm <seminars@westwoodlaw.ph>".
-//                       Falls back to INQUIRY_FROM_EMAIL, then Resend's
-//                       onboarding sender — which only delivers to the Resend
-//                       account owner, so bulk sending needs a verified domain.
-//   SEMINAR_REPLY_TO    (optional) defaults to INQUIRY_TO_EMAIL, then
-//                       westwoodlawfirm1@gmail.com.
+// Secrets (Edge Function Secrets in the dashboard):
+//   GMAIL_USER          westwoodlawfirm1@gmail.com
+//   GMAIL_APP_PASSWORD  the 16-character App Password for that account.
+//                       Google Account → Security → 2-Step Verification must
+//                       be ON first: App Passwords do not exist without it.
 //
-// Deploy AFTER migration 20261013 adds inquiries.seminar_id:
-//   supabase functions deploy send-seminar-email
+// Deploy AFTER migration 20261013 adds inquiries.seminar_id.
 // ============================================================================
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// Pinned to the major Supabase's own send-email-smtp example uses, so the
+// Node-compat surface is one that is known to work in this runtime.
+import nodemailer from "npm:nodemailer@^9";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -46,7 +49,7 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
-// The admin's body is plain text and lands in an HTML email.
+// The admin's message is plain text and lands in an HTML email.
 const esc = (v: unknown) =>
   String(v ?? "")
     .replace(/&/g, "&amp;")
@@ -70,9 +73,14 @@ function renderHtml(body: string): string {
   </div>`;
 }
 
-const MAX_RECIPIENTS = 250;
+const MAX_RECIPIENTS = 200;
 const MAX_SUBJECT = 200;
 const MAX_MESSAGE = 5000;
+
+// nodemailer's codes for "the mailbox is not reachable at all", as opposed to
+// one address being rejected. Any of these means every remaining recipient
+// would fail the same way, so the run stops instead of burning the wall clock.
+const FATAL_SMTP_CODES = new Set(["EAUTH", "ECONNECTION", "ESOCKET", "ETIMEDOUT", "EDNS"]);
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -170,19 +178,31 @@ serve(async (req) => {
       );
     }
 
-    const apiKey = Deno.env.get("RESEND_API_KEY");
-    if (!apiKey) throw new Error("RESEND_API_KEY is not set");
-    const from =
-      Deno.env.get("SEMINAR_FROM_EMAIL") ??
-      Deno.env.get("INQUIRY_FROM_EMAIL") ??
-      "Westwood Law Firm <onboarding@resend.dev>";
-    const replyTo =
-      Deno.env.get("SEMINAR_REPLY_TO") ??
-      Deno.env.get("INQUIRY_TO_EMAIL") ??
-      "westwoodlawfirm1@gmail.com";
+    const gmailUser = Deno.env.get("GMAIL_USER");
+    const gmailPassword = Deno.env.get("GMAIL_APP_PASSWORD");
+    if (!gmailUser || !gmailPassword) {
+      throw new Error("GMAIL_USER / GMAIL_APP_PASSWORD are not set");
+    }
+
+    // Pooled: one TLS connection serves the whole run, with a pause between
+    // messages so a burst of a few hundred does not look like a flood to
+    // Google. maxMessages reconnects before Gmail closes the session itself.
+    const transport = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: { user: gmailUser, pass: gmailPassword },
+      pool: true,
+      maxConnections: 1,
+      maxMessages: 50,
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 20_000,
+    });
 
     const failures: { email: string; error: string }[] = [];
     let sent = 0;
+    let fatal: string | null = null;
 
     for (let i = 0; i < recipients.length; i++) {
       const recipient = recipients[i];
@@ -195,50 +215,35 @@ serve(async (req) => {
       const personalMessage = message.replace(/\{name\}/gi, () => name);
       const personalSubject = subject.replace(/\{name\}/gi, () => name);
 
-      for (let attempt = 0; ; attempt++) {
-        const res = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            from,
-            to: [recipient.email],
-            reply_to: replyTo,
-            subject: personalSubject,
-            html: renderHtml(personalMessage),
-            text: personalMessage,
-          }),
+      try {
+        await transport.sendMail({
+          from: `Westwood Law Firm <${gmailUser}>`,
+          to: recipient.email,
+          replyTo: gmailUser,
+          subject: personalSubject,
+          text: personalMessage,
+          html: renderHtml(personalMessage),
         });
+        sent++;
+      } catch (error) {
+        const code = (error as { code?: string })?.code;
+        const detail = error instanceof Error ? error.message : String(error);
+        console.error("Gmail rejected a seminar email", recipient.email, code, detail);
+        failures.push({ email: recipient.email, error: detail.slice(0, 200) });
 
-        if (res.ok) {
-          sent++;
+        if (code && FATAL_SMTP_CODES.has(code)) {
+          fatal =
+            code === "EAUTH"
+              ? "Gmail refused the sign-in — check GMAIL_USER and GMAIL_APP_PASSWORD"
+              : `Gmail could not be reached (${code})`;
           break;
         }
-
-        const detail = await res.text().catch(() => "");
-        if (res.status === 429 && attempt === 0) {
-          // Honour Retry-After, but never wait more than 10 s: the wall clock
-          // is shared with every remaining recipient.
-          const retryAfter = Number(res.headers.get("retry-after"));
-          const waitMs =
-            Number.isFinite(retryAfter) && retryAfter > 0
-              ? Math.min(retryAfter * 1000, 10_000)
-              : 1000;
-          await sleep(waitMs);
-          continue;
-        }
-
-        console.error("Resend rejected a seminar email", res.status, detail);
-        failures.push({
-          email: recipient.email,
-          error: `Resend ${res.status}${detail ? `: ${detail.slice(0, 200)}` : ""}`,
-        });
-        break;
       }
+
       if (i < recipients.length - 1) await sleep(150);
     }
+
+    transport.close();
 
     // The log is the record of what happened; a failure to write it must not
     // hide the result of the sends.
@@ -253,11 +258,25 @@ serve(async (req) => {
     });
     if (logError) console.error("could not write the seminar email log", logError);
 
+    if (fatal) {
+      return json(
+        {
+          ok: false,
+          error: `${fatal}. ${sent} of ${recipients.length} had already been sent — the rest were not attempted.`,
+          recipients: recipients.length,
+          sent,
+          failed: failures.length,
+          failures,
+        },
+        502,
+      );
+    }
+
     if (sent === 0) {
       return json(
         {
           ok: false,
-          error: "The email provider rejected every message",
+          error: "The mail provider rejected every message",
           recipients: recipients.length,
           sent,
           failed: failures.length,
