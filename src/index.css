@@ -334,7 +334,11 @@ select {
 }
 
 @utility card-hover-lift {
-  @apply card hover:-translate-y-1 hover:shadow-2xl hover:shadow-[var(--shadow-navy-md)];
+  /* flex-col anchors the content to the top. Without it, a <button> card that
+     the grid stretches taller than its content (a lawyer with no practice
+     areas, a short article) has its content centred by the button's anonymous
+     box, which pushed the portrait/placeholder down behind a white band. */
+  @apply card flex flex-col hover:-translate-y-1 hover:shadow-2xl hover:shadow-[var(--shadow-navy-md)];
 }
 
 /* ── Input Base ── */
