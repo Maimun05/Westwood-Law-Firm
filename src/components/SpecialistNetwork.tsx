@@ -8,6 +8,7 @@ import {
   type PracticeArea,
 } from "@/lib/content";
 import { PracticeAreaIcon, IconSearch } from "@/components/Icons";
+import { PORTRAIT_PLACEHOLDER, onPortraitError } from "@/utils/image";
 
 type Page =
   | "home"
@@ -182,7 +183,8 @@ export default function SpecialistNetwork({ onNavigate }: SpecialistNetworkProps
                         className="flex items-center gap-3 group w-full text-left"
                       >
                         <img
-                          src={l.profile_image || "/lawyers/atty-tabao-primary.png"}
+                          src={l.profile_image || PORTRAIT_PLACEHOLDER}
+                          onError={onPortraitError}
                           alt={l.full_name}
                           className="w-10 h-10 rounded-full object-cover object-top"
                         />

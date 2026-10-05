@@ -458,7 +458,10 @@ export async function getUpcomingSeminars(): Promise<{
     const { data, error } = await supabase
       .from("seminar_events")
       .select("*")
-      .eq("is_active", true)
+      // is_published, not is_active: the admin ContentManager publishes on
+      // is_published (and the seed writes it), so filtering on is_active here
+      // meant the Website Content toggle did nothing on the public site.
+      .eq("is_published", true)
       .gte("date", new Date().toISOString())
       .order("date", { ascending: true });
 
