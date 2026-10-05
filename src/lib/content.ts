@@ -278,6 +278,12 @@ export async function getLawyersByPracticeArea(
 // ============================================================================
 // ARTICLES
 // ============================================================================
+// Rows are fetched plain — no `author:profiles!author_id` embed. The embed
+// joins `profiles`, which visitors cannot read at all (the public boundary is
+// the public_lawyers view), so PostgREST refused the whole query with 42501 and
+// every signed-out visitor silently fell back to the mock articles. The byline
+// is resolved in the components from the lawyers list (public_lawyers), keyed
+// on author_id.
 
 export async function getPublishedArticles(): Promise<{
   data: Article[] | null;
@@ -286,14 +292,7 @@ export async function getPublishedArticles(): Promise<{
   try {
     const { data, error } = await supabase
       .from("articles")
-      .select(`
-        *,
-        author:profiles!author_id (
-          id,
-          full_name,
-          profile_image
-        )
-      `)
+      .select("*")
       .eq("is_published", true)
       .order("published_at", { ascending: false });
 
@@ -310,14 +309,7 @@ export async function getArticleById(
   try {
     const { data, error } = await supabase
       .from("articles")
-      .select(`
-        *,
-        author:profiles!author_id (
-          id,
-          full_name,
-          profile_image
-        )
-      `)
+      .select("*")
       .eq("id", id)
       .eq("is_published", true)
       .single();
@@ -350,14 +342,7 @@ export async function getArticlesByCategory(
   try {
     const { data, error } = await supabase
       .from("articles")
-      .select(`
-        *,
-        author:profiles!author_id (
-          id,
-          full_name,
-          profile_image
-        )
-      `)
+      .select("*")
       .eq("category", category)
       .eq("is_published", true)
       .order("published_at", { ascending: false });

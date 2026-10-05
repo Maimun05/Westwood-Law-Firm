@@ -492,7 +492,11 @@ export default function HomePage({ onNavigate }: HomePageProps) {
                   </h3>
                   <p className="text-body text-sm flex-1">{article.excerpt}</p>
                   <div className="flex items-center justify-between text-caption text-[var(--color-text-muted)] mt-auto pt-4 border-t border-[var(--color-border-light)]">
-                    <span>{article.author?.full_name || "Westwood Law Firm"}</span>
+                    <span>
+                      {lawyers.find((l) => l.id === article.author_id)?.full_name ||
+                        article.author?.full_name ||
+                        "Westwood Law Firm"}
+                    </span>
                     <span>{article.reading_time}</span>
                   </div>
                 </div>

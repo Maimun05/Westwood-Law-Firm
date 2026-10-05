@@ -761,6 +761,79 @@ GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$ADMIN'; SET ROLE authenticated
 if [ "$GOT" = "1" ]; then pass "an admin reads the send log"; else fail "an admin cannot read the send log (got '$GOT')"; fi
 
 echo
+echo "== 6d. Audit log writes from the browser =="
+# 20261014. The live project answered every signed-in action with
+#   POST /rest/v1/audit_logs?select=*  ->  403
+# because the ad-hoc base schema enables RLS on audit_logs with SELECT-only
+# policies, and the two files that add the INSERT path (20260916_create_audit_
+# logs_table, 20260918_fix_all_rls_policies) are not part of the apply chain.
+#
+# The harness cannot see that gap directly — it applies the whole chain, so
+# 20260916/20260918 are present here. Reproduce the live state by hand instead:
+# drop the policies, revoke the grants, re-apply 20261014 ALONE, and require
+# the browser's exact statement shape to work. This is the same technique
+# 20261007 used for the content-table grants.
+$PSQL -q >/dev/null 2>&1 <<'SQL'
+DROP POLICY IF EXISTS audit_logs_insert_policy ON public.audit_logs;
+DROP POLICY IF EXISTS audit_logs_select_policy ON public.audit_logs;
+DROP POLICY IF EXISTS audit_logs_select_admin_policy ON public.audit_logs;
+REVOKE INSERT, SELECT ON public.audit_logs FROM authenticated;
+SQL
+
+if $PSQL -f "$REPO/supabase/migrations/20261014_audit_log_browser_writes.sql" >/dev/null 2>"$WORKDIR/audit.err"; then
+  pass "20261014 re-applies on its own over the live-shaped gap"
+else
+  fail "20261014 could not be re-applied"
+  grep -i error "$WORKDIR/audit.err" | head -3
+fi
+
+# src/lib/services/audit.ts writes with .insert(...).select().single(), i.e.
+# PostgREST runs INSERT ... RETURNING. RETURNING needs SELECT privilege AND a
+# SELECT policy that can see the new row, so restoring the INSERT grant alone
+# would still 403. Assert the whole shape, not just the insert.
+out=$($PSQL -c "SET request.jwt.claim.sub = '$CLIENT'; SET ROLE authenticated;
+  INSERT INTO public.audit_logs (user_id, user_email, event_type, event_description, success)
+  VALUES ('$CLIENT', 'client@wlf.test', 'LOGIN', 'harness browser-path insert', TRUE)
+  RETURNING id;" 2>&1)
+if [ $? -eq 0 ] && echo "$out" | grep -qE '[0-9a-f]{8}-[0-9a-f]{4}'; then
+  pass "the browser audit insert (INSERT ... RETURNING) works as authenticated"
+else
+  fail "the browser audit insert is still denied"
+  echo "        $(echo "$out" | grep -i error | head -1)"
+fi
+
+# The WITH CHECK must refuse a row attributed to somebody else.
+try_as "a client CANNOT write an audit row attributed to another user" "$CLIENT" deny \
+  "INSERT INTO public.audit_logs (user_id, event_type, event_description, success) VALUES ('$ADMIN','LOGIN','forged',TRUE);"
+
+# The admin-read policy must let an admin see the whole trail, and the
+# own-rows policy must still stop a client reading anyone else's.
+GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$ADMIN'; SET ROLE authenticated;
+  SELECT count(*) FROM public.audit_logs WHERE user_id = '$CLIENT';" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "$GOT" -ge 1 ] 2>/dev/null; then
+  pass "an admin can read another user's audit rows"
+else
+  fail "an admin cannot read another user's audit rows (got '$GOT')"
+fi
+
+GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$STRANGER'; SET ROLE authenticated;
+  SELECT count(*) FROM public.audit_logs WHERE user_id = '$CLIENT';" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "$GOT" = "0" ]; then
+  pass "a client cannot read somebody else's audit rows"
+else
+  fail "a client can read somebody else's audit rows (got '$GOT')"
+fi
+
+grants_ok "audit_logs is append-only for authenticated and closed to anon" \
+  "SELECT has_table_privilege('authenticated', 'public.audit_logs', 'INSERT')
+      AND has_table_privilege('authenticated', 'public.audit_logs', 'SELECT')
+      AND NOT has_table_privilege('authenticated', 'public.audit_logs', 'UPDATE')
+      AND NOT has_table_privilege('authenticated', 'public.audit_logs', 'DELETE')
+      AND NOT has_table_privilege('anon', 'public.audit_logs', 'SELECT')
+      AND NOT has_table_privilege('anon', 'public.audit_logs', 'INSERT');" \
+  "t"
+
+echo
 echo "== 7. Content payloads match the real columns =="
 # Runs the admin ContentManager's own draft -> payload path against the real
 # tables. A wrong column name (the form once wrote speaker_name while the
