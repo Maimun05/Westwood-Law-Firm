@@ -141,11 +141,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden gradient-navy">
         {/* Parallax background (grid + gold glow). Oversized so the lagging
             layer never exposes an edge at the section boundary. */}
-        <div
-          ref={parallaxRef}
-          aria-hidden
-          className="absolute -inset-[15%] pointer-events-none"
-        >
+        <div ref={parallaxRef} aria-hidden className="absolute -inset-[15%] pointer-events-none">
           <div className="absolute inset-0 opacity-[0.03] pattern-grid animate-grid-drift" />
           <div className="absolute left-1/2 top-[42%] -translate-x-1/2 -translate-y-1/2 w-[min(92vw,880px)] h-[min(92vw,880px)] hero-glow" />
         </div>
@@ -438,10 +434,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
                       Registered!
                     </div>
                   ) : (
-                    <button
-                      onClick={() => setRegistering(event)}
-                      className="btn-primary w-full"
-                    >
+                    <button onClick={() => setRegistering(event)} className="btn-primary w-full">
                       Register
                     </button>
                   )}
