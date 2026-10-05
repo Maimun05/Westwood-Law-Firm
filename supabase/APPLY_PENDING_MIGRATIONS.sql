@@ -23,6 +23,7 @@
 --   14. 20261011_inquiries_service_role_grant.sql    (service_role SELECT/UPDATE on inquiries — without it notify-inquiry dies with 42501)
 --   15. 20261012_admin_view_only_documents.sql       (admins become view-only on documents: no table or storage uploads, deletes uploader-only)
 --   16. 20261013_seminar_registrations.sql           (seminar registrations get inquiries.seminar_id + submit_inquiry(p_seminar_id); seminar_email_log for the admin bulk email)
+--   17. 20261014_audit_log_browser_writes.sql        (the live audit_logs 403: grants + INSERT/SELECT policies for the browser audit path)
 --
 -- ORDER MATTERS: 20261001 links each seeded lawyer to the practice areas created
 -- by 20260919, so 20260919 must run first. 20261003 supersedes functions that
@@ -34,6 +35,8 @@
 -- 20261006's RPC populates, and private.is_lawyer_or_admin(), so it runs last
 -- of the originals. 20261013 replaces the submit_inquiry that 20261006 creates,
 -- so it runs after 20261006, and it backfills from the rows that RPC wrote.
+-- 20261014 re-asserts the audit_logs policies for the browser write path and
+-- calls private.is_admin(), so it runs after 20261003 installs that helper.
 --
 -- HOW TO RUN
 --   1. Open https://supabase.com/dashboard  ->  your project  ->  SQL Editor
@@ -49,7 +52,7 @@
 
 
 -- ############################################################################
--- ## 1/16  20260919_seed_content.sql
+-- ## 1/17  20260919_seed_content.sql
 -- ############################################################################
 -- ============================================================================
 -- Westwood Law Firm - Content Seed Data
@@ -461,7 +464,7 @@ COMMIT;
 
 
 -- ############################################################################
--- ## 2/16  20260928_fix_admin_profile_write_access.sql
+-- ## 2/17  20260928_fix_admin_profile_write_access.sql
 -- ############################################################################
 -- ============================================================================
 -- Fix: Restore admin write-access to profiles (without reintroducing recursion)
@@ -496,7 +499,7 @@ COMMENT ON POLICY profiles_admin_write_policy ON public.profiles IS
 
 
 -- ############################################################################
--- ## 3/16  20260929_documents_and_notifications.sql
+-- ## 3/17  20260929_documents_and_notifications.sql
 -- ############################################################################
 -- ============================================================================
 -- Documents upload/download + Notifications
@@ -1000,7 +1003,7 @@ WITH CHECK ((SELECT private.is_admin()));
 
 
 -- ############################################################################
--- ## 4/16  20261001_consolidated_access_control.sql
+-- ## 4/17  20261001_consolidated_access_control.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261001  Consolidated access control, composite names, lawyer directory
@@ -1748,7 +1751,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 5/16  20261002_database_cleanup.sql
+-- ## 5/17  20261002_database_cleanup.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261002  Non-destructive cleanup + routing fixes
@@ -1891,7 +1894,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 6/16  20261003_integrity_hardening.sql
+-- ## 6/17  20261003_integrity_hardening.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261003  Integrity hardening
@@ -2268,7 +2271,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 7/16  20261004_client_messaging.sql
+-- ## 7/17  20261004_client_messaging.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261004  Client messaging on matters
@@ -2397,7 +2400,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 8/16  20261005_security_advisor_fixes.sql
+-- ## 8/17  20261005_security_advisor_fixes.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261005  Security advisor fixes
@@ -2996,7 +2999,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 9/16  20261006_public_inquiry_rpc.sql
+-- ## 9/17  20261006_public_inquiry_rpc.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261006  Public inquiry submission
@@ -3112,7 +3115,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 10/16  20261007_content_table_grants.sql
+-- ## 10/17  20261007_content_table_grants.sql
 -- ############################################################################
 -- ============================================================================
 -- CONTENT TABLE GRANTS — the live "Admin access is required" failure
@@ -3234,7 +3237,7 @@ WITH CHECK ((SELECT private.is_admin()));
 
 
 -- ############################################################################
--- ## 11/16  20261008_inquiry_attachments.sql
+-- ## 11/17  20261008_inquiry_attachments.sql
 -- ############################################################################
 -- ============================================================================
 -- INQUIRY ATTACHMENTS — "Attach File / Photo / Video" on the public form
@@ -3424,7 +3427,7 @@ GRANT EXECUTE ON FUNCTION public.attach_inquiry_files(TEXT, JSONB) TO anon, auth
 
 
 -- ############################################################################
--- ## 12/16  20261009_firm_contact_email.sql
+-- ## 12/17  20261009_firm_contact_email.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261009 — Firm public contact email
@@ -3447,7 +3450,7 @@ WHERE answer LIKE '%atty.boyet@westwoodlaw.ph%';
 
 
 -- ############################################################################
--- ## 13/16  20261010_inquiry_firm_notified.sql
+-- ## 13/17  20261010_inquiry_firm_notified.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261010 — Track whether the firm has been emailed about an inquiry
@@ -3469,7 +3472,7 @@ ALTER TABLE public.inquiries
 
 
 -- ############################################################################
--- ## 14/16  20261011_inquiries_service_role_grant.sql
+-- ## 14/17  20261011_inquiries_service_role_grant.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261011 — service_role access to inquiries (for notify-inquiry)
@@ -3497,7 +3500,7 @@ GRANT SELECT, UPDATE ON public.inquiries TO service_role;
 
 
 -- ############################################################################
--- ## 15/16  20261012_admin_view_only_documents.sql
+-- ## 15/17  20261012_admin_view_only_documents.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261012 — Admins are view-only on documents
@@ -3568,7 +3571,7 @@ USING (
 
 
 -- ############################################################################
--- ## 16/16  20261013_seminar_registrations.sql
+-- ## 16/17  20261013_seminar_registrations.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261013 — Seminar registrations get a real link + email send log
@@ -3746,6 +3749,148 @@ END $$;
 
 
 -- ############################################################################
+-- ## 17/17  20261014_audit_log_browser_writes.sql
+-- ############################################################################
+-- ============================================================================
+-- 20261014  Audit log writes from the browser
+-- ============================================================================
+-- Reported 2026-10-05, from the signed-in portal:
+--
+--   POST /rest/v1/audit_logs?select=*  ->  403
+--   audit.ts:101  Error logging audit event
+--
+-- src/lib/services/audit.ts writes with .insert(...).select().single(), i.e.
+-- PostgREST runs INSERT ... RETURNING. That single statement needs FOUR things,
+-- and the live project is missing all of the ones the chain never supplied:
+--
+--   1. INSERT privilege for authenticated            (grant)
+--   2. an INSERT policy whose WITH CHECK passes      (RLS)
+--   3. SELECT privilege for the RETURNING clause     (grant)
+--   4. a SELECT policy that can see the new row      (RLS)
+--
+-- Why live is missing them: the project was built from the ad-hoc
+-- schema-production.sql, which enables RLS on audit_logs with SELECT policies
+-- only and grants SELECT alone. The two files that add the INSERT path —
+-- 20260916_create_audit_logs_table.sql (grants + policies) and
+-- 20260918_fix_all_rls_policies.sql (policy rewrite) — are NOT part of the
+-- apply chain and never reached the live project. This is the same class of
+-- gap 20261007 fixed for the content tables.
+--
+-- End state, and why each policy looks the way it does:
+--   * INSERT  — the browser writes rows attributed to itself (auth.uid()), or
+--               unattributed (user_id NULL) for pre-auth events. 20261003's
+--               stamp_audit_source trigger decides provenance separately, so
+--               this policy does not try to.
+--   * SELECT  — own rows, plus every row for an ACTIVE admin. The admin policy
+--               goes through private.is_admin() rather than an inline role
+--               subquery so a deactivated or soft-deleted account loses the
+--               ability (the point of 20261003 §2).
+--   * The legacy policy names from schema-production.sql and 20260916 are
+--     dropped so the table has exactly one rule per action; leaving the old
+--     admin policy in place would OR around the is_active check.
+--
+-- Safe to re-run: every statement is DROP IF EXISTS or idempotent.
+-- ============================================================================
+
+
+-- ----------------------------------------------------------------------------
+-- 1. Grants
+-- ----------------------------------------------------------------------------
+-- PUBLIC and anon get nothing: the audit trail is staff-only. authenticated
+-- gets exactly the two privileges the browser path uses, and nothing else —
+-- the trail is append-only for users (no UPDATE, no DELETE, no TRUNCATE).
+-- service_role gets the lot (it bypasses RLS but still needs the privilege).
+REVOKE ALL ON public.audit_logs FROM PUBLIC, anon;
+REVOKE UPDATE, DELETE, TRUNCATE ON public.audit_logs FROM authenticated;
+GRANT SELECT, INSERT ON public.audit_logs TO authenticated;
+GRANT ALL ON public.audit_logs TO service_role;
+
+
+-- ----------------------------------------------------------------------------
+-- 2. Retire the legacy policies
+-- ----------------------------------------------------------------------------
+-- From schema-production.sql (select own / select admin) and 20260916
+-- (view own / admins view all / authenticated insert).
+DROP POLICY IF EXISTS "Users can view own audit logs" ON public.audit_logs;
+DROP POLICY IF EXISTS "Admins can view all audit logs" ON public.audit_logs;
+DROP POLICY IF EXISTS "Authenticated users can insert audit logs" ON public.audit_logs;
+DROP POLICY IF EXISTS audit_logs_select_own ON public.audit_logs;
+DROP POLICY IF EXISTS audit_logs_select_admin ON public.audit_logs;
+
+
+-- ----------------------------------------------------------------------------
+-- 3. The policies the browser path needs
+-- ----------------------------------------------------------------------------
+-- INSERT: users log their own actions. user_id IS NULL is kept from 20260918
+-- for the pre-auth events (failed logins etc.) the auth service records.
+DROP POLICY IF EXISTS audit_logs_insert_policy ON public.audit_logs;
+CREATE POLICY audit_logs_insert_policy ON public.audit_logs
+FOR INSERT TO authenticated
+WITH CHECK (user_id = (SELECT auth.uid()) OR user_id IS NULL);
+
+-- SELECT: own rows — this is also what makes INSERT ... RETURNING visible to
+-- the writer, so the .select().single() in audit.ts can read the row back.
+DROP POLICY IF EXISTS audit_logs_select_policy ON public.audit_logs;
+CREATE POLICY audit_logs_select_policy ON public.audit_logs
+FOR SELECT TO authenticated
+USING (user_id = (SELECT auth.uid()));
+
+-- SELECT: an active admin sees the whole trail. The portal's account-history
+-- screen relies on this (getMyAuditLogs does not filter by user for admins).
+DROP POLICY IF EXISTS audit_logs_select_admin_policy ON public.audit_logs;
+CREATE POLICY audit_logs_select_admin_policy ON public.audit_logs
+FOR SELECT TO authenticated
+USING ((SELECT private.is_admin()));
+
+
+-- ============================================================================
+-- Verification
+-- ============================================================================
+DO $$
+DECLARE v_missing TEXT := '';
+BEGIN
+  IF NOT has_table_privilege('authenticated', 'public.audit_logs', 'INSERT') THEN
+    v_missing := v_missing || ' authenticated-lacks-INSERT';
+  END IF;
+  IF NOT has_table_privilege('authenticated', 'public.audit_logs', 'SELECT') THEN
+    v_missing := v_missing || ' authenticated-lacks-SELECT';
+  END IF;
+  IF has_table_privilege('anon', 'public.audit_logs', 'SELECT') THEN
+    v_missing := v_missing || ' anon-can-read';
+  END IF;
+  IF has_table_privilege('authenticated', 'public.audit_logs', 'UPDATE')
+     OR has_table_privilege('authenticated', 'public.audit_logs', 'DELETE') THEN
+    v_missing := v_missing || ' authenticated-can-mutate';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies
+                 WHERE schemaname = 'public' AND tablename = 'audit_logs'
+                   AND policyname = 'audit_logs_insert_policy') THEN
+    v_missing := v_missing || ' no-insert-policy';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies
+                 WHERE schemaname = 'public' AND tablename = 'audit_logs'
+                   AND policyname = 'audit_logs_select_policy') THEN
+    v_missing := v_missing || ' no-select-policy';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies
+                 WHERE schemaname = 'public' AND tablename = 'audit_logs'
+                   AND policyname = 'audit_logs_select_admin_policy') THEN
+    v_missing := v_missing || ' no-admin-select-policy';
+  END IF;
+
+  IF v_missing = '' THEN
+    RAISE NOTICE 'audit_logs browser writes: OK (grants + 3 policies in place)';
+  ELSE
+    RAISE WARNING 'audit_logs browser writes: INCOMPLETE —%', v_missing;
+  END IF;
+END $$;
+
+-- ============================================================================
+-- Migration complete
+-- ============================================================================
+
+
+-- ############################################################################
 -- ## VERIFICATION  —  read the result grid, not the "Success" toast
 -- ############################################################################
 -- Every row in the first result should say present = true.
@@ -3786,6 +3931,15 @@ UNION ALL SELECT 'inquiries.seminar_id column',  EXISTS (SELECT 1 FROM informati
 UNION ALL SELECT 'inquiries_seminar_id_idx',     to_regclass('public.inquiries_seminar_id_idx')      IS NOT NULL
 UNION ALL SELECT 'submit_inquiry() 8-arg',       to_regprocedure('public.submit_inquiry(text,text,text,text,text,text,text,text)') IS NOT NULL
 UNION ALL SELECT 'old 7-arg submit_inquiry gone', to_regprocedure('public.submit_inquiry(text,text,text,text,text,text,text)') IS NULL
+UNION ALL SELECT 'audit_logs insert policy',     EXISTS (SELECT 1 FROM pg_policies
+                                                 WHERE schemaname='public' AND tablename='audit_logs'
+                                                   AND policyname='audit_logs_insert_policy')
+UNION ALL SELECT 'audit_logs own-rows select',   EXISTS (SELECT 1 FROM pg_policies
+                                                 WHERE schemaname='public' AND tablename='audit_logs'
+                                                   AND policyname='audit_logs_select_policy')
+UNION ALL SELECT 'audit_logs admin select',      EXISTS (SELECT 1 FROM pg_policies
+                                                 WHERE schemaname='public' AND tablename='audit_logs'
+                                                   AND policyname='audit_logs_select_admin_policy')
 UNION ALL SELECT 'seminar_email_log table',      to_regclass('public.seminar_email_log')             IS NOT NULL;
 
 SELECT 'practice_areas' AS table_name, count(*) AS rows FROM public.practice_areas
@@ -3958,4 +4112,12 @@ UNION ALL SELECT 'seminar_email_log is admin-read-only',
             WHEN NOT EXISTS (SELECT 1 FROM pg_policies
                              WHERE schemaname = 'public' AND tablename = 'seminar_email_log'
                                AND policyname = 'seminar_email_log_select_admin')
+            THEN 'FAIL' ELSE 'PASS' END
+UNION ALL SELECT 'the audit trail accepts browser writes and is append-only for users',
+       CASE WHEN NOT (has_table_privilege('authenticated', 'public.audit_logs', 'INSERT')
+                   AND has_table_privilege('authenticated', 'public.audit_logs', 'SELECT'))
+            THEN 'FAIL'
+            WHEN has_table_privilege('anon', 'public.audit_logs', 'SELECT') THEN 'FAIL'
+            WHEN has_table_privilege('authenticated', 'public.audit_logs', 'UPDATE')
+              OR has_table_privilege('authenticated', 'public.audit_logs', 'DELETE')
             THEN 'FAIL' ELSE 'PASS' END;

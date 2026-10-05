@@ -294,7 +294,11 @@ serve(async (req) => {
       failures,
     });
   } catch (e) {
+    // Surface the real reason. The earlier catch-all flattened every failure
+    // into "Unexpected error", which hid a plain misconfiguration — the Gmail
+    // secrets not being set — behind a 500 the admin could do nothing with.
     console.error("send-seminar-email failed", e);
-    return json({ ok: false, error: "Unexpected error" }, 500);
+    const detail = e instanceof Error ? e.message : String(e);
+    return json({ ok: false, error: detail || "Unexpected error" }, 500);
   }
 });

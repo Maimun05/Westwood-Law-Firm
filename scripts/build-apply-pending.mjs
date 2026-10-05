@@ -85,6 +85,10 @@ const MIGRATIONS = [
     file: "20261013_seminar_registrations.sql",
     note: "seminar registrations get inquiries.seminar_id + submit_inquiry(p_seminar_id); seminar_email_log for the admin bulk email",
   },
+  {
+    file: "20261014_audit_log_browser_writes.sql",
+    note: "the live audit_logs 403: grants + INSERT/SELECT policies for the browser audit path",
+  },
 ];
 
 const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the practice areas created
@@ -96,7 +100,9 @@ const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the p
 -- after 20261003 installs it. 20261008 references public.inquiries, which
 -- 20261006's RPC populates, and private.is_lawyer_or_admin(), so it runs last
 -- of the originals. 20261013 replaces the submit_inquiry that 20261006 creates,
--- so it runs after 20261006, and it backfills from the rows that RPC wrote.`;
+-- so it runs after 20261006, and it backfills from the rows that RPC wrote.
+-- 20261014 re-asserts the audit_logs policies for the browser write path and
+-- calls private.is_admin(), so it runs after 20261003 installs that helper.`;
 
 const VERIFICATION = `-- ############################################################################
 -- ## VERIFICATION  —  read the result grid, not the "Success" toast
@@ -139,6 +145,15 @@ UNION ALL SELECT 'inquiries.seminar_id column',  EXISTS (SELECT 1 FROM informati
 UNION ALL SELECT 'inquiries_seminar_id_idx',     to_regclass('public.inquiries_seminar_id_idx')      IS NOT NULL
 UNION ALL SELECT 'submit_inquiry() 8-arg',       to_regprocedure('public.submit_inquiry(text,text,text,text,text,text,text,text)') IS NOT NULL
 UNION ALL SELECT 'old 7-arg submit_inquiry gone', to_regprocedure('public.submit_inquiry(text,text,text,text,text,text,text)') IS NULL
+UNION ALL SELECT 'audit_logs insert policy',     EXISTS (SELECT 1 FROM pg_policies
+                                                 WHERE schemaname='public' AND tablename='audit_logs'
+                                                   AND policyname='audit_logs_insert_policy')
+UNION ALL SELECT 'audit_logs own-rows select',   EXISTS (SELECT 1 FROM pg_policies
+                                                 WHERE schemaname='public' AND tablename='audit_logs'
+                                                   AND policyname='audit_logs_select_policy')
+UNION ALL SELECT 'audit_logs admin select',      EXISTS (SELECT 1 FROM pg_policies
+                                                 WHERE schemaname='public' AND tablename='audit_logs'
+                                                   AND policyname='audit_logs_select_admin_policy')
 UNION ALL SELECT 'seminar_email_log table',      to_regclass('public.seminar_email_log')             IS NOT NULL;
 
 SELECT 'practice_areas' AS table_name, count(*) AS rows FROM public.practice_areas
@@ -311,6 +326,14 @@ UNION ALL SELECT 'seminar_email_log is admin-read-only',
             WHEN NOT EXISTS (SELECT 1 FROM pg_policies
                              WHERE schemaname = 'public' AND tablename = 'seminar_email_log'
                                AND policyname = 'seminar_email_log_select_admin')
+            THEN 'FAIL' ELSE 'PASS' END
+UNION ALL SELECT 'the audit trail accepts browser writes and is append-only for users',
+       CASE WHEN NOT (has_table_privilege('authenticated', 'public.audit_logs', 'INSERT')
+                   AND has_table_privilege('authenticated', 'public.audit_logs', 'SELECT'))
+            THEN 'FAIL'
+            WHEN has_table_privilege('anon', 'public.audit_logs', 'SELECT') THEN 'FAIL'
+            WHEN has_table_privilege('authenticated', 'public.audit_logs', 'UPDATE')
+              OR has_table_privilege('authenticated', 'public.audit_logs', 'DELETE')
             THEN 'FAIL' ELSE 'PASS' END;
 `;
 
