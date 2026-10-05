@@ -43,15 +43,19 @@ export const FILE_INPUT_ACCEPT = ALLOWED_EXTENSIONS.map((e) => `.${e}`).join(","
 /** Access levels a given role may choose when uploading (mirrors can_upload_document in SQL). */
 export function uploadableAccessLevels(role: "client" | "lawyer" | "admin"): DocAccessLevel[] {
   if (role === "client") return ["Client & Assigned Lawyer"];
-  if (role === "lawyer") return ["Client & Assigned Lawyer", "Staff Shared", "Lawyer Only"];
-  return ["Client & Assigned Lawyer", "Staff Shared", "Lawyer Only", "Confidential", "Public"];
+  if (role === "lawyer")
+    return ["Client & Assigned Lawyer", "Staff Shared", "Lawyer Only", "Confidential"];
+  // Admins are view-only on documents (20261012): the database refuses every
+  // admin upload, so the UI must not offer one.
+  return [];
 }
 
 export const ACCESS_LEVEL_HELP: Record<DocAccessLevel, string> = {
   "Client & Assigned Lawyer": "Visible to the client and the assigned lawyer on this matter.",
   "Staff Shared": "Visible to lawyers and admins only. Not shown to the client.",
   "Lawyer Only": "Visible to the assigned lawyer only (and admins).",
-  Confidential: "Visible to admins only.",
+  Confidential:
+    "Visible to the assigned lawyer's team only. Admins see the file name and must log a reason to open it.",
   Public: "Visible to every signed-in user. Use with care.",
 };
 
@@ -251,11 +255,21 @@ export async function deleteDocument(doc: DocumentRow) {
     return { error: storageError.message || "Could not delete the file." };
   }
 
-  const { error: rowError } = await supabase.from("documents").delete().eq("id", doc.id);
+  // .select("id") is the point of this call: a DELETE the RLS policy filters
+  // affects zero rows and still exits 0, so without reading the rows back the
+  // UI would report "Document deleted" while the row survived.
+  const { data: deletedRows, error: rowError } = await supabase
+    .from("documents")
+    .delete()
+    .eq("id", doc.id)
+    .select("id");
   if (rowError) {
     return {
       error: rowError.message || "Could not delete the document record.",
     };
+  }
+  if (!deletedRows || deletedRows.length === 0) {
+    return { error: "Only the person who uploaded a document can delete it." };
   }
 
   void logAuditEvent("DOCUMENT_DELETED", `Deleted document "${doc.name}"`, {

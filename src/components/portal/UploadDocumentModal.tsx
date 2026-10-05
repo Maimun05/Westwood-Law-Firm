@@ -125,7 +125,11 @@ export default function UploadDocumentModal({
       />
 
       <ModalBody stagger className="space-y-5">
-        {matters.length === 0 ? (
+        {levels.length === 0 ? (
+          <p className="text-sm text-[#8a9ab5] text-center py-6">
+            Admins have view-only access to documents. Ask the assigned lawyer to upload it.
+          </p>
+        ) : matters.length === 0 ? (
           <p className="text-sm text-[#8a9ab5] text-center py-6">
             You need a matter before you can upload documents. Submit an inquiry to get started.
           </p>

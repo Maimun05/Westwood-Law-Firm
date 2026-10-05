@@ -11,6 +11,12 @@ import { createPortal } from "react-dom";
  * The exit animation is why this keeps a closing dialog mounted: `usePresence`
  * flips `data-state` to "closed", lets the CSS animation in `index.css` run,
  * and only then unmounts. Keep `EXIT_MS` in sync with `modal-panel-out`.
+ *
+ * Scrolling: the panel is capped to the viewport and laid out as a column
+ * (see `.modal-panel` in index.css), so `ModalBody` is the only scroll region
+ * — the header and footer stay pinned and the dialog never scrolls as a
+ * whole. Never add a second `overflow-y-auto` / `max-h` region inside a
+ * dialog; let the body scroll.
  */
 
 /** Must match the `modal-panel-out` / `modal-scrim-out` durations in index.css. */
@@ -389,14 +395,18 @@ export function ModalBody({
   stagger?: boolean;
 }) {
   return (
-    <div className={`${className ?? MODAL_BODY_CLASS} ${stagger ? "modal-stagger" : ""}`}>
+    <div
+      className={`modal-body ${className ?? MODAL_BODY_CLASS} ${stagger ? "modal-stagger" : ""}`}
+    >
       {children}
     </div>
   );
 }
 
 export function ModalFooter({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={className ?? "px-6 pb-6 pt-1 flex gap-3"}>{children}</div>;
+  return (
+    <div className={`modal-footer ${className ?? "px-6 pb-6 pt-1 flex gap-3"}`}>{children}</div>
+  );
 }
 
 export default Modal;
