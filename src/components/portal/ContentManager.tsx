@@ -23,6 +23,7 @@ import {
   ModalFooter,
   ModalHeader,
 } from "@/components/ui/Modal";
+import SeminarRegistrantsModal from "@/components/portal/SeminarRegistrantsModal";
 
 // Admin CRUD over the five tables that drive the public site.
 //
@@ -88,6 +89,8 @@ export default function ContentManager({
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<{ row: Row | null } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Row | null>(null);
+  // Seminars only: the row whose registrants are open, if any.
+  const [registrantsFor, setRegistrantsFor] = useState<Row | null>(null);
   const [busy, setBusy] = useState(false);
 
   const cfg = CONTENT_CONFIG[kind];
@@ -242,6 +245,14 @@ export default function ContentManager({
                   >
                     {published ? "Unpublish" : "Publish"}
                   </button>
+                  {kind === "seminar_events" && (
+                    <button
+                      onClick={() => setRegistrantsFor(row)}
+                      className="text-xs text-[#2c3347] font-medium hover:text-[#0d1f3c] hover:underline"
+                    >
+                      Registrants
+                    </button>
+                  )}
                   <button
                     onClick={() => setEditing({ row })}
                     className="text-xs text-[#c9a84c] font-medium hover:underline"
@@ -315,6 +326,21 @@ export default function ContentManager({
             </button>
           </ModalFooter>
         </Modal>
+      )}
+      {registrantsFor && (
+        <SeminarRegistrantsModal
+          key={String(registrantsFor.id)}
+          seminar={{
+            id: String(registrantsFor.id),
+            title: String(registrantsFor.title ?? "(untitled)"),
+            date: String(registrantsFor.date ?? ""),
+            time: String(registrantsFor.time ?? ""),
+            location: String(registrantsFor.location ?? ""),
+            speaker: String(registrantsFor.speaker ?? ""),
+          }}
+          onClose={() => setRegistrantsFor(null)}
+          onToast={onToast}
+        />
       )}
     </div>
   );

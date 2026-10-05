@@ -62,6 +62,9 @@ export default function SeminarRegistrationModal({
       phone: form.phone,
       concern: "Seminar registration",
       practiceArea: "",
+      // The link the admin's Registrants screen groups by. The message text
+      // stays because it is what the firm reads in the email notification.
+      seminarId: event.id,
       message: [
         `I would like to register for the following seminar:`,
         ``,

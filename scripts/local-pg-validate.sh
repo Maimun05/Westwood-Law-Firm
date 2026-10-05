@@ -659,6 +659,108 @@ grants_ok "the storage delete policy no longer lets admins delete any file" \
   "t"
 
 echo
+echo "== 6c. Seminar registrations =="
+# 20261013. A registration was already an inquiries row with the subject
+# 'Seminar registration', but the seminar itself lived only in the message
+# body, so the admin screen could not group them. The link column and the RPC
+# parameter fix that; the send log backs "email every registrant".
+grants_ok "inquiries.seminar_id exists and is indexed" \
+  "SELECT EXISTS (SELECT 1 FROM information_schema.columns
+                  WHERE table_schema = 'public' AND table_name = 'inquiries'
+                    AND column_name = 'seminar_id')
+      AND to_regclass('public.inquiries_seminar_id_idx') IS NOT NULL;" \
+  "t"
+
+# Keeping BOTH signatures would make a 7-argument call ambiguous — every
+# argument has a default — and PostgREST answers ambiguity with PGRST203, so
+# the live contact form would break the moment the old signature stayed behind.
+grants_ok "only the 8-arg submit_inquiry survives, and anon can still call it" \
+  "SELECT to_regprocedure('public.submit_inquiry(text,text,text,text,text,text,text)') IS NULL
+      AND to_regprocedure('public.submit_inquiry(text,text,text,text,text,text,text,text)') IS NOT NULL
+      AND has_function_privilege('anon', 'public.submit_inquiry(text,text,text,text,text,text,text,text)', 'EXECUTE');" \
+  "t"
+
+# The frontend deployed today still calls the 7-argument form. It has to keep
+# working through the new default until the new build is live.
+REF=$($PSQL -tA -c "SET ROLE anon;
+  SELECT public.submit_inquiry('Old Form','old@example.com',NULL,'labor',NULL,'Seven-arg call.','General inquiry');" 2>&1 | tail -1 | tr -d '[:space:]')
+if echo "$REF" | grep -qE '^WI-[0-9]{4}-[0-9]{3}$'; then
+  pass "the deployed 7-argument call still works ($REF)"
+else
+  fail "the deployed 7-argument call broke (got '$REF')"
+fi
+
+REF=$($PSQL -tA -c "SET ROLE anon;
+  SELECT public.submit_inquiry('Seminar Guest','guest@example.com',NULL,NULL,NULL,'Please register me.','Seminar registration','e1');" 2>&1 | tail -1 | tr -d '[:space:]')
+LINKED=$($PSQL -tA -c "SELECT COALESCE(seminar_id,'-') FROM public.inquiries WHERE inquiry_number = '$REF';" 2>&1 | tr -d '[:space:]')
+if [ "$LINKED" = "e1" ]; then
+  pass "a registration records which seminar it is for"
+else
+  fail "a registration was not linked to its seminar (got '$LINKED')"
+fi
+
+# A delisted seminar is refused with the message the browser shows, not a raw
+# FK error. The id is validated inside the function for exactly this case.
+BAD=$($PSQL -c "SET ROLE anon;
+  SELECT public.submit_inquiry('Seminar Guest','guest@example.com',NULL,NULL,NULL,'x','Seminar registration','no-such-seminar');" 2>&1)
+if echo "$BAD" | grep -qF 'no longer listed'; then
+  pass "a registration for a delisted seminar is refused"
+else
+  fail "a registration for a delisted seminar was not refused"
+  echo "        $(echo "$BAD" | grep -i error | head -1)"
+fi
+
+# A legacy registration (seminar only in the message text) must be linked by
+# the backfill when the migration re-runs, and the re-run proves the file is
+# idempotent on its own. The message shape is copied from
+# SeminarRegistrationModal.tsx; e2 is the Corporate Compliance forum.
+# practice_area is NOT NULL on inquiries — omit it and the insert dies without
+# a word, which is how this assertion failed the first time it ran.
+$PSQL -q -c "INSERT INTO public.inquiries (name, email, message, subject, practice_area, status)
+             VALUES ('Legacy Guest','legacy@example.com',
+                     E'I would like to register for the following seminar:\n\nSeminar: Corporate Compliance and Business Law Forum',
+                     'Seminar registration','', 'New');" >/dev/null 2>"$WORKDIR/legacy.err"
+FIXROWS=$($PSQL -tA -c "SELECT count(*) FROM public.inquiries WHERE email = 'legacy@example.com';" 2>&1 | tr -d '[:space:]')
+if [ "$FIXROWS" != "1" ]; then
+  fail "harness: could not insert the legacy registration fixture (got '$FIXROWS' rows)"
+  grep -i error "$WORKDIR/legacy.err" | head -3
+elif $PSQL -f "$REPO/supabase/migrations/20261013_seminar_registrations.sql" >/dev/null 2>"$WORKDIR/sem.err"; then
+  BACK=$($PSQL -tA -c "SELECT COALESCE(seminar_id,'-') FROM public.inquiries
+                       WHERE email = 'legacy@example.com' AND subject = 'Seminar registration';" 2>&1 | tr -d '[:space:]')
+  if [ "$BACK" = "e2" ]; then
+    pass "the backfill links a legacy registration from its message text"
+  else
+    fail "the backfill left the legacy registration unlinked (got '$BACK')"
+  fi
+else
+  fail "20261013 could not be re-applied on its own"
+  grep -i error "$WORKDIR/sem.err" | head -3
+fi
+
+# The send log: granted to nobody but the service role, and RLS-gated on top.
+# The fixture row is inserted as superuser so the read checks cannot pass by
+# counting zero rows.
+grants_ok "seminar_email_log is RLS-gated and writable by nobody but service_role" \
+  "SELECT to_regclass('public.seminar_email_log') IS NOT NULL
+      AND (SELECT relrowsecurity FROM pg_class WHERE oid = to_regclass('public.seminar_email_log'))
+      AND NOT has_table_privilege('anon', 'public.seminar_email_log', 'SELECT')
+      AND NOT has_table_privilege('authenticated', 'public.seminar_email_log', 'INSERT')
+      AND has_table_privilege('service_role', 'public.seminar_email_log', 'INSERT')
+      AND EXISTS (SELECT 1 FROM pg_policies
+                  WHERE schemaname = 'public' AND tablename = 'seminar_email_log'
+                    AND policyname = 'seminar_email_log_select_admin');" \
+  "t"
+
+$PSQL -q -c "INSERT INTO public.seminar_email_log (seminar_id, sent_by, subject, recipient_count, sent_count, failed_count)
+             VALUES ('e1','$ADMIN','Fixture subject',2,2,0);" >/dev/null 2>&1
+GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$CLIENT'; SET ROLE authenticated;
+  SELECT count(*) FROM public.seminar_email_log;" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "$GOT" = "0" ]; then pass "a client reads no send-log rows"; else fail "a client can read the send log (got '$GOT')"; fi
+GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$ADMIN'; SET ROLE authenticated;
+  SELECT count(*) FROM public.seminar_email_log;" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "$GOT" = "1" ]; then pass "an admin reads the send log"; else fail "an admin cannot read the send log (got '$GOT')"; fi
+
+echo
 echo "== 7. Content payloads match the real columns =="
 # Runs the admin ContentManager's own draft -> payload path against the real
 # tables. A wrong column name (the form once wrote speaker_name while the

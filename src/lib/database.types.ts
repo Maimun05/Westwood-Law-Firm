@@ -195,6 +195,7 @@ export interface Database {
           client_id: string | null;
           preferred_contact_method: string | null;
           firm_notified_at: string | null;
+          seminar_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -213,6 +214,7 @@ export interface Database {
           client_id?: string | null;
           preferred_contact_method?: string | null;
           firm_notified_at?: string | null;
+          seminar_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -231,6 +233,7 @@ export interface Database {
           client_id?: string | null;
           preferred_contact_method?: string | null;
           firm_notified_at?: string | null;
+          seminar_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -708,6 +711,41 @@ export interface Database {
           updated_at?: string;
         };
       };
+      seminar_email_log: {
+        Row: {
+          id: string;
+          seminar_id: string;
+          sent_by: string | null;
+          subject: string;
+          recipient_count: number;
+          sent_count: number;
+          failed_count: number;
+          failures: { email: string; error: string }[];
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          seminar_id: string;
+          sent_by?: string | null;
+          subject: string;
+          recipient_count?: number;
+          sent_count?: number;
+          failed_count?: number;
+          failures?: { email: string; error: string }[];
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          seminar_id?: string;
+          sent_by?: string | null;
+          subject?: string;
+          recipient_count?: number;
+          sent_count?: number;
+          failed_count?: number;
+          failures?: { email: string; error: string }[];
+          created_at?: string;
+        };
+      };
       retainer_packages: {
         Row: {
           id: string;
@@ -1052,6 +1090,7 @@ export interface Database {
           p_method?: string | null;
           p_message?: string | null;
           p_subject?: string | null;
+          p_seminar_id?: string | null;
         };
         Returns: string;
       };

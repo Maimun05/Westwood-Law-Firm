@@ -22,6 +22,7 @@
 --   13. 20261010_inquiry_firm_notified.sql           (firm_notified_at claim for emailing signed-out inquiries to the firm)
 --   14. 20261011_inquiries_service_role_grant.sql    (service_role SELECT/UPDATE on inquiries — without it notify-inquiry dies with 42501)
 --   15. 20261012_admin_view_only_documents.sql       (admins become view-only on documents: no table or storage uploads, deletes uploader-only)
+--   16. 20261013_seminar_registrations.sql           (seminar registrations get inquiries.seminar_id + submit_inquiry(p_seminar_id); seminar_email_log for the admin bulk email)
 --
 -- ORDER MATTERS: 20261001 links each seeded lawyer to the practice areas created
 -- by 20260919, so 20260919 must run first. 20261003 supersedes functions that
@@ -30,7 +31,9 @@
 -- rewrites the policies the earlier files leave behind. 20261007 swaps the
 -- content tables' admin policies for the private.is_admin() helper, so it runs
 -- after 20261003 installs it. 20261008 references public.inquiries, which
--- 20261006's RPC populates, and private.is_lawyer_or_admin(), so it runs last.
+-- 20261006's RPC populates, and private.is_lawyer_or_admin(), so it runs last
+-- of the originals. 20261013 replaces the submit_inquiry that 20261006 creates,
+-- so it runs after 20261006, and it backfills from the rows that RPC wrote.
 --
 -- HOW TO RUN
 --   1. Open https://supabase.com/dashboard  ->  your project  ->  SQL Editor
@@ -46,7 +49,7 @@
 
 
 -- ############################################################################
--- ## 1/15  20260919_seed_content.sql
+-- ## 1/16  20260919_seed_content.sql
 -- ############################################################################
 -- ============================================================================
 -- Westwood Law Firm - Content Seed Data
@@ -458,7 +461,7 @@ COMMIT;
 
 
 -- ############################################################################
--- ## 2/15  20260928_fix_admin_profile_write_access.sql
+-- ## 2/16  20260928_fix_admin_profile_write_access.sql
 -- ############################################################################
 -- ============================================================================
 -- Fix: Restore admin write-access to profiles (without reintroducing recursion)
@@ -493,7 +496,7 @@ COMMENT ON POLICY profiles_admin_write_policy ON public.profiles IS
 
 
 -- ############################################################################
--- ## 3/15  20260929_documents_and_notifications.sql
+-- ## 3/16  20260929_documents_and_notifications.sql
 -- ############################################################################
 -- ============================================================================
 -- Documents upload/download + Notifications
@@ -997,7 +1000,7 @@ WITH CHECK ((SELECT private.is_admin()));
 
 
 -- ############################################################################
--- ## 4/15  20261001_consolidated_access_control.sql
+-- ## 4/16  20261001_consolidated_access_control.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261001  Consolidated access control, composite names, lawyer directory
@@ -1745,7 +1748,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 5/15  20261002_database_cleanup.sql
+-- ## 5/16  20261002_database_cleanup.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261002  Non-destructive cleanup + routing fixes
@@ -1888,7 +1891,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 6/15  20261003_integrity_hardening.sql
+-- ## 6/16  20261003_integrity_hardening.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261003  Integrity hardening
@@ -2265,7 +2268,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 7/15  20261004_client_messaging.sql
+-- ## 7/16  20261004_client_messaging.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261004  Client messaging on matters
@@ -2394,7 +2397,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 8/15  20261005_security_advisor_fixes.sql
+-- ## 8/16  20261005_security_advisor_fixes.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261005  Security advisor fixes
@@ -2993,7 +2996,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 9/15  20261006_public_inquiry_rpc.sql
+-- ## 9/16  20261006_public_inquiry_rpc.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261006  Public inquiry submission
@@ -3109,7 +3112,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 10/15  20261007_content_table_grants.sql
+-- ## 10/16  20261007_content_table_grants.sql
 -- ############################################################################
 -- ============================================================================
 -- CONTENT TABLE GRANTS — the live "Admin access is required" failure
@@ -3231,7 +3234,7 @@ WITH CHECK ((SELECT private.is_admin()));
 
 
 -- ############################################################################
--- ## 11/15  20261008_inquiry_attachments.sql
+-- ## 11/16  20261008_inquiry_attachments.sql
 -- ############################################################################
 -- ============================================================================
 -- INQUIRY ATTACHMENTS — "Attach File / Photo / Video" on the public form
@@ -3421,7 +3424,7 @@ GRANT EXECUTE ON FUNCTION public.attach_inquiry_files(TEXT, JSONB) TO anon, auth
 
 
 -- ############################################################################
--- ## 12/15  20261009_firm_contact_email.sql
+-- ## 12/16  20261009_firm_contact_email.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261009 — Firm public contact email
@@ -3444,7 +3447,7 @@ WHERE answer LIKE '%atty.boyet@westwoodlaw.ph%';
 
 
 -- ############################################################################
--- ## 13/15  20261010_inquiry_firm_notified.sql
+-- ## 13/16  20261010_inquiry_firm_notified.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261010 — Track whether the firm has been emailed about an inquiry
@@ -3466,7 +3469,7 @@ ALTER TABLE public.inquiries
 
 
 -- ############################################################################
--- ## 14/15  20261011_inquiries_service_role_grant.sql
+-- ## 14/16  20261011_inquiries_service_role_grant.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261011 — service_role access to inquiries (for notify-inquiry)
@@ -3494,7 +3497,7 @@ GRANT SELECT, UPDATE ON public.inquiries TO service_role;
 
 
 -- ############################################################################
--- ## 15/15  20261012_admin_view_only_documents.sql
+-- ## 15/16  20261012_admin_view_only_documents.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261012 — Admins are view-only on documents
@@ -3565,10 +3568,191 @@ USING (
 
 
 -- ############################################################################
+-- ## 16/16  20261013_seminar_registrations.sql
+-- ############################################################################
+-- ============================================================================
+-- 20261013 — Seminar registrations get a real link + email send log
+-- ============================================================================
+-- Seminar registration was already recorded as an inquiry (subject
+-- 'Seminar registration'), but the seminar itself lived only as free text in
+-- the message body. That made "email everyone who registered for this
+-- seminar" impossible: there was no way to group the rows.
+--
+-- This migration:
+--   1. adds inquiries.seminar_id (TEXT → public.seminar_events, nullable),
+--      backfills the rows that can be matched from their message text,
+--   2. extends submit_inquiry with an optional p_seminar_id,
+--   3. adds public.seminar_email_log so the admin UI can show when a seminar
+--      was last emailed and how many sends failed.
+--
+-- submit_inquiry must be DROPPED and re-created, not CREATE OR REPLACE'd:
+-- adding a parameter would leave both the 7-arg and 8-arg signatures in place,
+-- and with every argument DEFAULTed a 7-argument call becomes ambiguous
+-- (PostgREST answers PGRST203). Dropping the old signature first keeps the
+-- 7-argument callers working through the new default.
+--
+-- Safe to re-run.
+-- ============================================================================
+
+-- ----------------------------------------------------------------------------
+-- 1. The link itself
+-- ----------------------------------------------------------------------------
+ALTER TABLE public.inquiries
+  ADD COLUMN IF NOT EXISTS seminar_id TEXT REFERENCES public.seminar_events(id) ON DELETE SET NULL;
+
+CREATE INDEX IF NOT EXISTS inquiries_seminar_id_idx ON public.inquiries (seminar_id);
+
+-- ----------------------------------------------------------------------------
+-- 2. Backfill existing registrations.
+--    strpos, not LIKE: a seminar title may contain % or _ and those must not
+--    act as wildcards. Only rows matching exactly one seminar are linked —
+--    two titles that prefix each other must not pick a winner at random.
+-- ----------------------------------------------------------------------------
+UPDATE public.inquiries i
+SET seminar_id = m.seminar_id
+FROM (
+  SELECT i2.id AS inquiry_id, min(s.id) AS seminar_id
+  FROM public.inquiries i2
+  JOIN public.seminar_events s
+    ON strpos(i2.message, 'Seminar: ' || s.title) > 0
+  WHERE i2.seminar_id IS NULL
+    AND i2.subject = 'Seminar registration'
+  GROUP BY i2.id
+  HAVING count(*) = 1
+) m
+WHERE i.id = m.inquiry_id;
+
+-- ----------------------------------------------------------------------------
+-- 3. submit_inquiry gains p_seminar_id
+-- ----------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS public.submit_inquiry(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT);
+
+CREATE OR REPLACE FUNCTION public.submit_inquiry(
+  p_name          TEXT DEFAULT NULL,
+  p_email         TEXT DEFAULT NULL,
+  p_phone         TEXT DEFAULT NULL,
+  p_practice_area TEXT DEFAULT NULL,
+  p_method        TEXT DEFAULT NULL,
+  p_message       TEXT DEFAULT NULL,
+  p_subject       TEXT DEFAULT NULL,
+  p_seminar_id    TEXT DEFAULT NULL
+) RETURNS TEXT
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+  v_number   TEXT;
+  v_uid      UUID := (SELECT auth.uid());
+  v_seminar  TEXT := NULLIF(btrim(COALESCE(p_seminar_id, '')), '');
+BEGIN
+  -- Validated here rather than only in the browser: this function is reachable
+  -- by anyone, so it cannot assume the form ran. ERRCODE 22023 is what makes
+  -- PostgREST return 400 with this message instead of a generic failure.
+  IF btrim(COALESCE(p_name, '')) = '' THEN
+    RAISE EXCEPTION 'Please enter your name' USING ERRCODE = '22023';
+  END IF;
+  IF btrim(COALESCE(p_email, '')) = ''
+     OR p_email !~ '^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$' THEN
+    RAISE EXCEPTION 'Please enter a valid email address' USING ERRCODE = '22023';
+  END IF;
+  IF btrim(COALESCE(p_message, '')) = '' THEN
+    RAISE EXCEPTION 'Please tell us how we can help' USING ERRCODE = '22023';
+  END IF;
+  IF v_seminar IS NOT NULL
+     AND NOT EXISTS (SELECT 1 FROM public.seminar_events s WHERE s.id = v_seminar) THEN
+    RAISE EXCEPTION 'That seminar is no longer listed — please refresh the page and try again'
+      USING ERRCODE = '22023';
+  END IF;
+
+  INSERT INTO public.inquiries (
+    name, email, phone, practice_area, preferred_contact_method,
+    message, subject, status, client_id, seminar_id
+  ) VALUES (
+    btrim(p_name),
+    btrim(p_email),
+    NULLIF(btrim(COALESCE(p_phone, '')), ''),
+    COALESCE(btrim(COALESCE(p_practice_area, '')), ''),
+    COALESCE(NULLIF(btrim(COALESCE(p_method, '')), ''), 'Email'),
+    p_message,
+    COALESCE(NULLIF(btrim(COALESCE(p_subject, '')), ''), 'General inquiry'),
+    'New',
+    -- The visitor cannot choose who this is filed under; it is themselves, or
+    -- nobody when they are signed out. Same rule as inquiries_insert_policy.
+    -- (client_id only — inquiries has no user_id column on live.)
+    v_uid,
+    v_seminar
+  )
+  RETURNING inquiry_number INTO v_number;
+
+  RETURN v_number;
+END $$;
+
+REVOKE ALL ON FUNCTION public.submit_inquiry(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.submit_inquiry(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT)
+  TO anon, authenticated;
+
+-- ----------------------------------------------------------------------------
+-- 4. Send log. One row per "email every registrant of this seminar" action.
+--    Written by the send-seminar-email edge function (service role), read by
+--    the admin UI. Deliberately no INSERT policy: the browser never writes it.
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.seminar_email_log (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  seminar_id      TEXT NOT NULL REFERENCES public.seminar_events(id) ON DELETE CASCADE,
+  sent_by         UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  subject         TEXT NOT NULL,
+  recipient_count INT NOT NULL DEFAULT 0,
+  sent_count      INT NOT NULL DEFAULT 0,
+  failed_count    INT NOT NULL DEFAULT 0,
+  failures        JSONB NOT NULL DEFAULT '[]'::JSONB,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS seminar_email_log_seminar_id_idx ON public.seminar_email_log (seminar_id);
+CREATE INDEX IF NOT EXISTS seminar_email_log_sent_by_idx ON public.seminar_email_log (sent_by);
+
+ALTER TABLE public.seminar_email_log ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS seminar_email_log_select_admin ON public.seminar_email_log;
+CREATE POLICY seminar_email_log_select_admin
+ON public.seminar_email_log FOR SELECT TO authenticated
+USING ((SELECT private.is_admin()));
+
+-- Explicit grants, not project defaults: the send log must be readable by an
+-- admin and writable by nobody else. On a project whose default privileges
+-- grant authenticated ALL on new tables (Supabase's own bootstrap does, and the
+-- harness replicates it), omitting authenticated from the REVOKE would leave
+-- INSERT/UPDATE/DELETE granted at the table level — RLS would still refuse the
+-- writes, but the next policy mistake would then open the table. 20261007 was
+-- the same lesson for the content tables.
+REVOKE ALL ON public.seminar_email_log FROM PUBLIC, anon, authenticated;
+GRANT SELECT ON public.seminar_email_log TO authenticated;
+GRANT ALL ON public.seminar_email_log TO service_role;
+
+-- ----------------------------------------------------------------------------
+-- Verify (read-only)
+-- ----------------------------------------------------------------------------
+DO $$
+DECLARE v_sig TEXT := 'public.submit_inquiry(text,text,text,text,text,text,text,text)';
+BEGIN
+  IF to_regprocedure(v_sig) IS NULL THEN
+    RAISE WARNING 'submit_inquiry was NOT re-created — the public forms will fail';
+  ELSIF NOT has_function_privilege('anon', v_sig, 'EXECUTE') THEN
+    RAISE WARNING 'anon cannot execute submit_inquiry — the public forms will fail';
+  ELSIF to_regclass('public.seminar_email_log') IS NULL THEN
+    RAISE WARNING 'seminar_email_log was NOT created — the send log will be empty';
+  ELSE
+    RAISE NOTICE 'seminar registrations: link column, RPC and send log are installed';
+  END IF;
+END $$;
+
+
+-- ############################################################################
 -- ## VERIFICATION  —  read the result grid, not the "Success" toast
 -- ############################################################################
 -- Every row in the first result should say present = true.
 -- The second result shows row counts; content tables must not be 0.
+-- The last row of the second result counts seminar registrations that the
+-- backfill managed to link — 0 is fine if the seminars were never registered
+-- for, or if no message text matched a listed title exactly.
 -- The third result is security checks; every one must read PASS.
 
 SELECT 'public_lawyers view'        AS object, to_regclass('public.public_lawyers')                IS NOT NULL AS present
@@ -3595,7 +3779,14 @@ UNION ALL SELECT 'inquiry-attachments bucket',  EXISTS (SELECT 1 FROM storage.bu
 UNION ALL SELECT 'inquiries.firm_notified_at',  EXISTS (SELECT 1 FROM information_schema.columns
                                                  WHERE table_schema='public' AND table_name='inquiries'
                                                    AND column_name='firm_notified_at')
-UNION ALL SELECT 'service_role UPDATE inquiries', has_table_privilege('service_role', 'public.inquiries', 'UPDATE');
+UNION ALL SELECT 'service_role UPDATE inquiries', has_table_privilege('service_role', 'public.inquiries', 'UPDATE')
+UNION ALL SELECT 'inquiries.seminar_id column',  EXISTS (SELECT 1 FROM information_schema.columns
+                                                 WHERE table_schema='public' AND table_name='inquiries'
+                                                   AND column_name='seminar_id')
+UNION ALL SELECT 'inquiries_seminar_id_idx',     to_regclass('public.inquiries_seminar_id_idx')      IS NOT NULL
+UNION ALL SELECT 'submit_inquiry() 8-arg',       to_regprocedure('public.submit_inquiry(text,text,text,text,text,text,text,text)') IS NOT NULL
+UNION ALL SELECT 'old 7-arg submit_inquiry gone', to_regprocedure('public.submit_inquiry(text,text,text,text,text,text,text)') IS NULL
+UNION ALL SELECT 'seminar_email_log table',      to_regclass('public.seminar_email_log')             IS NOT NULL;
 
 SELECT 'practice_areas' AS table_name, count(*) AS rows FROM public.practice_areas
 UNION ALL SELECT 'articles',            count(*) FROM public.articles
@@ -3605,7 +3796,8 @@ UNION ALL SELECT 'seminar_events',      count(*) FROM public.seminar_events
 UNION ALL SELECT 'corporate_clients',   count(*) FROM public.corporate_clients
 UNION ALL SELECT 'retainer_packages',   count(*) FROM public.retainer_packages
 UNION ALL SELECT 'profiles (lawyers)',  count(*) FROM public.profiles WHERE role = 'lawyer'
-UNION ALL SELECT 'public_lawyers view', count(*) FROM public.public_lawyers;
+UNION ALL SELECT 'public_lawyers view', count(*) FROM public.public_lawyers
+UNION ALL SELECT 'inquiries linked to a seminar', count(*) FROM public.inquiries WHERE seminar_id IS NOT NULL;
 
 -- Security checks: every row must read PASS.
 --
@@ -3753,4 +3945,17 @@ UNION ALL SELECT 'the documents bucket refuses admin uploads',
                          WHERE schemaname = 'storage' AND tablename = 'objects'
                            AND policyname = 'documents_storage_insert'
                            AND with_check LIKE '%is_admin%')
-            THEN 'PASS' ELSE 'FAIL' END;
+            THEN 'PASS' ELSE 'FAIL' END
+UNION ALL SELECT 'anon can still submit inquiries',
+       CASE WHEN to_regprocedure('public.submit_inquiry(text,text,text,text,text,text,text,text)') IS NULL THEN 'FAIL'
+            WHEN has_function_privilege('anon', 'public.submit_inquiry(text,text,text,text,text,text,text,text)', 'EXECUTE')
+            THEN 'PASS' ELSE 'FAIL' END
+UNION ALL SELECT 'seminar_email_log is admin-read-only',
+       CASE WHEN to_regclass('public.seminar_email_log') IS NULL THEN 'FAIL'
+            WHEN NOT (SELECT relrowsecurity FROM pg_class WHERE oid = to_regclass('public.seminar_email_log')) THEN 'FAIL'
+            WHEN has_table_privilege('anon', 'public.seminar_email_log', 'SELECT') THEN 'FAIL'
+            WHEN has_table_privilege('authenticated', 'public.seminar_email_log', 'INSERT') THEN 'FAIL'
+            WHEN NOT EXISTS (SELECT 1 FROM pg_policies
+                             WHERE schemaname = 'public' AND tablename = 'seminar_email_log'
+                               AND policyname = 'seminar_email_log_select_admin')
+            THEN 'FAIL' ELSE 'PASS' END;
