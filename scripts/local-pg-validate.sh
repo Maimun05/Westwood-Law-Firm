@@ -627,6 +627,38 @@ grants_ok "the storage upload policy accepts a file before its documents row" \
   "t"
 
 echo
+echo "== 6b. Admins are view-only on documents =="
+# 20261012. The table policy still carries the access-level rule; the storage
+# policy cannot see the level (the file is uploaded before its row exists), so
+# it refuses admins by role. Both layers are asserted, plus the two roles that
+# must keep working.
+try_as "admin CANNOT upload a document" "$ADMIN" deny \
+  "INSERT INTO public.documents (matter_id, name, file_path, file_type, file_size, access_level, uploaded_by)
+   VALUES ('$M_CLIENT','admin-check.pdf','$M_CLIENT/admin-check.pdf','application/pdf',1024,'Client & Assigned Lawyer','$ADMIN');"
+
+try_as "the assigned lawyer can still upload a Confidential document" "$LAWYER" allow \
+  "INSERT INTO public.documents (matter_id, name, file_path, file_type, file_size, access_level, uploaded_by)
+   VALUES ('$M_CLIENT','lawyer-check.pdf','$M_CLIENT/lawyer-check.pdf','application/pdf',1024,'Confidential','$LAWYER');"
+
+try_as "the client can still upload to their own matter" "$CLIENT" allow \
+  "INSERT INTO public.documents (matter_id, name, file_path, file_type, file_size, access_level, uploaded_by)
+   VALUES ('$M_CLIENT','client-check.pdf','$M_CLIENT/client-check.pdf','application/pdf',1024,'Client & Assigned Lawyer','$CLIENT');"
+
+grants_ok "the storage upload policy refuses admins by role" \
+  "SELECT EXISTS (SELECT 1 FROM pg_policies
+                  WHERE schemaname = 'storage' AND tablename = 'objects'
+                    AND policyname = 'documents_storage_insert'
+                    AND with_check LIKE '%is_admin%');" \
+  "t"
+
+grants_ok "the storage delete policy no longer lets admins delete any file" \
+  "SELECT NOT EXISTS (SELECT 1 FROM pg_policies
+                      WHERE schemaname = 'storage' AND tablename = 'objects'
+                        AND policyname = 'documents_storage_delete'
+                        AND qual LIKE '%is_admin%');" \
+  "t"
+
+echo
 echo "== 7. Content payloads match the real columns =="
 # Runs the admin ContentManager's own draft -> payload path against the real
 # tables. A wrong column name (the form once wrote speaker_name while the

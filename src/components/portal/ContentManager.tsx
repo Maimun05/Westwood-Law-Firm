@@ -378,7 +378,7 @@ function ContentForm({
           closeDisabled={busy}
         />
 
-        <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+        <ModalBody className="p-6 space-y-4">
           {cfg.fields.map((f) => {
             const value = draft[f];
             const id = `cf-${f}`;
@@ -465,7 +465,7 @@ function ContentForm({
               {error}
             </p>
           )}
-        </div>
+        </ModalBody>
 
         <ModalFooter className="flex gap-3 p-6 border-t border-[#e8e4dc]">
           <button

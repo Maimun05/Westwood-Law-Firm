@@ -77,6 +77,10 @@ const MIGRATIONS = [
     file: "20261011_inquiries_service_role_grant.sql",
     note: "service_role SELECT/UPDATE on inquiries — without it notify-inquiry dies with 42501",
   },
+  {
+    file: "20261012_admin_view_only_documents.sql",
+    note: "admins become view-only on documents: no table or storage uploads, deletes uploader-only",
+  },
 ];
 
 const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the practice areas created
@@ -266,7 +270,18 @@ UNION ALL SELECT 'no policy re-evaluates auth.uid() per row',
                       COALESCE(qual,'') || ' ' || COALESCE(with_check,''),
                       'SELECT auth.uid()', 'SELECT x'), 'SELECT auth.jwt()', 'SELECT x'),
                       'SELECT auth.role()', 'SELECT x') ~ 'auth\\.(uid|jwt|role)\\(\\)')
-            THEN 'FAIL' ELSE 'PASS' END;
+            THEN 'FAIL' ELSE 'PASS' END
+UNION ALL SELECT 'admins are view-only: can_upload_document refuses them',
+       CASE WHEN (SELECT prosrc FROM pg_proc
+                   WHERE oid = to_regprocedure('private.can_upload_document(uuid,public.access_level)'))
+                 ~ 'admin''\\s+THEN FALSE'
+            THEN 'PASS' ELSE 'FAIL' END
+UNION ALL SELECT 'the documents bucket refuses admin uploads',
+       CASE WHEN EXISTS (SELECT 1 FROM pg_policies
+                         WHERE schemaname = 'storage' AND tablename = 'objects'
+                           AND policyname = 'documents_storage_insert'
+                           AND with_check LIKE '%is_admin%')
+            THEN 'PASS' ELSE 'FAIL' END;
 `;
 
 const bar = (ch) => ch.repeat(76);

@@ -1069,7 +1069,7 @@ function NotificationsModal({
           </div>
         )}
       </ModalHeader>
-      <div className="max-h-[60vh] overflow-y-auto divide-y divide-[#e8e4dc]">
+      <ModalBody className="divide-y divide-[#e8e4dc]">
         {error && (
           <div className="p-4 bg-red-50 text-xs text-red-700">
             Couldn't load notifications: {error}
@@ -1176,7 +1176,7 @@ function NotificationsModal({
             </div>
           ))
         )}
-      </div>
+      </ModalBody>
     </Modal>
   );
 }
@@ -1764,12 +1764,15 @@ function MatterDetail({
             <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-[#0d1f3c]">Documents</h3>
-                <button
-                  onClick={() => setShowUpload(true)}
-                  className="text-xs font-semibold text-[#c9a84c] hover:underline"
-                >
-                  + Upload
-                </button>
+                {/* Admins are view-only on documents (20261012). */}
+                {currentUser.role !== "admin" && (
+                  <button
+                    onClick={() => setShowUpload(true)}
+                    className="text-xs font-semibold text-[#c9a84c] hover:underline"
+                  >
+                    + Upload
+                  </button>
+                )}
               </div>
               {matterDocs.length === 0 ? (
                 <p className="text-xs text-[#8a9ab5]">No documents yet.</p>
@@ -2260,7 +2263,7 @@ function DocumentsTable({
               visible.map((d) => {
                 const busy = busyId === d.id;
 
-                const canDelete = d.uploaded_by === currentUser.id || currentUser.role === "admin";
+                const canDelete = d.uploaded_by === currentUser.id;
 
                 return (
                   <tr key={d.id} className="hover:bg-[#f7f5f0]">
@@ -3161,8 +3164,6 @@ function AdminPortalView({
   const notifs = useNotifications(currentUser.id);
 
   const [showNotifs, setShowNotifs] = useState(false);
-
-  const [showUpload, setShowUpload] = useState(false);
 
   const [toast, setToast] = useState<{
     message: string;
@@ -4113,17 +4114,13 @@ function AdminPortalView({
           <div className="space-y-4">
             <div className="flex items-center justify-between gap-3">
               <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">All Documents</h2>
-              <button
-                onClick={() => setShowUpload(true)}
-                className="bg-[#0d1f3c] hover:bg-[#162d52] text-white text-sm font-semibold px-6 py-3 rounded transition-colors"
-              >
-                Upload Document
-              </button>
             </div>
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
               <p className="text-xs text-amber-700 leading-relaxed">
-                <strong>Admin Access Note:</strong> You can see and open documents at every access
-                level. Opening or deleting a document is recorded in the audit log.
+                <strong>Admin Access Note:</strong> Admin access is view-only. You can see every
+                document record and open non-confidential files; Confidential documents require a
+                logged reason to open. Uploads are handled by the assigned lawyer, and opening a
+                document is recorded in the audit log.
               </p>
             </div>
             <DocumentsTable
@@ -4408,21 +4405,6 @@ function AdminPortalView({
             </div>
           </div>
         )}
-        {showUpload && (
-          <UploadDocumentModal
-            currentUser={currentUser}
-            matters={allMatters.map((m) => ({
-              id: m.id,
-              matter_number: m.matter_number,
-              title: m.title,
-            }))}
-            onClose={() => setShowUpload(false)}
-            onUploaded={(doc) => {
-              setAllDocs((prev) => [doc, ...prev]);
-              showToast(`Uploaded ${doc.name}`);
-            }}
-          />
-        )}
         {toast && (
           <PortalToast message={toast.message} tone={toast.tone} onClose={() => setToast(null)} />
         )}
@@ -4679,7 +4661,7 @@ function EditUserModal({
       />
 
       <form onSubmit={handleSubmit}>
-        <ModalBody className="p-6 sm:p-7 space-y-6 max-h-[60vh] overflow-y-auto">
+        <ModalBody className="p-6 sm:p-7 space-y-6">
           {/* Identity */}
           <div>
             <h3 className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-widest mb-3">

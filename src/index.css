@@ -796,6 +796,38 @@ select {
      than the viewport, so a tall dialog scrolls instead of clipping its top. */
   margin: auto;
   outline: none;
+  /* One scroll region per dialog. The panel is capped to the viewport and laid
+     out as a column, so the header and footer stay pinned and only
+     `.modal-body` scrolls — the dialog itself never drifts or jumps. */
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
+}
+
+/* Dialogs that wrap their contents in a <form> (ContentForm) must pass the
+   flex chain down to the header/body/footer inside it. */
+.modal-panel > form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.modal-panel > header,
+.modal-panel > .modal-footer,
+.modal-panel > form > header,
+.modal-panel > form > .modal-footer {
+  flex: 0 0 auto;
+}
+
+/* The single scrollable region. `contain` keeps the scroll from chaining to
+   the page behind, which the body scroll lock already holds still. */
+.modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .modal-layer[data-state="open"] .modal-panel {
@@ -817,6 +849,9 @@ select {
 .modal-layer[data-align="top"] .modal-panel {
   margin-top: 0;
   margin-bottom: auto;
+  /* 6rem top padding on the layer + 1rem bottom padding. */
+  max-height: calc(100vh - 7rem);
+  max-height: calc(100dvh - 7rem);
 }
 
 /* One-off gold sweep across a navy dialog header as it opens. */
