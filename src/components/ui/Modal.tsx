@@ -32,7 +32,7 @@ const FOCUSABLE_SELECTOR = [
   "[tabindex]:not([tabindex='-1'])",
 ].join(",");
 
-export type ModalSize = "sm" | "md" | "lg" | "xl" | "2xl" | "4xl";
+export type ModalSize = "sm" | "md" | "lg" | "xl" | "2xl" | "4xl" | "5xl" | "6xl";
 
 const SIZE_CLASS: Record<ModalSize, string> = {
   sm: "max-w-sm",
@@ -41,6 +41,8 @@ const SIZE_CLASS: Record<ModalSize, string> = {
   xl: "max-w-xl",
   "2xl": "max-w-2xl",
   "4xl": "max-w-4xl",
+  "5xl": "max-w-5xl",
+  "6xl": "max-w-6xl",
 };
 
 /* ── Shared dialog styling ─────────────────────────────────────────────────
