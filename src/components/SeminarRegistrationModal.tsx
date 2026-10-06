@@ -50,8 +50,8 @@ export default function SeminarRegistrationModal({
     e.preventDefault();
     setError("");
 
-    if (!form.name.trim() || !form.email.trim()) {
-      setError("Please enter your name and email address.");
+    if (!form.name.trim() || !form.email.trim() || !form.phone.trim()) {
+      setError("Please enter your name, email address, and phone number.");
       return;
     }
 
@@ -136,11 +136,12 @@ export default function SeminarRegistrationModal({
             </div>
             <div>
               <label htmlFor="reg-phone" className={MODAL_LABEL_CLASS}>
-                Phone
+                Phone *
               </label>
               <input
                 id="reg-phone"
                 type="tel"
+                required
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 disabled={sending}
