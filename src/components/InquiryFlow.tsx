@@ -570,7 +570,7 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
                     label: "Phone Number",
                     type: "tel",
                     placeholder: "+63 9XX XXX XXXX",
-                    required: false,
+                    required: true,
                   },
                 ].map((f) => (
                   <div key={f.key} className={f.key === "fullName" ? "sm:col-span-2" : ""}>

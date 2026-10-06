@@ -124,7 +124,8 @@ export default function AuthPage({ onNavigate, initialMode = "login" }: AuthPage
         !formData.password ||
         !formData.confirmPassword ||
         !formData.firstName.trim() ||
-        !formData.lastName.trim()
+        !formData.lastName.trim() ||
+        !formData.phone.trim()
       ) {
         setError("Please fill in all required fields.");
 
@@ -443,7 +444,7 @@ export default function AuthPage({ onNavigate, initialMode = "login" }: AuthPage
             {mode === "register" && (
               <div>
                 <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
-                  Phone (optional)
+                  Phone *
                 </label>
                 <input
                   type="tel"

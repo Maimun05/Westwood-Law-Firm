@@ -639,16 +639,17 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
               <p className="text-[#8a9ab5] text-sm mb-8">Confirm your contact details.</p>
               <div className="space-y-4">
                 {[
-                  { key: "name", label: "Full Name", type: "text" },
-                  { key: "email", label: "Email Address", type: "email" },
-                  { key: "phone", label: "Phone Number", type: "tel" },
+                  { key: "name", label: "Full Name", type: "text", required: true },
+                  { key: "email", label: "Email Address", type: "email", required: true },
+                  { key: "phone", label: "Phone Number", type: "tel", required: true },
                 ].map((f) => (
                   <div key={f.key}>
                     <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
-                      {f.label}
+                      {f.label} {f.required && <span className="text-red-400">*</span>}
                     </label>
                     <input
                       type={f.type}
+                      required={f.required}
                       value={(client as Record<string, string>)[f.key]}
                       onChange={(e) => setClient({ ...client, [f.key]: e.target.value })}
                       className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-3 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c]"
@@ -670,7 +671,8 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
                 </div>
                 <button
                   onClick={() => setStep(7)}
-                  className="bg-[#0d1f3c] hover:bg-[#162d52] text-white font-semibold px-8 py-3 rounded transition-colors text-sm"
+                  disabled={!client.name.trim() || !client.email.trim() || !client.phone.trim()}
+                  className="bg-[#0d1f3c] hover:bg-[#162d52] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold px-8 py-3 rounded transition-colors text-sm"
                 >
                   Review Booking
                 </button>
