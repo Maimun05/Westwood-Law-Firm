@@ -858,6 +858,18 @@ select {
   max-height: calc(100dvh - 7rem);
 }
 
+/* The matter detail is a tall, content-heavy dialog: keep it top-anchored but
+   drop the 6rem headroom so it uses the screen instead of floating. The double
+   class beats the plain [data-align="top"] rules above. */
+.modal-layer[data-align="top"].modal-layer-tight {
+  padding-top: 1rem;
+}
+
+.modal-layer[data-align="top"].modal-layer-tight .modal-panel {
+  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
+}
+
 /* One-off gold sweep across a navy dialog header as it opens. */
 .modal-sheen {
   position: absolute;

@@ -1475,7 +1475,14 @@ function MatterDetail({
           onConfirm={confirmBreakGlass}
         />
       )}
-      <Modal open onClose={onClose} size="4xl" align="top" labelledBy="matter-detail-title">
+      <Modal
+        open
+        onClose={onClose}
+        size="6xl"
+        align="top"
+        layerClassName="modal-layer-tight"
+        labelledBy="matter-detail-title"
+      >
         <ModalHeader
           eyebrow="Matter"
           title={matter.matter_number}
@@ -1483,9 +1490,9 @@ function MatterDetail({
           onClose={onClose}
         />
 
-        <ModalBody className="p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-[#f7f5f0] rounded-xl p-6 grid grid-cols-2 gap-4">
+        <ModalBody className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="lg:col-span-2 space-y-5">
+            <div className="bg-[#f7f5f0] rounded-xl p-5 grid grid-cols-2 gap-4">
               {(
                 [
                   ["Client", <Person key="c" id={matter.client_id} />],
@@ -1520,7 +1527,7 @@ function MatterDetail({
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-6 border border-[#e8e4dc]">
+            <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
               <h3 className="font-serif text-base font-bold text-[#0d1f3c] mb-2">Description</h3>
               <p className="text-sm text-[#2c3347] leading-relaxed">{matter.description}</p>
               {currentUser.role === "admin" && (
@@ -1530,8 +1537,8 @@ function MatterDetail({
               )}
             </div>
 
-            <div className="bg-white rounded-xl p-6 border border-[#e8e4dc]">
-              <h3 className="font-serif text-base font-bold text-[#0d1f3c] mb-5">
+            <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
+              <h3 className="font-serif text-base font-bold text-[#0d1f3c] mb-4">
                 Activity Timeline
               </h3>
               <div className="relative">
@@ -1562,7 +1569,7 @@ function MatterDetail({
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {(currentUser.role === "admin" || currentUser.role === "lawyer") && (
               <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
                 <h3 className="text-sm font-semibold text-[#0d1f3c] mb-3">Update Status</h3>
