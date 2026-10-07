@@ -126,7 +126,7 @@ export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) 
 
   return (
     <div className="bg-[#f7f5f0] min-h-screen pt-20">
-      <div className="bg-[#0d1f3c] py-20 relative overflow-hidden">
+      <div className="bg-[#0d1f3c] py-12 relative overflow-hidden">
         <div
           className="absolute inset-0 opacity-[0.04]"
           style={{
@@ -139,7 +139,7 @@ export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) 
           <p className="text-[#c9a84c] text-xs tracking-widest uppercase font-medium mb-3">
             Get in Touch
           </p>
-          <h1 className="font-serif text-5xl lg:text-6xl font-bold text-white mb-4">Contact Us</h1>
+          <h1 className="font-serif text-4xl lg:text-5xl font-bold text-white mb-4">Contact Us</h1>
           <p className="text-white/60 text-lg max-w-xl">
             We welcome your inquiries. A member of our team will respond within one to two business
             days.

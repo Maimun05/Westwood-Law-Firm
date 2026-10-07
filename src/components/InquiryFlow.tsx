@@ -448,12 +448,12 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
   if (step === "type") {
     return (
       <div className="bg-[#f7f5f0] min-h-screen pt-20">
-        <div className="bg-[#0d1f3c] py-20">
+        <div className="bg-[#0d1f3c] py-12">
           <div className="max-w-3xl mx-auto px-6 lg:px-8 text-center">
             <p className="text-[#c9a84c] text-xs tracking-[0.2em] uppercase font-medium mb-4">
               Get Started
             </p>
-            <h1 className="font-serif text-5xl font-bold text-white mb-4">Start a Legal Inquiry</h1>
+            <h1 className="font-serif text-4xl font-bold text-white mb-4">Start a Legal Inquiry</h1>
             <p className="text-white/60 text-lg">
               Tell us how we can help. Our team responds within 1–2 business days.
             </p>
@@ -522,7 +522,7 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
 
   return (
     <div className="bg-[#f7f5f0] min-h-screen pt-20">
-      <div className="bg-[#0d1f3c] py-14">
+      <div className="bg-[#0d1f3c] py-10">
         <div className="max-w-3xl mx-auto px-6 lg:px-8">
           <button
             onClick={() => setStep("type")}

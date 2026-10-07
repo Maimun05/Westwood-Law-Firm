@@ -398,7 +398,7 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
 
   return (
     <div className="bg-[#f7f5f0] min-h-screen pt-20">
-      <div className="bg-[#0d1f3c] py-14">
+      <div className="bg-[#0d1f3c] py-10">
         <div className="max-w-3xl mx-auto px-6 lg:px-8">
           <p className="text-[#c9a84c] text-xs tracking-[0.2em] uppercase font-medium mb-3">
             Schedule a Consultation

@@ -152,14 +152,12 @@ export default function LawyersPage({
 
   return (
     <div className="bg-[var(--color-bg-primary)] min-h-screen pt-20">
-      <section className="gradient-navy py-16 lg:py-24 relative overflow-hidden">
+      <section className="gradient-navy py-12 relative overflow-hidden">
         <div className="absolute inset-0 opacity-[0.03] pattern-grid" />
         <div className="relative container-page flex flex-col lg:flex-row lg:items-end justify-between gap-6">
           <div className="animate-slide-up">
             <p className="text-accent-sm mb-3">Our Team</p>
-            <h1 className="heading-display text-[length:var(--text-display-lg)] text-white mb-4">
-              Our Lawyers
-            </h1>
+            <h1 className="heading-display text-4xl lg:text-5xl text-white mb-4">Our Lawyers</h1>
             <p className="text-lead text-white/70 max-w-xl">
               Experienced, specialized, and client-centered legal professionals committed to your
               best outcome.
@@ -278,7 +276,7 @@ function FindMyLawyer({
 
   return (
     <div className="bg-[var(--color-bg-primary)] min-h-screen pt-20">
-      <section className="gradient-navy py-16 lg:py-20 relative overflow-hidden">
+      <section className="gradient-navy py-10 relative overflow-hidden">
         <div className="absolute inset-0 opacity-[0.03] pattern-grid" />
         <div className="relative container-page max-w-3xl">
           <button onClick={onBack} className="btn-link text-white/60 hover:text-white mb-6 text-sm">

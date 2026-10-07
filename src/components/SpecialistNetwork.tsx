@@ -224,12 +224,12 @@ export default function SpecialistNetwork({ onNavigate }: SpecialistNetworkProps
 
   return (
     <div className="bg-[#f7f5f0] min-h-screen pt-20">
-      <div className="bg-[#0d1f3c] py-20">
+      <div className="bg-[#0d1f3c] py-12">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <p className="text-[#c9a84c] text-xs tracking-widest uppercase font-medium mb-3">
             Professional Network
           </p>
-          <h1 className="font-serif text-5xl lg:text-6xl font-bold text-white mb-4">
+          <h1 className="font-serif text-4xl lg:text-5xl font-bold text-white mb-4">
             Partner Network
           </h1>
           <p className="text-white/60 text-lg max-w-xl">

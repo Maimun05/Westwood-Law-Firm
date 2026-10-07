@@ -93,7 +93,7 @@ export default function ExpertisePage({ onNavigate, selectedArea }: ExpertisePag
   if (detail) {
     return (
       <div className="bg-[#f7f5f0] min-h-screen pt-20">
-        <div className="bg-[#0d1f3c] py-20 relative overflow-hidden">
+        <div className="bg-[#0d1f3c] py-12 relative overflow-hidden">
           <div
             className="absolute inset-0 opacity-[0.04]"
             style={{
@@ -110,7 +110,7 @@ export default function ExpertisePage({ onNavigate, selectedArea }: ExpertisePag
               ← All Practice Areas
             </button>
             <PracticeAreaIcon id={detail.id} className="w-10 h-10 text-[#c9a84c] mb-5" />
-            <h1 className="font-serif text-5xl lg:text-6xl font-bold text-white mb-4">
+            <h1 className="font-serif text-4xl lg:text-5xl font-bold text-white mb-4">
               {detail.name}
             </h1>
             <p className="text-white/50 text-lg max-w-2xl">{detail.description}</p>
@@ -261,7 +261,7 @@ export default function ExpertisePage({ onNavigate, selectedArea }: ExpertisePag
 
   return (
     <div className="bg-[#f7f5f0] min-h-screen pt-20">
-      <div className="bg-[#0d1f3c] py-20 relative overflow-hidden">
+      <div className="bg-[#0d1f3c] py-12 relative overflow-hidden">
         <div
           className="absolute inset-0 opacity-[0.04]"
           style={{
@@ -274,7 +274,7 @@ export default function ExpertisePage({ onNavigate, selectedArea }: ExpertisePag
           <p className="text-[#c9a84c] text-xs tracking-[0.2em] uppercase font-medium mb-4">
             What We Do
           </p>
-          <h1 className="font-serif text-5xl lg:text-6xl font-bold text-white mb-4">
+          <h1 className="font-serif text-4xl lg:text-5xl font-bold text-white mb-4">
             Areas of Expertise
           </h1>
           <p className="text-white/50 text-lg max-w-xl">

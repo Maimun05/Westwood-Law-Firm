@@ -141,7 +141,7 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
   return (
     <div className="bg-[#f7f5f0] min-h-screen pt-20">
       {/* Hero */}
-      <div className="bg-[#0d1f3c] py-20 relative overflow-hidden">
+      <div className="bg-[#0d1f3c] py-12 relative overflow-hidden">
         <div
           className="absolute inset-0 opacity-[0.04]"
           style={{
@@ -154,7 +154,7 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
           <p className="text-[#c9a84c] text-xs tracking-widest uppercase font-medium mb-3">
             The Firm
           </p>
-          <h1 className="font-serif text-5xl lg:text-6xl font-bold text-white mb-6">
+          <h1 className="font-serif text-4xl lg:text-5xl font-bold text-white mb-6">
             About Westwood
           </h1>
           <p className="text-white/60 text-lg max-w-2xl leading-relaxed">
