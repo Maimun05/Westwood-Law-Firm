@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect, useMemo, type ReactNode } from "react";
 
 import ProfileEditor from "./portal/ProfileEditor";
 
@@ -13,6 +13,10 @@ import BreakGlassModal from "./portal/BreakGlassModal";
 import MatterTimeline from "./portal/MatterTimeline";
 
 import MattersTimeline from "./portal/MattersTimeline";
+
+import PortalShell, { type PortalSearchItem } from "./portal/PortalShell";
+
+import ProfileRail from "./portal/ProfileRail";
 
 import {
   getLawyers,
@@ -114,6 +118,44 @@ type ClientPortalProps = {
 
   savedLawyers: string[];
 };
+
+// ── Tab definitions ───────────────────────────────────────────────────────────
+// One source per portal, shared by the loading state and the live shell so the
+// two can never drift apart again (the admin portal used to list a dead
+// "Conflict Check" tab while loading and a different set once loaded).
+
+const CLIENT_TABS = [
+  { key: "dashboard", label: "Dashboard" },
+  { key: "matters", label: "My Matters" },
+  { key: "appointments", label: "Appointments" },
+  { key: "documents", label: "Documents" },
+  { key: "partners", label: "Partner Network" },
+  { key: "profile", label: "Profile" },
+];
+
+const LAWYER_TABS = [
+  { key: "dashboard", label: "Dashboard" },
+  { key: "matters", label: "My Matters" },
+  { key: "clients", label: "Clients" },
+  { key: "appointments", label: "Appointments" },
+  { key: "documents", label: "Documents" },
+  { key: "profile", label: "Profile" },
+];
+
+const ADMIN_TABS = [
+  { key: "dashboard", label: "Dashboard" },
+  { key: "users", label: "User Accounts" },
+  { key: "intake", label: "Client Intake" },
+  { key: "matters", label: "Matters" },
+  { key: "appointments", label: "Appointments" },
+  { key: "lawyers", label: "Lawyers" },
+  { key: "documents", label: "Documents" },
+  { key: "content", label: "Website Content" },
+  { key: "reports", label: "Reports" },
+  { key: "settings", label: "System Settings" },
+  { key: "profile", label: "My Profile" },
+  { key: "audit", label: "Audit Logs" },
+];
 
 // ── Status colors ─────────────────────────────────────────────────────────────
 
@@ -904,119 +946,7 @@ function SignIn({ onNavigate }: { onNavigate: (p: Page) => void }) {
 }
 
 // ── Portal shell ──────────────────────────────────────────────────────────────
-
-function PortalShell({
-  currentUser,
-  tabs,
-  activeTab,
-  onTab,
-  onSignOut,
-  onSwitchUser,
-  unreadCount = 0,
-  onOpenNotifications,
-  children,
-}: {
-  currentUser: AuthUser;
-
-  tabs: { key: string; label: string }[];
-
-  activeTab: string;
-
-  onTab: (t: string) => void;
-
-  onSignOut: () => void;
-
-  onSwitchUser: (u: AuthUser) => void;
-
-  unreadCount?: number;
-
-  onOpenNotifications?: () => void;
-
-  children: React.ReactNode;
-}) {
-  const roleLabel =
-    currentUser.role === "client"
-      ? "Client Portal"
-      : currentUser.role === "lawyer"
-        ? "Lawyer Portal"
-        : "Admin Portal";
-
-  const roleSubtitle = currentUser.role === "admin" ? "Administration" : "My Account";
-
-  return (
-    <div className="bg-[#f7f5f0] min-h-screen">
-      <div className="bg-[#0d1f3c] py-8">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between gap-4">
-          <div>
-            <p className="text-[#c9a84c] text-xs tracking-widest uppercase font-medium">
-              {roleSubtitle}
-            </p>
-            <h1 className="font-serif text-2xl font-bold text-white mt-0.5">{roleLabel}</h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:block">
-              <p className="text-white text-sm font-semibold">{currentUser.fullName}</p>
-              <p className="text-white/40 text-xs capitalize">{currentUser.role}</p>
-            </div>
-            {onOpenNotifications && (
-              <button
-                onClick={onOpenNotifications}
-                aria-label={
-                  unreadCount > 0 ? `Notifications (${unreadCount} unread)` : "Notifications"
-                }
-                className="relative text-white/60 hover:text-white p-2 rounded-lg border border-white/20 hover:border-white/50 transition-colors"
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
-                  <path d="M13.7 21a2 2 0 0 1-3.4 0" />
-                </svg>
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-[#c9a84c] text-[#0d1f3c] text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center">
-                    {unreadCount > 99 ? "99+" : unreadCount}
-                  </span>
-                )}
-              </button>
-            )}
-            <button
-              onClick={onSignOut}
-              className="text-white/50 hover:text-white text-sm transition-colors border border-white/20 hover:border-white/50 px-4 py-2 rounded-lg"
-            >
-              Sign Out
-            </button>
-          </div>
-        </div>
-      </div>
-      <div className="bg-white border-b border-[#e8e4dc] sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 flex gap-0 overflow-x-auto">
-          {tabs.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => onTab(t.key)}
-              className={`px-4 py-4 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
-                activeTab === t.key
-                  ? "border-[#c9a84c] text-[#0d1f3c]"
-                  : "border-transparent text-[#8a9ab5] hover:text-[#0d1f3c]"
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">{children}</div>
-    </div>
-  );
-}
+// Moved to `./portal/PortalShell` (sidebar + top bar + search). See the import above.
 
 // ── Notifications modal ──────────────────────────────────────────────────────
 
@@ -2374,12 +2304,10 @@ function ClientPortalView({
   currentUser,
   onNavigate,
   onSignOut,
-  onSwitchUser,
 }: {
   currentUser: AuthUser;
   onNavigate: (p: Page, params?: Record<string, string>) => void;
   onSignOut: () => void;
-  onSwitchUser: (u: AuthUser) => void;
   savedLawyers?: string[];
 }) {
   const [tab, setTab] = useState("dashboard");
@@ -2479,27 +2407,49 @@ function ClientPortalView({
     loadData();
   }, [currentUser.id, currentUser.role]);
 
+  const searchItems = useMemo<PortalSearchItem[]>(() => {
+    const items: PortalSearchItem[] = [];
+    for (const m of myMatters) {
+      items.push({
+        id: `matter-${m.id}`,
+        title: `${m.matter_number} · ${m.title}`,
+        subtitle: `${practiceAreas.find((p) => p.id === m.practice_area)?.name || m.practice_area} · ${m.status}`,
+        keywords: m.status,
+        tab: "matters",
+      });
+    }
+    for (const d of myDocs) {
+      items.push({ id: `doc-${d.id}`, title: d.name, subtitle: "Document", tab: "documents" });
+    }
+    for (const a of myAppts) {
+      items.push({
+        id: `appt-${a.id}`,
+        title: `${a.appointment_type} · ${a.date} ${a.time}`,
+        subtitle: a.status,
+        keywords: a.mode,
+        tab: "appointments",
+      });
+    }
+    for (const s of specialists) {
+      items.push({
+        id: `spec-${s.id}`,
+        title: s.name,
+        subtitle: s.specialty,
+        keywords: s.specialist_type,
+        tab: "partners",
+      });
+    }
+    return items;
+  }, [myMatters, myDocs, myAppts, specialists, practiceAreas]);
+
   if (loading) {
     return (
       <PortalShell
         currentUser={currentUser}
-        tabs={[
-          { key: "dashboard", label: "Dashboard" },
-
-          { key: "matters", label: "My Matters" },
-
-          { key: "appointments", label: "Appointments" },
-
-          { key: "documents", label: "Documents" },
-
-          { key: "partners", label: "Partner Network" },
-
-          { key: "profile", label: "Profile" },
-        ]}
+        tabs={CLIENT_TABS}
         activeTab={tab}
         onTab={setTab}
         onSignOut={onSignOut}
-        onSwitchUser={onSwitchUser}
         unreadCount={notifs.unreadCount}
       >
         <div className="flex items-center justify-center py-20">
@@ -2517,134 +2467,141 @@ function ClientPortalView({
       <EmailVerificationBanner />
       <PortalShell
         currentUser={currentUser}
-        tabs={[
-          { key: "dashboard", label: "Dashboard" },
-
-          { key: "matters", label: "My Matters" },
-
-          { key: "appointments", label: "Appointments" },
-
-          { key: "documents", label: "Documents" },
-
-          { key: "partners", label: "Partner Network" },
-
-          { key: "profile", label: "Profile" },
-        ]}
+        tabs={CLIENT_TABS}
         activeTab={tab}
         onTab={setTab}
         onSignOut={onSignOut}
-        onSwitchUser={onSwitchUser}
         unreadCount={notifs.unreadCount}
         onOpenNotifications={() => setShowNotifs(true)}
+        searchPlaceholder="Search matters, documents…"
+        searchItems={searchItems}
+        onSearchSelect={(item) => setTab(item.tab)}
       >
         {tab === "dashboard" && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                // "Active" is one of eight statuses (New Inquiry, Under Review,
+          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
+            <div className="min-w-0 space-y-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  // "Active" is one of eight statuses (New Inquiry, Under Review).
 
-                // Consultation, Conflict Check, Accepted, Active, Resolved,
+                  // Consultation, Conflict Check, Accepted, Active, Resolved,
 
-                // Closed). Counting only the literal "Active" showed 0 to a
+                  // Closed). Counting only the literal "Active" showed 0 to a
 
-                // client whose matter was still under review, so count
+                  // client whose matter was still under review, so count
 
-                // everything that has not been closed.
+                  // everything that has not been closed.
 
-                {
-                  label: "Open Matters",
-                  value: String(myMatters.filter((m) => m.status !== "Closed").length),
-                  color: "text-green-600",
-                  bg: "bg-green-50",
-                },
+                  {
+                    label: "Open Matters",
+                    value: String(myMatters.filter((m) => m.status !== "Closed").length),
+                    color: "text-green-600",
+                    bg: "bg-green-50",
+                  },
 
-                {
-                  label: "Appointments",
-                  value: String(myAppts.length),
-                  color: "text-blue-600",
-                  bg: "bg-blue-50",
-                },
+                  {
+                    label: "Appointments",
+                    value: String(myAppts.length),
+                    color: "text-blue-600",
+                    bg: "bg-blue-50",
+                  },
 
-                {
-                  label: "Documents",
-                  value: String(myDocs.length),
-                  color: "text-purple-600",
-                  bg: "bg-purple-50",
-                },
+                  {
+                    label: "Documents",
+                    value: String(myDocs.length),
+                    color: "text-purple-600",
+                    bg: "bg-purple-50",
+                  },
 
-                {
-                  label: "Notifications",
-                  value: String(notifs.unreadCount),
-                  color: "text-[#c9a84c]",
-                  bg: "bg-[#c9a84c]/10",
-                },
-              ].map((s) => (
-                <div key={s.label} className={`${s.bg} rounded-xl p-5 border border-[#e8e4dc]`}>
-                  <p className={`font-serif text-3xl font-bold ${s.color}`}>{s.value}</p>
-                  <p className="text-xs text-[#8a9ab5] mt-1">{s.label}</p>
-                </div>
-              ))}
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              <div className="bg-white rounded-xl border border-[#e8e4dc] p-6">
-                <h3 className="font-serif text-lg font-bold text-[#0d1f3c] mb-4">Matter Status</h3>
-                {myMatters.length === 0 ? (
-                  <p className="text-sm text-[#8a9ab5]">No active matters.</p>
-                ) : (
-                  myMatters.map((m) => (
-                    <div
-                      key={m.id}
-                      className="flex items-center justify-between py-3 border-b border-[#f7f5f0] last:border-0"
-                    >
-                      <div>
-                        <p className="text-sm font-semibold text-[#0d1f3c]">{m.matter_number}</p>
-                        <p className="text-xs text-[#8a9ab5]">
-                          {practiceAreas.find((p) => p.id === m.practice_area)?.name ||
-                            m.practice_area}
-                        </p>
-                      </div>
-                      <Badge text={m.status} />
-                    </div>
-                  ))
-                )}
+                  {
+                    label: "Notifications",
+                    value: String(notifs.unreadCount),
+                    color: "text-[#c9a84c]",
+                    bg: "bg-[#c9a84c]/10",
+                  },
+                ].map((s) => (
+                  <div key={s.label} className={`${s.bg} rounded-xl p-5 border border-[#e8e4dc]`}>
+                    <p className={`font-serif text-3xl font-bold ${s.color}`}>{s.value}</p>
+                    <p className="text-xs text-[#8a9ab5] mt-1">{s.label}</p>
+                  </div>
+                ))}
               </div>
-              <div className="bg-white rounded-xl border border-[#e8e4dc] p-6">
-                <h3 className="font-serif text-lg font-bold text-[#0d1f3c] mb-4">
-                  Recent Activity
-                </h3>
-                <div className="space-y-3">
-                  {auditLogs.length > 0 ? (
-                    auditLogs.slice(0, 4).map((log) => (
-                      <div key={log.id} className="flex gap-3">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#c9a84c] mt-1.5 flex-shrink-0" />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <div className="bg-white rounded-xl border border-[#e8e4dc] p-6">
+                  <h3 className="font-serif text-lg font-bold text-[#0d1f3c] mb-4">
+                    Matter Status
+                  </h3>
+                  {myMatters.length === 0 ? (
+                    <p className="text-sm text-[#8a9ab5]">No active matters.</p>
+                  ) : (
+                    myMatters.map((m) => (
+                      <div
+                        key={m.id}
+                        className="flex items-center justify-between py-3 border-b border-[#f7f5f0] last:border-0"
+                      >
                         <div>
-                          <p className="text-sm text-[#2c3347]">{log.event_description}</p>
+                          <p className="text-sm font-semibold text-[#0d1f3c]">{m.matter_number}</p>
                           <p className="text-xs text-[#8a9ab5]">
-                            {new Date(log.created_at || "").toLocaleDateString()}
+                            {practiceAreas.find((p) => p.id === m.practice_area)?.name ||
+                              m.practice_area}
                           </p>
                         </div>
+                        <Badge text={m.status} />
                       </div>
                     ))
-                  ) : (
-                    <p className="text-xs text-[#8a9ab5] text-center py-2">No recent activity</p>
                   )}
                 </div>
+                <div className="bg-white rounded-xl border border-[#e8e4dc] p-6">
+                  <h3 className="font-serif text-lg font-bold text-[#0d1f3c] mb-4">
+                    Recent Activity
+                  </h3>
+                  <div className="space-y-3">
+                    {auditLogs.length > 0 ? (
+                      auditLogs.slice(0, 4).map((log) => (
+                        <div key={log.id} className="flex gap-3">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#c9a84c] mt-1.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-sm text-[#2c3347]">{log.event_description}</p>
+                            <p className="text-xs text-[#8a9ab5]">
+                              {new Date(log.created_at || "").toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-xs text-[#8a9ab5] text-center py-2">No recent activity</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="bg-[#0d1f3c] rounded-xl p-6 flex items-center justify-between">
+                <div>
+                  <p className="text-white font-semibold">Need to submit a new legal concern?</p>
+                  <p className="text-white/50 text-sm mt-0.5">
+                    Our team will review and contact you within 1–2 business days.
+                  </p>
+                </div>
+                <button
+                  onClick={() => onNavigate("inquiry")}
+                  className="bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] text-sm font-semibold px-6 py-3 rounded transition-colors whitespace-nowrap"
+                >
+                  New Inquiry
+                </button>
               </div>
             </div>
-            <div className="bg-[#0d1f3c] rounded-xl p-6 flex items-center justify-between">
-              <div>
-                <p className="text-white font-semibold">Need to submit a new legal concern?</p>
-                <p className="text-white/50 text-sm mt-0.5">
-                  Our team will review and contact you within 1–2 business days.
-                </p>
-              </div>
-              <button
-                onClick={() => onNavigate("inquiry")}
-                className="bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] text-sm font-semibold px-6 py-3 rounded transition-colors whitespace-nowrap"
-              >
-                New Inquiry
-              </button>
-            </div>
+            <ProfileRail
+              user={currentUser}
+              stats={[
+                {
+                  label: "Open Matters",
+                  value: myMatters.filter((m) => m.status !== "Closed").length,
+                },
+                { label: "Appointments", value: myAppts.length },
+                { label: "Documents", value: myDocs.length },
+                { label: "Unread", value: notifs.unreadCount },
+              ]}
+              onEditProfile={() => setTab("profile")}
+            />
           </div>
         )}
 
@@ -2740,9 +2697,12 @@ function ClientPortalView({
         )}
 
         {tab === "profile" && (
-          <div className="max-w-2xl space-y-5">
-            <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Profile</h2>
-            <ProfileEditor userId={currentUser.id} />
+          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
+            <div className="min-w-0 space-y-5">
+              <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Profile</h2>
+              <ProfileEditor userId={currentUser.id} />
+            </div>
+            <ProfileRail user={currentUser} />
           </div>
         )}
         {showUpload && (
@@ -2790,12 +2750,10 @@ function LawyerPortalView({
   currentUser,
   onNavigate,
   onSignOut,
-  onSwitchUser,
 }: {
   currentUser: AuthUser;
   onNavigate: (p: Page, params?: Record<string, string>) => void;
   onSignOut: () => void;
-  onSwitchUser: (u: AuthUser) => void;
 }) {
   const [tab, setTab] = useState("dashboard");
 
@@ -2872,23 +2830,66 @@ function LawyerPortalView({
     loadData();
   }, [currentUser.id, currentUser.role]);
 
+  // Client names for the Clients tab and the search index.
+  const [clientNames, setClientNames] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const ids = [...new Set(myMatters.map((m) => m.client_id).filter(Boolean))] as string[];
+    if (!ids.length) return;
+    let alive = true;
+    lookupNames(ids).then((names) => {
+      if (alive) setClientNames(names);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [myMatters]);
+
+  const searchItems = useMemo<PortalSearchItem[]>(() => {
+    const items: PortalSearchItem[] = [];
+    for (const m of myMatters) {
+      items.push({
+        id: `matter-${m.id}`,
+        title: `${m.matter_number} · ${m.title}`,
+        subtitle: `${practiceAreas.find((p) => p.id === m.practice_area)?.name || m.practice_area} · ${m.status}`,
+        keywords: m.status,
+        tab: "matters",
+      });
+    }
+    for (const d of myDocs) {
+      items.push({ id: `doc-${d.id}`, title: d.name, subtitle: "Document", tab: "documents" });
+    }
+    for (const a of myAppts) {
+      items.push({
+        id: `appt-${a.id}`,
+        title: `${a.appointment_type} · ${a.date} ${a.time}`,
+        subtitle: a.status,
+        keywords: a.mode,
+        tab: "appointments",
+      });
+    }
+    const seen = new Set<string>();
+    for (const m of myMatters) {
+      if (!m.client_id || seen.has(m.client_id)) continue;
+      seen.add(m.client_id);
+      items.push({
+        id: `client-${m.client_id}`,
+        title: clientNames[m.client_id] || "Client",
+        subtitle: `${m.matter_number} · ${m.title}`,
+        tab: "clients",
+      });
+    }
+    return items;
+  }, [myMatters, myDocs, myAppts, practiceAreas, clientNames]);
+
   if (loading) {
     return (
       <PortalShell
         currentUser={currentUser}
-        tabs={[
-          { key: "dashboard", label: "Dashboard" },
-
-          { key: "matters", label: "My Matters" },
-
-          { key: "appointments", label: "Appointments" },
-
-          { key: "profile", label: "Profile" },
-        ]}
+        tabs={LAWYER_TABS}
         activeTab={tab}
         onTab={setTab}
         onSignOut={onSignOut}
-        onSwitchUser={onSwitchUser}
         unreadCount={notifs.unreadCount}
       >
         <div className="flex items-center justify-center py-20">
@@ -2906,67 +2907,74 @@ function LawyerPortalView({
       <EmailVerificationBanner />
       <PortalShell
         currentUser={currentUser}
-        tabs={[
-          { key: "dashboard", label: "Dashboard" },
-
-          { key: "matters", label: "My Matters" },
-
-          { key: "clients", label: "Clients" },
-
-          { key: "appointments", label: "Appointments" },
-
-          { key: "documents", label: "Documents" },
-
-          { key: "profile", label: "Profile" },
-        ]}
+        tabs={LAWYER_TABS}
         activeTab={tab}
         onTab={setTab}
         onSignOut={onSignOut}
-        onSwitchUser={onSwitchUser}
         unreadCount={notifs.unreadCount}
         onOpenNotifications={() => setShowNotifs(true)}
+        searchPlaceholder="Search matters, clients…"
+        searchItems={searchItems}
+        onSearchSelect={(item) => setTab(item.tab)}
       >
         {tab === "dashboard" && (
           <div className="space-y-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                // Same reasoning as the client dashboard: a lawyer's caseload is
+            <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
+              <div className="min-w-0">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[
+                    // Same reasoning as the client dashboard: a lawyer's caseload is
 
-                // everything not yet closed, not just the narrow "Active" stage.
+                    // everything not yet closed, not just the narrow "Active" stage.
 
-                {
-                  label: "Open Matters",
-                  value: String(myMatters.filter((m) => m.status !== "Closed").length),
-                  color: "text-green-600",
-                  bg: "bg-green-50",
-                },
+                    {
+                      label: "Open Matters",
+                      value: String(myMatters.filter((m) => m.status !== "Closed").length),
+                      color: "text-green-600",
+                      bg: "bg-green-50",
+                    },
 
-                {
-                  label: "Total Matters",
-                  value: String(myMatters.length),
-                  color: "text-blue-600",
-                  bg: "bg-blue-50",
-                },
+                    {
+                      label: "Total Matters",
+                      value: String(myMatters.length),
+                      color: "text-blue-600",
+                      bg: "bg-blue-50",
+                    },
 
-                {
-                  label: "Appointments",
-                  value: String(myAppts.length),
-                  color: "text-purple-600",
-                  bg: "bg-purple-50",
-                },
+                    {
+                      label: "Appointments",
+                      value: String(myAppts.length),
+                      color: "text-purple-600",
+                      bg: "bg-purple-50",
+                    },
 
-                {
-                  label: "Unread Notifications",
-                  value: String(notifs.unreadCount),
-                  color: "text-[#c9a84c]",
-                  bg: "bg-[#c9a84c]/10",
-                },
-              ].map((s) => (
-                <div key={s.label} className={`${s.bg} rounded-xl p-5 border border-[#e8e4dc]`}>
-                  <p className={`font-serif text-3xl font-bold ${s.color}`}>{s.value}</p>
-                  <p className="text-xs text-[#8a9ab5] mt-1">{s.label}</p>
+                    {
+                      label: "Unread Notifications",
+                      value: String(notifs.unreadCount),
+                      color: "text-[#c9a84c]",
+                      bg: "bg-[#c9a84c]/10",
+                    },
+                  ].map((s) => (
+                    <div key={s.label} className={`${s.bg} rounded-xl p-5 border border-[#e8e4dc]`}>
+                      <p className={`font-serif text-3xl font-bold ${s.color}`}>{s.value}</p>
+                      <p className="text-xs text-[#8a9ab5] mt-1">{s.label}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+              <ProfileRail
+                user={currentUser}
+                stats={[
+                  {
+                    label: "Open Matters",
+                    value: myMatters.filter((m) => m.status !== "Closed").length,
+                  },
+                  { label: "Total Matters", value: myMatters.length },
+                  { label: "Appointments", value: myAppts.length },
+                  { label: "Unread", value: notifs.unreadCount },
+                ]}
+                onEditProfile={() => setTab("profile")}
+              />
             </div>
             <MattersTable
               matters={myMatters}
@@ -3095,17 +3103,31 @@ function LawyerPortalView({
         )}
 
         {tab === "profile" && (
-          <div className="max-w-2xl space-y-5">
-            <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Profile</h2>
-            <ProfileEditor userId={currentUser.id} />
-            {currentUser.lawyerId && (
-              <button
-                onClick={() => onNavigate("lawyers", { lawyer: currentUser.lawyerId! })}
-                className="w-full border-2 border-[#0d1f3c] text-[#0d1f3c] hover:bg-[#0d1f3c] hover:text-white font-semibold py-3 rounded transition-colors text-sm"
-              >
-                View Public Lawyer Profile
-              </button>
-            )}
+          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
+            <div className="min-w-0 space-y-5">
+              <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Profile</h2>
+              <ProfileEditor userId={currentUser.id} />
+              {currentUser.lawyerId && (
+                <button
+                  onClick={() => onNavigate("lawyers", { lawyer: currentUser.lawyerId! })}
+                  className="w-full border-2 border-[#0d1f3c] text-[#0d1f3c] hover:bg-[#0d1f3c] hover:text-white font-semibold py-3 rounded transition-colors text-sm"
+                >
+                  View Public Lawyer Profile
+                </button>
+              )}
+            </div>
+            <ProfileRail
+              user={currentUser}
+              stats={[
+                {
+                  label: "Open Matters",
+                  value: myMatters.filter((m) => m.status !== "Closed").length,
+                },
+                { label: "Total Matters", value: myMatters.length },
+                { label: "Appointments", value: myAppts.length },
+                { label: "Documents", value: myDocs.length },
+              ]}
+            />
           </div>
         )}
         {showUpload && (
@@ -3153,12 +3175,10 @@ function AdminPortalView({
   currentUser,
   onNavigate,
   onSignOut,
-  onSwitchUser,
 }: {
   currentUser: AuthUser;
   onNavigate: (p: Page, params?: Record<string, string>) => void;
   onSignOut: () => void;
-  onSwitchUser: (u: AuthUser) => void;
 }) {
   const [tab, setTab] = useState("dashboard");
 
@@ -3518,29 +3538,57 @@ function AdminPortalView({
     // Note: Audit logging should happen server-side via triggers
   };
 
+  const searchItems = useMemo<PortalSearchItem[]>(() => {
+    const items: PortalSearchItem[] = [];
+    for (const u of userAccounts) {
+      items.push({
+        id: `user-${u.id}`,
+        title: u.full_name,
+        subtitle: u.email,
+        keywords: [u.role, u.position, u.city].filter(Boolean).join(" "),
+        tab: "users",
+      });
+    }
+    for (const m of allMatters) {
+      items.push({
+        id: `matter-${m.id}`,
+        title: `${m.matter_number} · ${m.title}`,
+        subtitle: `${practiceAreas.find((p) => p.id === m.practice_area)?.name || m.practice_area} · ${m.status}`,
+        keywords: m.status,
+        tab: "matters",
+      });
+    }
+    for (const l of lawyers) {
+      items.push({
+        id: `lawyer-${l.id}`,
+        title: l.full_name,
+        subtitle: l.position ?? "Lawyer",
+        tab: "lawyers",
+      });
+    }
+    for (const d of allDocs) {
+      items.push({ id: `doc-${d.id}`, title: d.name, subtitle: "Document", tab: "documents" });
+    }
+    for (const a of allAppointments) {
+      items.push({
+        id: `appt-${a.id}`,
+        title: `${a.appointment_type} · ${a.date} ${a.time}`,
+        subtitle: a.status,
+        keywords: a.mode,
+        tab: "appointments",
+      });
+    }
+    return items;
+  }, [userAccounts, allMatters, lawyers, allDocs, allAppointments, practiceAreas]);
+
   if (loading) {
     return (
       <PortalShell
         currentUser={currentUser}
-        tabs={[
-          { key: "dashboard", label: "Dashboard" },
-
-          { key: "matters", label: "All Matters" },
-
-          { key: "conflict", label: "Conflict Check" },
-
-          { key: "lawyers", label: "Lawyer Management" },
-
-          { key: "users", label: "User Management" },
-
-          { key: "profile", label: "My Profile" },
-
-          { key: "audit", label: "Audit Logs" },
-        ]}
+        tabs={ADMIN_TABS}
         activeTab={tab}
         onTab={setTab}
         onSignOut={onSignOut}
-        onSwitchUser={onSwitchUser}
         unreadCount={notifs.unreadCount}
       >
         <div className="flex items-center justify-center py-20">
@@ -3558,37 +3606,18 @@ function AdminPortalView({
       <EmailVerificationBanner />
       <PortalShell
         currentUser={currentUser}
-        tabs={[
-          { key: "dashboard", label: "Dashboard" },
-
-          { key: "users", label: "User Accounts" },
-
-          { key: "intake", label: "Client Intake" },
-
-          { key: "matters", label: "Matters" },
-
-          { key: "appointments", label: "Appointments" },
-
-          { key: "lawyers", label: "Lawyers" },
-
-          { key: "documents", label: "Documents" },
-
-          { key: "content", label: "Website Content" },
-
-          { key: "reports", label: "Reports" },
-
-          { key: "settings", label: "System Settings" },
-
-          { key: "profile", label: "My Profile" },
-
-          { key: "audit", label: "Audit Logs" },
-        ]}
+        tabs={ADMIN_TABS}
         activeTab={tab}
         onTab={setTab}
         onSignOut={onSignOut}
-        onSwitchUser={onSwitchUser}
         unreadCount={notifs.unreadCount}
         onOpenNotifications={() => setShowNotifs(true)}
+        searchPlaceholder="Search users, matters, lawyers…"
+        searchItems={searchItems}
+        onSearchSelect={(item) => {
+          setTab(item.tab);
+          if (item.tab === "users") setUserSearch(item.title);
+        }}
       >
         {deleteSuccess && (
           <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 bg-[#0d1f3c] text-white text-sm font-medium px-5 py-3 rounded-full shadow-lg flex items-center gap-2">
@@ -3598,77 +3627,91 @@ function AdminPortalView({
 
         {tab === "dashboard" && (
           <div className="space-y-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                {
-                  label: "Total Matters",
-                  value: String(allMatters.length),
-                  color: "text-blue-600",
-                  bg: "bg-blue-50",
-                },
+            <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
+              <div className="min-w-0 space-y-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[
+                    {
+                      label: "Total Matters",
+                      value: String(allMatters.length),
+                      color: "text-blue-600",
+                      bg: "bg-blue-50",
+                    },
 
-                {
-                  label: "Active Matters",
-                  value: String(allMatters.filter((m) => m.status === "Active").length),
-                  color: "text-green-600",
-                  bg: "bg-green-50",
-                },
+                    {
+                      label: "Active Matters",
+                      value: String(allMatters.filter((m) => m.status === "Active").length),
+                      color: "text-green-600",
+                      bg: "bg-green-50",
+                    },
 
-                {
-                  label: "Pending Conflict Checks",
-                  value: String(allMatters.filter((m) => m.status === "Conflict Check").length),
-                  color: "text-amber-600",
-                  bg: "bg-amber-50",
-                },
+                    {
+                      label: "Pending Conflict Checks",
+                      value: String(allMatters.filter((m) => m.status === "Conflict Check").length),
+                      color: "text-amber-600",
+                      bg: "bg-amber-50",
+                    },
 
-                {
-                  label: "Unassigned Matters",
-                  value: String(unassigned.length),
-                  color: "text-red-600",
-                  bg: "bg-red-50",
-                },
-              ].map((s) => (
-                <div key={s.label} className={`${s.bg} rounded-xl p-5 border border-[#e8e4dc]`}>
-                  <p className={`font-serif text-3xl font-bold ${s.color}`}>{s.value}</p>
-                  <p className="text-xs text-[#8a9ab5] mt-1">{s.label}</p>
+                    {
+                      label: "Unassigned Matters",
+                      value: String(unassigned.length),
+                      color: "text-red-600",
+                      bg: "bg-red-50",
+                    },
+                  ].map((s) => (
+                    <div key={s.label} className={`${s.bg} rounded-xl p-5 border border-[#e8e4dc]`}>
+                      <p className={`font-serif text-3xl font-bold ${s.color}`}>{s.value}</p>
+                      <p className="text-xs text-[#8a9ab5] mt-1">{s.label}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                {
-                  label: "Total Users",
-                  value: String(userAccounts.length),
-                  color: "text-purple-600",
-                  bg: "bg-purple-50",
-                },
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[
+                    {
+                      label: "Total Users",
+                      value: String(userAccounts.length),
+                      color: "text-purple-600",
+                      bg: "bg-purple-50",
+                    },
 
-                {
-                  label: "Total Lawyers",
-                  value: String(lawyers.length),
-                  color: "text-[#c9a84c]",
-                  bg: "bg-[#c9a84c]/10",
-                },
+                    {
+                      label: "Total Lawyers",
+                      value: String(lawyers.length),
+                      color: "text-[#c9a84c]",
+                      bg: "bg-[#c9a84c]/10",
+                    },
 
-                {
-                  label: "Client Inquiries",
-                  value: String(inquiryCount),
-                  color: "text-blue-600",
-                  bg: "bg-blue-50",
-                },
+                    {
+                      label: "Client Inquiries",
+                      value: String(inquiryCount),
+                      color: "text-blue-600",
+                      bg: "bg-blue-50",
+                    },
 
-                {
-                  label: "Audit Events",
-                  value: String(auditLogs.length),
-                  color: "text-green-600",
-                  bg: "bg-green-50",
-                },
-              ].map((s) => (
-                <div key={s.label} className={`${s.bg} rounded-xl p-5 border border-[#e8e4dc]`}>
-                  <p className={`font-serif text-3xl font-bold ${s.color}`}>{s.value}</p>
-                  <p className="text-xs text-[#8a9ab5] mt-1">{s.label}</p>
+                    {
+                      label: "Audit Events",
+                      value: String(auditLogs.length),
+                      color: "text-green-600",
+                      bg: "bg-green-50",
+                    },
+                  ].map((s) => (
+                    <div key={s.label} className={`${s.bg} rounded-xl p-5 border border-[#e8e4dc]`}>
+                      <p className={`font-serif text-3xl font-bold ${s.color}`}>{s.value}</p>
+                      <p className="text-xs text-[#8a9ab5] mt-1">{s.label}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+              <ProfileRail
+                user={currentUser}
+                stats={[
+                  { label: "Total Matters", value: allMatters.length },
+                  { label: "Unassigned", value: unassigned.length },
+                  { label: "Users", value: userAccounts.length },
+                  { label: "Inquiries", value: inquiryCount },
+                ]}
+                onEditProfile={() => setTab("profile")}
+              />
             </div>
             <MattersTable
               matters={allMatters}
@@ -4322,9 +4365,20 @@ function AdminPortalView({
         )}
 
         {tab === "profile" && (
-          <div className="max-w-2xl space-y-5">
-            <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Profile</h2>
-            <ProfileEditor userId={currentUser.id} />
+          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
+            <div className="min-w-0 space-y-5">
+              <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Profile</h2>
+              <ProfileEditor userId={currentUser.id} />
+            </div>
+            <ProfileRail
+              user={currentUser}
+              stats={[
+                { label: "Total Matters", value: allMatters.length },
+                { label: "Users", value: userAccounts.length },
+                { label: "Lawyers", value: lawyers.length },
+                { label: "Audit Events", value: auditLogs.length },
+              ]}
+            />
           </div>
         )}
         {tab === "audit" && (
@@ -5532,9 +5586,6 @@ export default function ClientPortal({ onNavigate, savedLawyers }: ClientPortalP
         currentUser={user}
         onNavigate={onNavigate}
         onSignOut={handleSignOut}
-        onSwitchUser={
-          () => {} // No-op: can't switch users with real auth
-        }
         savedLawyers={savedLawyers}
       />
     );
@@ -5542,21 +5593,9 @@ export default function ClientPortal({ onNavigate, savedLawyers }: ClientPortalP
 
   if (user.role === "lawyer") {
     return (
-      <LawyerPortalView
-        currentUser={user}
-        onNavigate={onNavigate}
-        onSignOut={handleSignOut}
-        onSwitchUser={() => {}} // No-op
-      />
+      <LawyerPortalView currentUser={user} onNavigate={onNavigate} onSignOut={handleSignOut} />
     );
   }
 
-  return (
-    <AdminPortalView
-      currentUser={user}
-      onNavigate={onNavigate}
-      onSignOut={handleSignOut}
-      onSwitchUser={() => {}} // No-op
-    />
-  );
+  return <AdminPortalView currentUser={user} onNavigate={onNavigate} onSignOut={handleSignOut} />;
 }
