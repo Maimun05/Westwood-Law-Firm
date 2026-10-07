@@ -35,7 +35,7 @@ import {
 
 import type { AuthUser } from "@/lib/auth";
 
-import { initials } from "./ProfileRail";
+import Avatar from "./Avatar";
 
 export type PortalSearchItem = {
   id: string;
@@ -262,12 +262,12 @@ function UserMenu({
         aria-expanded={open}
         className="flex items-center gap-2 rounded-full pl-0.5 pr-1 py-0.5 hover:bg-[#f7f5f0] transition-colors"
       >
-        <span
-          aria-hidden="true"
-          className="h-9 w-9 flex items-center justify-center rounded-full bg-[var(--color-navy)] text-white text-xs font-bold ring-2 ring-[var(--color-gold)]/40"
-        >
-          {initials(user.fullName)}
-        </span>
+        <Avatar
+          name={user.fullName}
+          src={user.profileImage}
+          className="h-9 w-9 text-xs"
+          ring={false}
+        />
         <span className="hidden lg:block text-left leading-tight">
           <span className="block text-sm font-semibold text-[#0d1f3c] truncate max-w-[150px]">
             {user.fullName}

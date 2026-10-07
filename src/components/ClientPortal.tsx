@@ -18,6 +18,12 @@ import PortalShell, { type PortalSearchItem } from "./portal/PortalShell";
 
 import ProfileRail from "./portal/ProfileRail";
 
+import ForcePasswordChange from "./portal/ForcePasswordChange";
+
+import Avatar from "./portal/Avatar";
+
+import ProfilePictureModal from "./portal/ProfilePictureModal";
+
 import {
   getLawyers,
   getPracticeAreas,
@@ -54,6 +60,7 @@ import {
   adminChangeUserRole,
   adminDeactivateUser,
   adminReactivateUser,
+  adminResendCredentials,
 } from "@/lib/services/admin";
 
 import { useNotifications } from "@/hooks/useNotifications";
@@ -2304,10 +2311,13 @@ function ClientPortalView({
   currentUser,
   onNavigate,
   onSignOut,
+  onUserRefresh,
 }: {
   currentUser: AuthUser;
   onNavigate: (p: Page, params?: Record<string, string>) => void;
   onSignOut: () => void;
+  /** Re-reads the profile so the avatar/name update after an edit. */
+  onUserRefresh?: () => void;
   savedLawyers?: string[];
 }) {
   const [tab, setTab] = useState("dashboard");
@@ -2700,7 +2710,7 @@ function ClientPortalView({
           <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
             <div className="min-w-0 space-y-5">
               <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Profile</h2>
-              <ProfileEditor userId={currentUser.id} />
+              <ProfileEditor userId={currentUser.id} onSaved={onUserRefresh} />
             </div>
             <ProfileRail user={currentUser} />
           </div>
@@ -2750,10 +2760,13 @@ function LawyerPortalView({
   currentUser,
   onNavigate,
   onSignOut,
+  onUserRefresh,
 }: {
   currentUser: AuthUser;
   onNavigate: (p: Page, params?: Record<string, string>) => void;
   onSignOut: () => void;
+  /** Re-reads the profile so the avatar/name update after an edit. */
+  onUserRefresh?: () => void;
 }) {
   const [tab, setTab] = useState("dashboard");
 
@@ -3106,7 +3119,7 @@ function LawyerPortalView({
           <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
             <div className="min-w-0 space-y-5">
               <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Profile</h2>
-              <ProfileEditor userId={currentUser.id} />
+              <ProfileEditor userId={currentUser.id} onSaved={onUserRefresh} />
               {currentUser.lawyerId && (
                 <button
                   onClick={() => onNavigate("lawyers", { lawyer: currentUser.lawyerId! })}
@@ -3175,10 +3188,13 @@ function AdminPortalView({
   currentUser,
   onNavigate,
   onSignOut,
+  onUserRefresh,
 }: {
   currentUser: AuthUser;
   onNavigate: (p: Page, params?: Record<string, string>) => void;
   onSignOut: () => void;
+  /** Re-reads the profile so the avatar/name update after an edit. */
+  onUserRefresh?: () => void;
 }) {
   const [tab, setTab] = useState("dashboard");
 
@@ -3733,7 +3749,7 @@ function AdminPortalView({
                 onClick={() => setShowCreateUser(true)}
                 className="bg-[#0d1f3c] hover:bg-[#162d52] text-white text-sm font-semibold px-5 py-2.5 rounded transition-colors"
               >
-                + Add User
+                + Add Account
               </button>
             </div>
 
@@ -3792,8 +3808,18 @@ function AdminPortalView({
                     )}
                     {visibleUsers.map((u) => (
                       <tr key={u.id} className="hover:bg-[#f7f5f0]">
-                        <td className="px-5 py-4 text-sm font-semibold text-[#0d1f3c]">
-                          {u.full_name}
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar
+                              name={u.full_name}
+                              src={u.profile_image}
+                              className="h-9 w-9 text-xs"
+                              ring={false}
+                            />
+                            <span className="text-sm font-semibold text-[#0d1f3c]">
+                              {u.full_name}
+                            </span>
+                          </div>
                         </td>
                         <td className="px-5 py-4 text-sm text-[#8a9ab5]">{u.email}</td>
                         <td className="px-5 py-4">
@@ -3851,8 +3877,31 @@ function AdminPortalView({
             {showCreateUser && (
               <CreateUserModal
                 onClose={() => setShowCreateUser(false)}
-                onCreate={(user) => {
-                  setUserAccounts((prev) => [...prev, user]);
+                onCreate={(u) => {
+                  setUserAccounts((prev) => [
+                    ...prev,
+                    {
+                      id: u.id,
+
+                      email: u.email,
+
+                      full_name: u.fullName,
+
+                      role: u.role,
+
+                      phone: null,
+
+                      address: null,
+
+                      city: null,
+
+                      date_of_birth: null,
+
+                      created_at: new Date().toISOString(),
+
+                      updated_at: new Date().toISOString(),
+                    } as Profile,
+                  ]);
 
                   const newLog: AuditLog = {
                     id: newId(),
@@ -3865,11 +3914,11 @@ function AdminPortalView({
 
                     event_type: "ACCOUNT_CREATED",
 
-                    event_description: `Account created: ${user.full_name} (${user.role})`,
+                    event_description: `Account created: ${u.fullName} (${u.role})`,
 
                     resource_type: "user",
 
-                    resource_id: user.id,
+                    resource_id: u.id,
 
                     metadata: null,
 
@@ -3890,9 +3939,9 @@ function AdminPortalView({
 
                   setAuditLogs((prev) => [newLog, ...prev]);
 
-                  setShowCreateUser(false);
+                  // The modal closes itself: immediately for clients, and after
+                  // the staff success screen is dismissed.
                 }}
-                existingCount={userAccounts.length}
               />
             )}
 
@@ -3913,6 +3962,11 @@ function AdminPortalView({
 
                   setTimeout(() => setDeleteSuccess(null), 3000);
                 }}
+                onPictureChanged={(id, url) =>
+                  setUserAccounts((prev) =>
+                    prev.map((u) => (u.id === id ? { ...u, profile_image: url } : u)),
+                  )
+                }
               />
             )}
 
@@ -4368,7 +4422,7 @@ function AdminPortalView({
           <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
             <div className="min-w-0 space-y-5">
               <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Profile</h2>
-              <ProfileEditor userId={currentUser.id} />
+              <ProfileEditor userId={currentUser.id} onSaved={onUserRefresh} />
             </div>
             <ProfileRail
               user={currentUser}
@@ -4499,9 +4553,12 @@ function ViewUserModal({ user, onClose }: { user: Profile; onClose: () => void }
       <ModalBody className="p-7 space-y-6">
         {/* Profile Header */}
         <div className="flex items-start gap-4 pb-6 border-b border-[#e8e4dc]">
-          <div className="w-16 h-16 rounded-full bg-[#c9a84c]/20 flex items-center justify-center text-[#c9a84c] text-2xl font-bold">
-            {user.full_name?.charAt(0).toUpperCase() || "U"}
-          </div>
+          <Avatar
+            name={user.full_name || "U"}
+            src={user.profile_image}
+            className="h-16 w-16 text-xl"
+            ring={false}
+          />
           <div className="flex-1">
             <h3 className="text-xl font-bold text-[#0d1f3c]">{user.full_name}</h3>
             <p className="text-sm text-[#8a9ab5] mt-1">{user.email}</p>
@@ -4584,6 +4641,7 @@ function EditUserModal({
   activeAdminCount,
   onClose,
   onUpdate,
+  onPictureChanged,
 }: {
   user: Profile;
 
@@ -4594,7 +4652,15 @@ function EditUserModal({
   onClose: () => void;
 
   onUpdate: (updated: Profile) => void;
+
+  /** Keeps the parent list in step without closing this dialog. */
+  onPictureChanged: (id: string, url: string | null) => void;
 }) {
+  // The picture is saved straight to the database by ProfilePictureModal, so
+  // this dialog only mirrors the resulting URL.
+  const [pictureUrl, setPictureUrl] = useState<string | null>(user.profile_image);
+  const [showPicture, setShowPicture] = useState(false);
+
   const [form, setForm] = useState({
     honorific: user.honorific || "",
 
@@ -4723,6 +4789,28 @@ function EditUserModal({
 
       <form onSubmit={handleSubmit}>
         <ModalBody className="p-6 sm:p-7 space-y-6">
+          {/* Photo */}
+          <div className="flex items-center gap-4 pb-5 border-b border-[#e8e4dc]">
+            <Avatar
+              name={user.full_name}
+              src={pictureUrl}
+              className="h-16 w-16 text-xl"
+              ring={false}
+            />
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-[#0d1f3c]">Profile picture</p>
+              <p className="text-xs text-[#8a9ab5] mb-2">A square photo shown across the portal.</p>
+              <button
+                type="button"
+                onClick={() => setShowPicture(true)}
+                disabled={loading}
+                className="text-xs font-semibold text-[#c9a84c] hover:underline disabled:opacity-50"
+              >
+                {pictureUrl ? "Change photo" : "Add photo"}
+              </button>
+            </div>
+          </div>
+
           {/* Identity */}
           <div>
             <h3 className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-widest mb-3">
@@ -4929,6 +5017,19 @@ function EditUserModal({
           </button>
         </ModalFooter>
       </form>
+
+      {showPicture && (
+        <ProfilePictureModal
+          userId={user.id}
+          currentUrl={pictureUrl}
+          subjectName={user.full_name}
+          onClose={() => setShowPicture(false)}
+          onSaved={(url) => {
+            setPictureUrl(url);
+            onPictureChanged(user.id, url);
+          }}
+        />
+      )}
     </Modal>
   );
 }
@@ -4965,6 +5066,10 @@ function ManageUserModal({
   const [error, setError] = useState("");
 
   const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
+
+  const [resending, setResending] = useState(false);
+
+  const [resendMsg, setResendMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   // The database refuses to remove the last active administrator
 
@@ -5063,6 +5168,34 @@ function ManageUserModal({
     onClose();
   };
 
+  // Staff accounts sign in with an emailed temporary password; a resend mints
+  // a fresh one and re-arms the forced change. Clients manage their own
+  // password from the sign-in page, so this is hidden for them.
+  const handleResend = async () => {
+    setResending(true);
+
+    setResendMsg(null);
+
+    const { data, error: resendError } = await adminResendCredentials(user.id);
+
+    setResending(false);
+
+    if (resendError) {
+      setResendMsg({ ok: false, text: resendError });
+
+      return;
+    }
+
+    setResendMsg(
+      data?.emailSent
+        ? { ok: true, text: `A new temporary password was emailed to ${data.email}.` }
+        : {
+            ok: false,
+            text: data?.emailError || "The password was reset but the email could not be sent.",
+          },
+    );
+  };
+
   return (
     <Modal open onClose={onClose} size="md" labelledBy="manage-user-title" dismissible={!loading}>
       <ModalHeader
@@ -5110,6 +5243,33 @@ function ManageUserModal({
                 {loading ? "Updating..." : "Update Role"}
               </button>
             </div>
+
+            {/* Credentials Section (staff only) */}
+            {user.role !== "client" && (
+              <div className="pt-4 border-t border-[#e8e4dc]">
+                <label className={MODAL_LABEL_CLASS}>Login Credentials</label>
+                <p className="text-xs text-[#8a9ab5] mb-3 leading-relaxed">
+                  Send a fresh temporary password. The previous one stops working, and they must
+                  choose a new password the next time they sign in.
+                </p>
+                <button
+                  onClick={handleResend}
+                  disabled={loading || resending}
+                  className="w-full bg-[#0d1f3c] hover:bg-[#162d52] text-white text-sm font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {resending ? "Sending…" : "Resend credentials"}
+                </button>
+                {resendMsg && (
+                  <p
+                    className={`text-xs mt-2 leading-relaxed ${
+                      resendMsg.ok ? "text-green-700" : "text-red-600"
+                    }`}
+                  >
+                    {resendMsg.text}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Deactivate Section */}
             <div className="pt-4 border-t border-[#e8e4dc]">
@@ -5237,11 +5397,15 @@ const LAW_FIRM_POSITIONS = [
 function CreateUserModal({
   onClose,
   onCreate,
-  existingCount,
 }: {
   onClose: () => void;
-  onCreate: (u: Profile) => void;
-  existingCount: number;
+  /** Called once the account exists so the list and audit log can update. */
+  onCreate: (u: {
+    id: string;
+    email: string;
+    fullName: string;
+    role: "client" | "lawyer" | "admin";
+  }) => void;
 }) {
   const [form, setForm] = useState({
     name: "",
@@ -5271,39 +5435,85 @@ function CreateUserModal({
 
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // Set for staff accounts after creation, swapping the form for a success
+  // screen that reports whether the credentials email went out.
+  const [created, setCreated] = useState<{
+    id: string;
+    email: string;
+    emailSent: boolean;
+    emailError: string | null;
+  } | null>(null);
+
+  const [resending, setResending] = useState(false);
+
+  const [resendMsg, setResendMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  // Clients get an admin-typed password; lawyers and admins get a generated
+  // temporary password emailed to them.
+  const isStaff = form.role !== "client";
+
+  const handleResend = async () => {
+    if (!created) return;
+
+    setResending(true);
+
+    setResendMsg(null);
+
+    const { data, error: resendError } = await adminResendCredentials(created.id);
+
+    setResending(false);
+
+    if (resendError) {
+      setResendMsg({ ok: false, text: resendError });
+
+      return;
+    }
+
+    setResendMsg(
+      data?.emailSent
+        ? { ok: true, text: `Credentials emailed to ${data.email}.` }
+        : { ok: false, text: data?.emailError || "The email could not be sent." },
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation
-
-    if (!form.name || !form.email || !form.password || !form.confirmPassword) {
-      setError("Name, email, and password are required.");
+    if (!form.name || !form.email) {
+      setError("Name and email are required.");
 
       return;
     }
 
-    if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match.");
+    // Only client accounts get a password typed here.
+    if (!isStaff) {
+      if (!form.password || !form.confirmPassword) {
+        setError("A password is required for client accounts.");
 
-      return;
-    }
+        return;
+      }
 
-    if (form.password.length < 6) {
-      setError("Password must be at least 6 characters.");
+      if (form.password !== form.confirmPassword) {
+        setError("Passwords do not match.");
 
-      return;
+        return;
+      }
+
+      if (form.password.length < 6) {
+        setError("Password must be at least 6 characters.");
+
+        return;
+      }
     }
 
     setLoading(true);
 
     setError("");
 
-    // Call the admin service to create user
-
     const { data, error: createError } = await adminCreateUser({
       email: form.email,
 
-      password: form.password,
+      ...(isStaff ? {} : { password: form.password }),
 
       fullName: form.name,
 
@@ -5315,7 +5525,7 @@ function CreateUserModal({
 
       city: form.city || undefined,
 
-      position: form.role !== "client" && form.position ? form.position : undefined,
+      position: isStaff && form.position ? form.position : undefined,
     });
 
     setLoading(false);
@@ -5326,43 +5536,95 @@ function CreateUserModal({
       return;
     }
 
-    if (data) {
-      // Call onCreate with the created profile
+    if (!data) return;
 
-      onCreate({
-        id: data.id,
+    // Clear password fields immediately so nothing lingers in component state.
+    setForm((prev) => ({ ...prev, password: "", confirmPassword: "" }));
 
-        email: data.email,
+    onCreate({
+      id: data.user.id,
 
-        full_name: data.fullName,
+      email: data.user.email,
 
-        role: data.role,
+      fullName: data.user.fullName,
 
-        phone: form.phone || null,
+      role: data.user.role,
+    });
 
-        address: form.address || null,
+    if (data.mustChangePassword) {
+      // Staff: hold the dialog open to report the email outcome.
+      setCreated({
+        id: data.user.id,
 
-        city: form.city || null,
+        email: data.user.email,
 
-        date_of_birth: null,
+        emailSent: data.emailSent,
 
-        created_at: new Date().toISOString(),
-
-        updated_at: new Date().toISOString(),
-      } as Profile);
-
-      // Clear password fields immediately
-
-      setForm((prev) => ({ ...prev, password: "", confirmPassword: "" }));
-
+        emailError: data.emailError,
+      });
+    } else {
       onClose();
     }
   };
 
+  // Staff success screen — the account exists; report whether the credentials
+  // email reached the user and offer a resend if it did not.
+  if (created) {
+    return (
+      <Modal open onClose={onClose} size="md" labelledBy="create-user-title">
+        <ModalHeader title="Account created" titleId="create-user-title" onClose={onClose} />
+        <ModalBody className="p-7 space-y-4">
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-green-50 text-lg font-bold text-green-600">
+              ✓
+            </span>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-[#0d1f3c]">The account is ready.</p>
+              <p className="text-sm text-[#8a9ab5] break-all">{created.email}</p>
+            </div>
+          </div>
+
+          {created.emailSent ? (
+            <div className="rounded-lg border border-green-200 bg-green-50 p-3">
+              <p className="text-xs leading-relaxed text-green-700">
+                A temporary password was emailed to this user. They will be asked to choose a new
+                password the first time they sign in.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
+              <p className="text-xs leading-relaxed text-amber-800">
+                The account was created, but the credentials email could not be sent
+                {created.emailError ? ` (${created.emailError})` : ""}. Send them again below.
+              </p>
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resending}
+                className={`w-full ${MODAL_BUTTON_SECONDARY_CLASS}`}
+              >
+                {resending ? "Sending…" : "Resend credentials"}
+              </button>
+              {resendMsg && (
+                <p className={`text-xs ${resendMsg.ok ? "text-green-700" : "text-red-600"}`}>
+                  {resendMsg.text}
+                </p>
+              )}
+            </div>
+          )}
+
+          <button onClick={onClose} className={`w-full ${MODAL_BUTTON_PRIMARY_CLASS}`}>
+            Done
+          </button>
+        </ModalBody>
+      </Modal>
+    );
+  }
+
   return (
     <Modal open onClose={onClose} size="md" labelledBy="create-user-title" dismissible={!loading}>
       <ModalHeader
-        title="Add User Account"
+        title="Add Account"
         titleId="create-user-title"
         onClose={onClose}
         closeDisabled={loading}
@@ -5395,51 +5657,54 @@ function CreateUserModal({
             />
           </div>
 
-          {/* Password */}
-          <div>
-            <label className={MODAL_LABEL_CLASS}>Password *</label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                disabled={loading}
-                className={`${MODAL_INPUT_CLASS} pr-10`}
-                placeholder="Minimum 6 characters"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a9ab5] hover:text-[#0d1f3c] text-sm"
-                tabIndex={-1}
-              >
-                {showPassword ? "Hide" : "Show"}
-              </button>
-            </div>
-          </div>
+          {/* Password — client accounts only. Staff get one emailed. */}
+          {!isStaff && (
+            <>
+              <div>
+                <label className={MODAL_LABEL_CLASS}>Password *</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    disabled={loading}
+                    className={`${MODAL_INPUT_CLASS} pr-10`}
+                    placeholder="Minimum 6 characters"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a9ab5] hover:text-[#0d1f3c] text-sm"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
+              </div>
 
-          {/* Confirm Password */}
-          <div>
-            <label className={MODAL_LABEL_CLASS}>Confirm Password *</label>
-            <div className="relative">
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                value={form.confirmPassword}
-                onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-                disabled={loading}
-                className={`${MODAL_INPUT_CLASS} pr-10`}
-                placeholder="Re-enter password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a9ab5] hover:text-[#0d1f3c] text-sm"
-                tabIndex={-1}
-              >
-                {showConfirmPassword ? "Hide" : "Show"}
-              </button>
-            </div>
-          </div>
+              <div>
+                <label className={MODAL_LABEL_CLASS}>Confirm Password *</label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={form.confirmPassword}
+                    onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+                    disabled={loading}
+                    className={`${MODAL_INPUT_CLASS} pr-10`}
+                    placeholder="Re-enter password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a9ab5] hover:text-[#0d1f3c] text-sm"
+                    tabIndex={-1}
+                  >
+                    {showConfirmPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Phone */}
           <div>
@@ -5508,7 +5773,9 @@ function CreateUserModal({
           {/* Security note */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <p className="text-xs text-blue-700 leading-relaxed">
-              🔒 Password is securely encrypted and will never be displayed after account creation.
+              {isStaff
+                ? "✉️ A temporary password will be generated and emailed to this user. They will be asked to choose a new password the first time they sign in."
+                : "🔒 The password is stored encrypted and is never shown again. Share it with the client through a secure channel."}
             </p>
           </div>
 
@@ -5539,7 +5806,7 @@ function CreateUserModal({
 // ── Root export ───────────────────────────────────────────────────────────────
 
 export default function ClientPortal({ onNavigate, savedLawyers }: ClientPortalProps) {
-  const { user, loading } = useAuth();
+  const { user, loading, refresh } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
@@ -5578,6 +5845,21 @@ export default function ClientPortal({ onNavigate, savedLawyers }: ClientPortalP
     );
   }
 
+  // Admin-created staff accounts must replace their emailed temporary password
+  // before they can reach any part of the portal. This sits above the role
+  // routing so it applies to lawyers and admins alike.
+
+  if (user.mustChangePassword) {
+    return (
+      <ForcePasswordChange
+        name={user.fullName}
+        email={user.email}
+        onDone={refresh}
+        onSignOut={handleSignOut}
+      />
+    );
+  }
+
   // Route to appropriate portal based on role
 
   if (user.role === "client") {
@@ -5586,6 +5868,7 @@ export default function ClientPortal({ onNavigate, savedLawyers }: ClientPortalP
         currentUser={user}
         onNavigate={onNavigate}
         onSignOut={handleSignOut}
+        onUserRefresh={refresh}
         savedLawyers={savedLawyers}
       />
     );
@@ -5593,9 +5876,21 @@ export default function ClientPortal({ onNavigate, savedLawyers }: ClientPortalP
 
   if (user.role === "lawyer") {
     return (
-      <LawyerPortalView currentUser={user} onNavigate={onNavigate} onSignOut={handleSignOut} />
+      <LawyerPortalView
+        currentUser={user}
+        onNavigate={onNavigate}
+        onSignOut={handleSignOut}
+        onUserRefresh={refresh}
+      />
     );
   }
 
-  return <AdminPortalView currentUser={user} onNavigate={onNavigate} onSignOut={handleSignOut} />;
+  return (
+    <AdminPortalView
+      currentUser={user}
+      onNavigate={onNavigate}
+      onSignOut={handleSignOut}
+      onUserRefresh={refresh}
+    />
+  );
 }

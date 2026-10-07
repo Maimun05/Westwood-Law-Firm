@@ -26,6 +26,7 @@ export interface Database {
           date_of_birth: string | null;
           role: "client" | "lawyer" | "admin";
           is_active: boolean;
+          must_change_password: boolean;
           preferred_contact_method: string | null;
           last_active_at: string | null;
           position: string | null;
@@ -56,6 +57,7 @@ export interface Database {
           date_of_birth?: string | null;
           role?: "client" | "lawyer" | "admin";
           is_active?: boolean;
+          must_change_password?: boolean;
           preferred_contact_method?: string | null;
           last_active_at?: string | null;
           position?: string | null;
@@ -86,6 +88,7 @@ export interface Database {
           date_of_birth?: string | null;
           role?: "client" | "lawyer" | "admin";
           is_active?: boolean;
+          must_change_password?: boolean;
           preferred_contact_method?: string | null;
           last_active_at?: string | null;
           position?: string | null;

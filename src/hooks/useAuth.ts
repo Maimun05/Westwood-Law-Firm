@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 import { getCurrentUserProfile, onAuthStateChange, type AuthUser } from "@/lib/auth";
 
@@ -6,6 +6,14 @@ export function useAuth() {
   const [user, setUser] = useState<AuthUser | null>(null);
 
   const [loading, setLoading] = useState(true);
+
+  // Re-read the profile on demand. The avatar lives on the profile row, so
+  // after an upload (or a password change that clears must_change_password)
+  // the caller refreshes and the top-right picture updates without a reload.
+  const refresh = useCallback(async () => {
+    const profile = await getCurrentUserProfile();
+    setUser(profile);
+  }, []);
 
   useEffect(() => {
     let retryCount = 0;
@@ -77,5 +85,5 @@ export function useAuth() {
     };
   }, []);
 
-  return { user, loading };
+  return { user, loading, refresh };
 }

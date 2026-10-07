@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { updateProfile } from "@/lib/auth";
+import { updateProfile, updatePassword } from "@/lib/auth";
+import { removeProfilePicture } from "@/lib/services/profilePicture";
+import Avatar from "./Avatar";
+import ProfilePictureModal from "./ProfilePictureModal";
 
 type Edu = { school: string; degree: string; year?: string };
 type Row = {
@@ -20,6 +23,7 @@ type Row = {
   position: string | null;
   bio: string | null;
   education: Edu[] | null;
+  profile_image: string | null;
   created_at: string;
 };
 type Change = {
@@ -58,11 +62,23 @@ export default function ProfileEditor({
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
+  // Voluntary password change (separate from the profile fields: it is not part
+  // of the form's submit and writes to auth.users rather than the profile row).
+  const [pw, setPw] = useState("");
+  const [pw2, setPw2] = useState("");
+  const [pwBusy, setPwBusy] = useState(false);
+  const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  // Profile picture: the upload dialog writes straight to the database, so
+  // this only tracks whether it is open and the in-flight "Remove".
+  const [showPicture, setShowPicture] = useState(false);
+  const [pictureBusy, setPictureBusy] = useState(false);
+
   const load = async () => {
     const { data, error } = await supabase
       .from("profiles")
       .select(
-        "first_name,middle_name,last_name,suffix,nickname,honorific,full_name,email,phone,address,city,date_of_birth,role,position,bio,education,created_at",
+        "first_name,middle_name,last_name,suffix,nickname,honorific,full_name,email,phone,address,city,date_of_birth,role,position,bio,education,profile_image,created_at",
       )
       .eq("id", userId)
       .single();
@@ -140,6 +156,41 @@ export default function ProfileEditor({
     onSaved?.();
   };
 
+  const changePassword = async () => {
+    setPwMsg(null);
+    if (pw.length < 6) {
+      setPwMsg({ ok: false, text: "Password must be at least 6 characters." });
+      return;
+    }
+    if (pw !== pw2) {
+      setPwMsg({ ok: false, text: "The two passwords do not match." });
+      return;
+    }
+    setPwBusy(true);
+    const { error } = await updatePassword(pw);
+    setPwBusy(false);
+    if (error) {
+      setPwMsg({ ok: false, text: error });
+      return;
+    }
+    setPw("");
+    setPw2("");
+    setPwMsg({ ok: true, text: "Password updated." });
+  };
+
+  const removePicture = async () => {
+    if (!row) return;
+    setPictureBusy(true);
+    const { error: removeError } = await removeProfilePicture(userId, row.profile_image);
+    setPictureBusy(false);
+    if (removeError) {
+      setMsg({ ok: false, text: removeError });
+      return;
+    }
+    await load();
+    onSaved?.();
+  };
+
   const readOnly: [string, string][] = [
     ["Email", row.email],
     ["Role", row.role[0].toUpperCase() + row.role.slice(1)],
@@ -156,6 +207,43 @@ export default function ProfileEditor({
 
   return (
     <form onSubmit={save} className="max-w-2xl space-y-5">
+      <div className="bg-white rounded-xl border border-[#e8e4dc] p-6">
+        <h3 className="font-serif text-lg font-bold text-[#0d1f3c] mb-4">Profile picture</h3>
+        <div className="flex items-center gap-5">
+          <Avatar
+            name={row.full_name}
+            src={row.profile_image}
+            className="h-20 w-20 text-2xl"
+            ring={false}
+          />
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setShowPicture(true)}
+                className="border border-[#e8e4dc] hover:border-[#0d1f3c] hover:bg-[#f7f5f0] text-[#0d1f3c] text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+              >
+                {row.profile_image ? "Change photo" : "Add photo"}
+              </button>
+              {row.profile_image && (
+                <button
+                  type="button"
+                  onClick={removePicture}
+                  disabled={pictureBusy}
+                  className="text-sm font-semibold text-red-600 hover:underline disabled:opacity-50"
+                >
+                  {pictureBusy ? "Removing…" : "Remove"}
+                </button>
+              )}
+            </div>
+            <p className="text-xs text-[#8a9ab5] mt-2">
+              A square JPG, PNG or WEBP up to 5 MB. Shown on your account, and on the public site
+              for lawyers.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div className="bg-white rounded-xl border border-[#e8e4dc] p-6 space-y-4">
         <h3 className="font-serif text-lg font-bold text-[#0d1f3c]">Personal information</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -303,6 +391,48 @@ export default function ProfileEditor({
         {busy ? "Saving…" : "Save changes"}
       </button>
 
+      <div className="bg-white rounded-xl border border-[#e8e4dc] p-6 space-y-4">
+        <div>
+          <h3 className="font-serif text-lg font-bold text-[#0d1f3c]">Password</h3>
+          <p className="text-xs text-[#8a9ab5] mt-1">
+            Choose a new password for your account. It must be at least 6 characters.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className={label}>New password</label>
+            <input
+              type="password"
+              autoComplete="new-password"
+              className={input}
+              value={pw}
+              onChange={(e) => setPw(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className={label}>Confirm new password</label>
+            <input
+              type="password"
+              autoComplete="new-password"
+              className={input}
+              value={pw2}
+              onChange={(e) => setPw2(e.target.value)}
+            />
+          </div>
+        </div>
+        {pwMsg && (
+          <p className={`text-sm ${pwMsg.ok ? "text-green-700" : "text-red-600"}`}>{pwMsg.text}</p>
+        )}
+        <button
+          type="button"
+          onClick={changePassword}
+          disabled={pwBusy}
+          className="bg-[#0d1f3c] hover:bg-[#162d52] disabled:opacity-60 text-white font-semibold px-5 py-2.5 rounded text-sm"
+        >
+          {pwBusy ? "Updating…" : "Update password"}
+        </button>
+      </div>
+
       {changes.length > 0 && (
         <div className="bg-white rounded-xl border border-[#e8e4dc] p-6">
           <h3 className="font-serif text-lg font-bold text-[#0d1f3c] mb-3">
@@ -322,6 +452,19 @@ export default function ProfileEditor({
             ))}
           </ul>
         </div>
+      )}
+
+      {showPicture && (
+        <ProfilePictureModal
+          userId={userId}
+          currentUrl={row.profile_image}
+          subjectName={row.full_name}
+          onClose={() => setShowPicture(false)}
+          onSaved={async () => {
+            await load();
+            onSaved?.();
+          }}
+        />
       )}
     </form>
   );

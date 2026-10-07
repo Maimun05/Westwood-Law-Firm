@@ -93,6 +93,10 @@ const MIGRATIONS = [
     file: "20261015_matter_notes_encryption.sql",
     note: "encrypt matter_notes.body at rest via Vault; read via public.matter_notes_thread",
   },
+  {
+    file: "20261016_profile_pictures_and_temp_passwords.sql",
+    note: "profile pictures: the public avatars bucket + its policies; profiles.must_change_password for admin-created staff accounts",
+  },
 ];
 
 const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the practice areas created
@@ -109,7 +113,9 @@ const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the p
 -- calls private.is_admin(), so it runs after 20261003 installs that helper.
 -- 20261015 encrypts matter_notes.body and replaces private.on_matter_note_insert()
 -- once more (20261001 creates it, 20261004 rewrites it), so it runs after
--- 20261004 and after 20261005's grants.`;
+-- 20261004 and after 20261005's grants. 20261016 adds the avatars bucket and
+-- profiles.must_change_password; it calls private.is_admin(), which 20261003
+-- installs, so it runs last.`;
 
 const VERIFICATION = `-- ############################################################################
 -- ## VERIFICATION  —  read the result grid, not the "Success" toast
@@ -168,7 +174,12 @@ UNION ALL SELECT 'matter_notes.body_encrypted',  EXISTS (SELECT 1 FROM informati
                                                    AND column_name='body_encrypted')
 UNION ALL SELECT 'matter_notes_encrypt trigger', EXISTS (SELECT 1 FROM pg_trigger
                                                  WHERE tgname='matter_notes_encrypt')
-UNION ALL SELECT 'private.matter_note_key()',    to_regprocedure('private.matter_note_key()')         IS NOT NULL;
+UNION ALL SELECT 'private.matter_note_key()',    to_regprocedure('private.matter_note_key()')         IS NOT NULL
+UNION ALL SELECT 'profiles.must_change_password column', EXISTS (SELECT 1 FROM information_schema.columns
+                                                 WHERE table_schema='public' AND table_name='profiles'
+                                                   AND column_name='must_change_password')
+UNION ALL SELECT 'avatars bucket (public)',      EXISTS (SELECT 1 FROM storage.buckets
+                                                 WHERE id = 'avatars' AND public = TRUE);
 
 SELECT 'practice_areas' AS table_name, count(*) AS rows FROM public.practice_areas
 UNION ALL SELECT 'articles',            count(*) FROM public.articles
@@ -361,7 +372,22 @@ UNION ALL SELECT 'the matter read view is security_invoker',
 UNION ALL SELECT 'a client cannot read the matter-notes key',
        CASE WHEN to_regprocedure('private.matter_note_key()') IS NULL THEN 'FAIL'
             WHEN has_function_privilege('authenticated', 'private.matter_note_key()', 'EXECUTE')
-            THEN 'FAIL' ELSE 'PASS' END;
+            THEN 'FAIL' ELSE 'PASS' END
+UNION ALL SELECT 'the avatars bucket cannot be listed',
+       CASE WHEN EXISTS (SELECT 1 FROM pg_policies
+                         WHERE schemaname = 'storage' AND tablename = 'objects'
+                           AND cmd = 'SELECT'
+                           AND roles && ARRAY['anon','authenticated','public']::name[]
+                           AND (COALESCE(qual,'') NOT LIKE '%bucket_id%'
+                             OR COALESCE(qual,'') LIKE '%avatars%'))
+            THEN 'FAIL' ELSE 'PASS' END
+UNION ALL SELECT 'the avatar upload policy is owner-scoped',
+       CASE WHEN EXISTS (SELECT 1 FROM pg_policies
+                         WHERE schemaname = 'storage' AND tablename = 'objects'
+                           AND policyname = 'avatars_storage_insert'
+                           AND with_check LIKE '%avatars%'
+                           AND with_check LIKE '%uid%')
+            THEN 'PASS' ELSE 'FAIL' END;
 `;
 
 const bar = (ch) => ch.repeat(76);

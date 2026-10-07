@@ -102,6 +102,19 @@ CREATE TABLE IF NOT EXISTS storage.objects (
   name TEXT, owner_id TEXT, metadata JSONB, created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Supabase ships storage.foldername()/storage.filename() for writing path-based
+-- storage policies; the stub must too, or a policy that uses them (20261016's
+-- avatar policies key on the first folder being the owner's uid) dies with
+-- "function storage.foldername(text) does not exist" — a harness gap that looks
+-- exactly like a migration bug. Body copied from the real Supabase definition.
+CREATE OR REPLACE FUNCTION storage.foldername(name TEXT) RETURNS TEXT[] LANGUAGE plpgsql AS $$
+DECLARE
+  _parts TEXT[];
+BEGIN
+  SELECT string_to_array(name, '/') INTO _parts;
+  RETURN _parts[1:array_length(_parts, 1) - 1];
+END $$;
+
 -- Supabase Vault, for 20261015. The real extension encrypts secrets with a root
 -- key held outside the database; this stub stores them in plain text, which is
 -- enough to exercise the wrapper/RLS path but proves nothing about the real

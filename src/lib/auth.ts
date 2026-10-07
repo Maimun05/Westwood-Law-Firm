@@ -25,6 +25,14 @@ export interface AuthUser {
 
   position?: string;
 
+  // Square profile picture URL (public `avatars` bucket), or null for the
+  // initials fallback. Mirrors `profiles.profile_image`.
+  profileImage?: string | null;
+
+  // True while an admin-created staff account still holds the temporary
+  // password it was emailed. The portal blocks on this until it is cleared.
+  mustChangePassword?: boolean;
+
   lawyerId?: string;
 
   user_metadata?: {
@@ -440,7 +448,9 @@ export async function getCurrentUserProfile(): Promise<AuthUser | null> {
 
       .from("profiles")
 
-      .select("id, email, full_name, phone, role, is_active, deleted_at, created_at, position")
+      .select(
+        "id, email, full_name, phone, role, is_active, deleted_at, created_at, position, profile_image, must_change_password",
+      )
 
       .eq("id", user.id)
 
@@ -492,6 +502,10 @@ export async function getCurrentUserProfile(): Promise<AuthUser | null> {
       dateCreated: data.created_at,
 
       position: data.position ?? undefined,
+
+      profileImage: data.profile_image ?? null,
+
+      mustChangePassword: data.must_change_password ?? false,
 
       lawyerId: data.id, // placeholder - would need lawyer table join
     };
@@ -616,6 +630,45 @@ export async function updatePassword(newPassword: string) {
     });
 
     if (error) throw error;
+
+    return { error: null };
+  } catch (error: any) {
+    return { error: handleSupabaseError(error) };
+  }
+}
+
+// Change the signed-in user's own password, optionally clearing the
+// "must change password" flag that admin-created staff accounts carry.
+//
+// The password lives in auth.users and the flag lives in public.profiles, so
+// this is two writes. The flag is only cleared AFTER the password write
+// succeeds: if we cleared it first and the password write then failed, the
+// account would be left still holding the emailed temporary password but no
+// longer forced to change it. A failure to clear the flag is surfaced as an
+// error (the caller should refresh and let the gate stand) even though the
+// password itself did change.
+
+export async function changeOwnPassword(newPassword: string, clearMustChange = false) {
+  try {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+    if (error) throw error;
+
+    if (clearMustChange) {
+      const user = await getCurrentUser();
+
+      if (user) {
+        const { error: profileError } = await supabase
+
+          .from("profiles")
+
+          .update({ must_change_password: false })
+
+          .eq("id", user.id);
+
+        if (profileError) throw profileError;
+      }
+    }
 
     return { error: null };
   } catch (error: any) {

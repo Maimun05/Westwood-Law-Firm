@@ -3,36 +3,10 @@
 // ============================================================================
 // Mirrors the reference dashboard's right rail: an identity card (avatar, name,
 // role), contact rows, optional stat tiles and an optional completion ring.
-//
-// There is no avatar column on `AuthUser` (only lawyers have `Lawyer.profile_image`,
-// which is not carried here), so every role renders an initials disc.
 
 import type { AuthUser } from "@/lib/auth";
 import { IconClock, IconEnvelope, IconMapPin, IconPhone } from "@/components/Icons";
-
-export function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
-
-export function Avatar({
-  name,
-  className = "h-16 w-16 text-xl",
-}: {
-  name: string;
-  className?: string;
-}) {
-  return (
-    <span
-      aria-hidden="true"
-      className={`${className} flex items-center justify-center rounded-full bg-[var(--color-navy)] font-serif font-bold text-white ring-2 ring-[var(--color-gold)] ring-offset-2 ring-offset-white`}
-    >
-      {initials(name)}
-    </span>
-  );
-}
+import Avatar from "./Avatar";
 
 export type RailStat = { label: string; value: string | number };
 
@@ -93,7 +67,26 @@ export default function ProfileRail({
     <aside className="xl:sticky xl:top-20 space-y-5">
       <div className="bg-white rounded-xl border border-[#e8e4dc] p-6 text-center">
         <div className="flex justify-center">
-          <Avatar name={user.fullName} />
+          {onEditProfile ? (
+            // The avatar doubles as the shortcut to the picture editor on the
+            // profile tab — the same place the "Edit Profile" button leads.
+            <button
+              type="button"
+              onClick={onEditProfile}
+              aria-label="Change profile picture"
+              title="Change profile picture"
+              className="group relative rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-gold)] focus-visible:ring-offset-2"
+            >
+              <Avatar name={user.fullName} src={user.profileImage} />
+              <span className="pointer-events-none absolute inset-0 grid place-items-center rounded-full bg-[#0d1f3c]/0 transition-colors group-hover:bg-[#0d1f3c]/45">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-white opacity-0 transition-opacity group-hover:opacity-100">
+                  Change
+                </span>
+              </span>
+            </button>
+          ) : (
+            <Avatar name={user.fullName} src={user.profileImage} />
+          )}
         </div>
         <h3 className="font-serif text-lg font-bold text-[var(--color-navy)] mt-4">
           {user.fullName}
