@@ -97,6 +97,10 @@ const MIGRATIONS = [
     file: "20261016_profile_pictures_and_temp_passwords.sql",
     note: "profile pictures: the public avatars bucket + its policies; profiles.must_change_password for admin-created staff accounts",
   },
+  {
+    file: "20261017_notify_admins_new_inquiry.sql",
+    note: "bell notification for every admin when a registered client files an inquiry",
+  },
 ];
 
 const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the practice areas created
@@ -115,7 +119,9 @@ const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the p
 -- once more (20261001 creates it, 20261004 rewrites it), so it runs after
 -- 20261004 and after 20261005's grants. 20261016 adds the avatars bucket and
 -- profiles.must_change_password; it calls private.is_admin(), which 20261003
--- installs, so it runs last.`;
+-- installs, so it runs last. 20261017 installs an inquiries trigger that calls
+-- private.create_notification(), which 20260929 creates, so it runs after that
+-- and last of all.`;
 
 const VERIFICATION = `-- ############################################################################
 -- ## VERIFICATION  —  read the result grid, not the "Success" toast
@@ -179,7 +185,9 @@ UNION ALL SELECT 'profiles.must_change_password column', EXISTS (SELECT 1 FROM i
                                                  WHERE table_schema='public' AND table_name='profiles'
                                                    AND column_name='must_change_password')
 UNION ALL SELECT 'avatars bucket (public)',      EXISTS (SELECT 1 FROM storage.buckets
-                                                 WHERE id = 'avatars' AND public = TRUE);
+                                                 WHERE id = 'avatars' AND public = TRUE)
+UNION ALL SELECT 'inquiries_notify_admins trigger', EXISTS (SELECT 1 FROM pg_trigger
+                                                 WHERE tgname = 'inquiries_notify_admins');
 
 SELECT 'practice_areas' AS table_name, count(*) AS rows FROM public.practice_areas
 UNION ALL SELECT 'articles',            count(*) FROM public.articles
@@ -387,7 +395,11 @@ UNION ALL SELECT 'the avatar upload policy is owner-scoped',
                            AND policyname = 'avatars_storage_insert'
                            AND with_check LIKE '%avatars%'
                            AND with_check LIKE '%uid%')
-            THEN 'PASS' ELSE 'FAIL' END;
+            THEN 'PASS' ELSE 'FAIL' END
+UNION ALL SELECT 'admins are notified about client inquiries',
+       CASE WHEN to_regprocedure('private.notify_admins_new_inquiry()') IS NULL THEN 'FAIL'
+            WHEN NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'inquiries_notify_admins') THEN 'FAIL'
+            ELSE 'PASS' END;
 `;
 
 const bar = (ch) => ch.repeat(76);

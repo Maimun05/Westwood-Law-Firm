@@ -81,6 +81,43 @@ export async function getMyAppointments(userId: string, userRole: string) {
   }
 }
 
+// ── Inquiries ─────────────────────────────────────────────────────────────────
+//
+// What the signed-in client has filed, so they can confirm a submission landed.
+// Scoped to client_id, matching Client Intake's definition of a registered
+// client's inquiry: a signed-out visitor's inquiry has client_id IS NULL and is
+// emailed to the firm instead, so it never appears here.
+
+export type MyInquiry = Pick<
+  Inquiry,
+  | "id"
+  | "inquiry_number"
+  | "subject"
+  | "practice_area"
+  | "message"
+  | "status"
+  | "preferred_contact_method"
+  | "assigned_to"
+  | "created_at"
+>;
+
+export async function getMyInquiries(userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from("inquiries")
+      .select(
+        "id, inquiry_number, subject, practice_area, message, status, preferred_contact_method, assigned_to, created_at",
+      )
+      .eq("client_id", userId)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return { data: (data as MyInquiry[]) ?? [], error: null };
+  } catch (error: any) {
+    return { data: null, error: error.message };
+  }
+}
+
 // ── Matter team ───────────────────────────────────────────────────────────────
 //
 // The assigned lawyer plus anyone added here. RLS decides who may write: an

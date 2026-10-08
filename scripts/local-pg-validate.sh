@@ -949,6 +949,42 @@ else
 fi
 
 echo
+echo "== 6f. Admins are notified about client inquiries =="
+# 20261017. A signed-in client's inquiry is never emailed (notify-inquiry only
+# claims client_id IS NULL), so the bell notification is the firm's only signal.
+# File one as the client and require a notification for the admin; then file a
+# signed-out visitor's inquiry and require NO notification (it is emailed
+# instead and never enters Client Intake).
+$PSQL -q >/dev/null 2>&1 <<SQL
+SET request.jwt.claim.sub = '$CLIENT'; SET ROLE authenticated;
+INSERT INTO public.inquiries (inquiry_number, name, email, practice_area, subject, message, status, client_id)
+VALUES ('WI-2099-901', 'Cora Client', 'client@wlf.test', 'labor', 'I need legal advice',
+        'Harness inquiry from a registered client.', 'New', '$CLIENT');
+SQL
+
+NOTIF=$($PSQL -tA -c "SELECT count(*) FROM public.notifications
+  WHERE user_id = '$ADMIN' AND link = 'intake' AND message LIKE '%WI-2099-901%';" 2>&1 | tr -d '[:space:]')
+if [ "$NOTIF" = "1" ]; then
+  pass "a registered client's inquiry notifies the admin"
+else
+  fail "a registered client's inquiry notifies the admin (got '$NOTIF')"
+fi
+
+$PSQL -q >/dev/null 2>&1 <<SQL
+INSERT INTO public.inquiries (inquiry_number, name, email, practice_area, subject, message, status, client_id)
+VALUES ('WI-2099-902', 'Vic Visitor', 'visitor@example.com', 'labor', 'General inquiry',
+        'Harness inquiry from a signed-out visitor.', 'New', NULL);
+SQL
+
+NOTIF=$($PSQL -tA -c "SELECT count(*) FROM public.notifications
+  WHERE user_id = '$ADMIN' AND message LIKE '%WI-2099-902%';" 2>&1 | tr -d '[:space:]')
+if [ "$NOTIF" = "0" ]; then
+  pass "a signed-out visitor's inquiry does NOT notify the admin"
+else
+  fail "a signed-out visitor's inquiry does NOT notify the admin (got '$NOTIF')"
+fi
+
+echo
 echo "== 7. Content payloads match the real columns =="
 # Runs the admin ContentManager's own draft -> payload path against the real
 # tables. A wrong column name (the form once wrote speaker_name while the

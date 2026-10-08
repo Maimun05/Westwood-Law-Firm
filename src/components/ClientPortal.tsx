@@ -59,6 +59,7 @@ import {
   getMyMatters,
   getDocumentsByMatter,
   getMyAppointments,
+  getMyInquiries,
   getMyAuditLogs,
   updateMatterStatus,
   statusChoices,
@@ -66,6 +67,7 @@ import {
   addMatterMember,
   removeMatterMember,
   type MatterMember,
+  type MyInquiry,
 } from "@/lib/services/portalData";
 
 import {
@@ -159,6 +161,7 @@ type ClientPortalProps = {
 
 const CLIENT_TABS = [
   { key: "dashboard", label: "Dashboard" },
+  { key: "inquiries", label: "My Inquiries", group: "My Cases" },
   { key: "matters", label: "My Matters", group: "My Cases" },
   { key: "appointments", label: "Appointments", group: "My Cases" },
   { key: "documents", label: "Documents", group: "My Cases" },
@@ -194,6 +197,13 @@ const ADMIN_TABS = [
 
 const statusColors: Record<string, string> = {
   "New Inquiry": "bg-gray-100 text-gray-600",
+
+  // Inquiry statuses (the "New Inquiry" above is a *matter* status).
+  New: "bg-blue-50 text-blue-700",
+
+  Contacted: "bg-purple-50 text-purple-700",
+
+  Converted: "bg-teal-50 text-teal-700",
 
   "Under Review": "bg-blue-50 text-blue-700",
 
@@ -1092,13 +1102,15 @@ function NotificationsModal({
                     ? "📋"
                     : n.link === "appointments"
                       ? "📅"
-                      : n.type === "success"
-                        ? "✅"
-                        : n.type === "warning"
-                          ? "⚠️"
-                          : n.type === "error"
-                            ? "⛔"
-                            : "🔔"}
+                      : n.link === "intake"
+                        ? "📨"
+                        : n.type === "success"
+                          ? "✅"
+                          : n.type === "warning"
+                            ? "⚠️"
+                            : n.type === "error"
+                              ? "⛔"
+                              : "🔔"}
               </span>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-3">
@@ -2412,6 +2424,8 @@ function ClientPortalView({
 
   const [myAppts, setMyAppts] = useState<Appointment[]>([]);
 
+  const [myInquiries, setMyInquiries] = useState<MyInquiry[]>([]);
+
   const [myMatterEvents, setMyMatterEvents] = useState<MatterEvent[]>([]);
 
   const [lawyers, setLawyers] = useState<Lawyer[]>([]);
@@ -2484,6 +2498,12 @@ function ClientPortalView({
 
         if (appts) setMyAppts(appts);
 
+        // The client's own inquiries, so they can confirm a submission landed.
+
+        const { data: inq } = await getMyInquiries(currentUser.id);
+
+        if (inq) setMyInquiries(inq);
+
         // Load public content (lawyers, practice areas, specialists)
 
         const [lawyerResult, paResult, specResult] = await Promise.all([
@@ -2530,6 +2550,15 @@ function ClientPortalView({
         tab: "appointments",
       });
     }
+    for (const q of myInquiries) {
+      items.push({
+        id: `inquiry-${q.id}`,
+        title: `${q.inquiry_number} · ${q.subject || "Legal inquiry"}`,
+        subtitle: `Inquiry · ${q.status}`,
+        keywords: q.practice_area,
+        tab: "inquiries",
+      });
+    }
     for (const s of specialists) {
       items.push({
         id: `spec-${s.id}`,
@@ -2540,7 +2569,7 @@ function ClientPortalView({
       });
     }
     return items;
-  }, [myMatters, myDocs, myAppts, specialists, practiceAreas]);
+  }, [myMatters, myDocs, myAppts, myInquiries, specialists, practiceAreas]);
 
   // Who performed a matter event, and which matter it belongs to. The dashboard
   // panel spans every matter the client owns, so each row names its matter.
@@ -2691,6 +2720,67 @@ function ClientPortalView({
                 New Inquiry
               </button>
             </div>
+          </div>
+        )}
+
+        {tab === "inquiries" && (
+          <div className="space-y-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Inquiries</h2>
+                <p className="text-[#8a9ab5] text-sm mt-1">
+                  Every inquiry you have submitted to the firm, and where it stands.
+                </p>
+              </div>
+              <button
+                onClick={() => onNavigate("inquiry")}
+                className="bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] text-sm font-semibold px-6 py-3 rounded transition-colors whitespace-nowrap"
+              >
+                New Inquiry
+              </button>
+            </div>
+            {myInquiries.length === 0 ? (
+              <div className="bg-white rounded-xl border border-[#e8e4dc] p-10 text-center">
+                <p className="text-[#8a9ab5] text-sm mb-4">
+                  You have not submitted any inquiries yet.
+                </p>
+                <button
+                  onClick={() => onNavigate("inquiry")}
+                  className="bg-[#c9a84c] text-[#0d1f3c] font-semibold px-6 py-3 rounded text-sm"
+                >
+                  Start a Legal Inquiry
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {myInquiries.map((q) => (
+                  <div key={q.id} className="bg-white rounded-xl border border-[#e8e4dc] p-5">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono text-sm font-semibold text-[#0d1f3c]">
+                        {q.inquiry_number}
+                      </span>
+                      <Badge text={q.status} />
+                    </div>
+                    <p className="text-sm font-semibold text-[#0d1f3c] mt-2">
+                      {q.subject || "Legal inquiry"}
+                    </p>
+                    <p className="text-xs text-[#8a9ab5] mt-0.5">
+                      {q.practice_area || "General"} ·{" "}
+                      {new Date(q.created_at).toLocaleDateString("en-PH", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </p>
+                    {q.message && (
+                      <p className="text-sm text-[#2c3347] mt-3 whitespace-pre-line line-clamp-3">
+                        {q.message}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -4564,7 +4654,7 @@ function AdminPortalView({
           onDelete={notifs.remove}
           onOpenLink={(link) => {
             setShowNotifs(false);
-            if (["matters", "appointments", "documents"].includes(link)) setTab(link);
+            if (["matters", "appointments", "documents", "intake"].includes(link)) setTab(link);
           }}
           onClose={() => setShowNotifs(false)}
         />
