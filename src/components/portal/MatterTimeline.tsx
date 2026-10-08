@@ -2,14 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { MODAL_INPUT_CLASS } from "@/components/ui/Modal";
 
-type Ev = {
-  id: string;
-  event_type: string;
-  title: string;
-  detail: string | null;
-  created_at: string;
-  actor_id: string | null;
-};
 type Note = {
   id: string;
   body: string;
@@ -18,20 +10,16 @@ type Note = {
   author_id: string;
 };
 
-// One entry in the merged thread. Notes carry a body; events carry a title.
-type Entry =
-  | { kind: "note"; at: string; note: Note }
-  | {
-      kind: "event";
-      at: string;
-      event: Ev;
-    };
-
-// Messages and timeline for one matter.
+// Messages for one matter.
+//
+// The matter's own history (opened, status changed, lawyer assigned) is the
+// Activity Timeline panel in MatterDetail, not this one — so this is the
+// conversation only. The old version merged in matter_events too, which put an
+// "Update from your lawyer" marker directly under the very note it described.
 //
 // What each role can see is decided by the database, not here: clients get
-// client-visible items only, the lawyer team gets everything, and admins see
-// the timeline plus client-visible notes but never internal ones.
+// client-visible notes only, the lawyer team gets everything, and admins see
+// client-visible notes but never internal ones.
 //
 // Clients could previously read this thread but not write to it — the INSERT
 // policy only admitted the lawyer team and admins — so the firm's only way to
@@ -52,7 +40,6 @@ export default function MatterTimeline({
   names: Record<string, string>;
   clientId?: string | null;
 }) {
-  const [events, setEvents] = useState<Ev[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [body, setBody] = useState("");
   const [visibility, setVisibility] = useState<"internal" | "client">(
@@ -65,25 +52,16 @@ export default function MatterTimeline({
   const fetched = useRef<Set<string>>(new Set());
 
   const load = async () => {
-    const [e, n] = await Promise.all([
-      supabase
-        .from("matter_events")
-        .select("id,event_type,title,detail,created_at,actor_id")
-        .eq("matter_id", matterId)
-        .order("created_at", { ascending: true })
-        .limit(100),
-      supabase
-        // Read through the decrypting view (20261015). The base table stores
-        // body as ciphertext; the view applies the same matter_notes RLS, so
-        // what each role can see is still decided by the database.
-        .from("matter_notes_thread")
-        .select("id,body,visibility,created_at,author_id")
-        .eq("matter_id", matterId)
-        .order("created_at", { ascending: true })
-        .limit(100),
-    ]);
-    setEvents((e.data as Ev[]) ?? []);
-    setNotes((n.data as Note[]) ?? []);
+    const { data } = await supabase
+      // Read through the decrypting view (20261015). The base table stores
+      // body as ciphertext; the view applies the same matter_notes RLS, so
+      // what each role can see is still decided by the database.
+      .from("matter_notes_thread")
+      .select("id,body,visibility,created_at,author_id")
+      .eq("matter_id", matterId)
+      .order("created_at", { ascending: true })
+      .limit(100);
+    setNotes((data as Note[]) ?? []);
   };
   useEffect(() => {
     void load();
@@ -95,7 +73,7 @@ export default function MatterTimeline({
   useEffect(() => {
     const list = listRef.current;
     if (list) list.scrollTop = list.scrollHeight;
-  }, [notes.length, events.length]);
+  }, [notes.length]);
 
   // The `names` map only holds lawyers. A client's own name is known from
   // `userId`, but staff still need to see who wrote a client message, so look
@@ -103,12 +81,9 @@ export default function MatterTimeline({
   // (profiles_select_policy), so for them this resolves to nothing and the
   // fallback label is used — which is the right outcome anyway.
   useEffect(() => {
-    const unknown = Array.from(
-      new Set([
-        ...notes.map((n) => n.author_id),
-        ...events.map((e) => e.actor_id).filter((id): id is string => !!id),
-      ]),
-    ).filter((id) => id !== userId && !names[id] && !fetched.current.has(id));
+    const unknown = Array.from(new Set(notes.map((n) => n.author_id))).filter(
+      (id) => id !== userId && !names[id] && !fetched.current.has(id),
+    );
 
     if (unknown.length === 0) return;
     unknown.forEach((id) => fetched.current.add(id));
@@ -124,7 +99,7 @@ export default function MatterTimeline({
           ...Object.fromEntries(data.map((p) => [p.id, p.full_name])),
         }));
       });
-  }, [notes, events, names, userId]);
+  }, [notes, names, userId]);
 
   const add = async () => {
     if (!body.trim()) return;
@@ -157,19 +132,6 @@ export default function MatterTimeline({
     return name ?? "The firm";
   };
 
-  const thread: Entry[] = [
-    ...notes.map((note) => ({
-      kind: "note" as const,
-      at: note.created_at,
-      note,
-    })),
-    ...events.map((event) => ({
-      kind: "event" as const,
-      at: event.created_at,
-      event,
-    })),
-  ].sort((a, b) => a.at.localeCompare(b.at));
-
   const placeholder =
     role === "client"
       ? "Write a message to your lawyer…"
@@ -179,36 +141,17 @@ export default function MatterTimeline({
 
   return (
     <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
-      <h3 className="text-sm font-semibold text-[#0d1f3c] mb-3">Messages &amp; timeline</h3>
+      <h3 className="text-sm font-semibold text-[#0d1f3c] mb-3">Messages</h3>
 
       <div ref={listRef} className="max-h-80 overflow-y-auto pr-1 mb-4 space-y-3">
-        {thread.length === 0 && <p className="text-xs text-[#8a9ab5]">No activity yet.</p>}
+        {notes.length === 0 && <p className="text-xs text-[#8a9ab5]">No messages yet.</p>}
 
-        {thread.map((entry) => {
-          if (entry.kind === "event") {
-            const e = entry.event;
-            return (
-              <div key={`e-${e.id}`} className="flex items-start gap-2">
-                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#c9a84c] flex-shrink-0" />
-                <div>
-                  <p className="text-xs text-[#2c3347]">
-                    <span className="font-medium">{e.title}</span>
-                    {e.detail ? ` — ${e.detail}` : ""}
-                  </p>
-                  <p className="text-[11px] text-[#8a9ab5]">
-                    {who(e.actor_id)} · {new Date(e.created_at).toLocaleString("en-PH")}
-                  </p>
-                </div>
-              </div>
-            );
-          }
-
-          const n = entry.note;
+        {notes.map((n) => {
           const mine = n.author_id === userId;
 
           return (
             <div
-              key={`n-${n.id}`}
+              key={n.id}
               className={`pl-3 border-l-2 ${
                 n.visibility === "internal" ? "border-[#8a9ab5]" : "border-[#c9a84c]"
               }`}

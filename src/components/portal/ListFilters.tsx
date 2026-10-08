@@ -54,8 +54,10 @@ export default function ListFilters({
   total: number;
   children?: React.ReactNode;
 }) {
+  // Compact controls so search + every filter sit on one line instead of
+  // wrapping into a ragged second row.
   const inputCls =
-    "bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-3 py-2 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c]";
+    "bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-2.5 py-1.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c]";
   const filtering = search.trim() !== "" || Object.values(values).some((v) => v && v !== ALL);
 
   return (
@@ -65,7 +67,7 @@ export default function ListFilters({
         onChange={(e) => onSearch(e.target.value)}
         placeholder={placeholder}
         aria-label={placeholder}
-        className={`${inputCls} w-56`}
+        className={`${inputCls} w-44`}
       />
 
       {filters.map((f) => (
@@ -74,7 +76,7 @@ export default function ListFilters({
           value={values[f.key] ?? ALL}
           onChange={(e) => onFilter(f.key, e.target.value)}
           aria-label={f.label}
-          className={inputCls}
+          className={`${inputCls} cursor-pointer`}
         >
           <option value={ALL}>{f.label}: All</option>
           {f.options.map((o) => (
@@ -97,7 +99,7 @@ export default function ListFilters({
         </button>
       )}
 
-      <span className="text-xs text-[#8a9ab5] ml-auto">
+      <span className="text-xs text-[#8a9ab5] ml-auto whitespace-nowrap">
         {filtering ? `${shown} of ${total}` : `${total}`}
       </span>
 

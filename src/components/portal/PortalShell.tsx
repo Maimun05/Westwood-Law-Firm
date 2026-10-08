@@ -9,7 +9,7 @@
 // Icons are resolved from a key→icon map so the three views keep passing the
 // same `{ key, label }[]` tab arrays they always have.
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import BrandLogo, { BrandMark } from "@/components/BrandLogo";
 
@@ -45,7 +45,7 @@ export type PortalSearchItem = {
   tab: string;
 };
 
-type Tab = { key: string; label: string };
+type Tab = { key: string; label: string; group?: string };
 type IconComponent = React.ComponentType<{ className?: string }>;
 
 const TAB_ICONS: Record<string, IconComponent> = {
@@ -362,29 +362,40 @@ export default function PortalShell({
         </div>
 
         <nav className="flex-1 min-h-0 overflow-y-auto py-4 px-2 lg:px-3 space-y-1">
-          {tabs.map((t) => {
+          {tabs.map((t, i) => {
             const TabIcon = TAB_ICONS[t.key] ?? IconDocumentText;
             const isActive = activeTab === t.key;
+            const prevGroup = i > 0 ? tabs[i - 1].group : undefined;
+            const showGroup = Boolean(t.group) && t.group !== prevGroup;
             return (
-              <button
-                key={t.key}
-                type="button"
-                onClick={() => onTab(t.key)}
-                title={t.label}
-                aria-label={t.label}
-                aria-current={isActive ? "page" : undefined}
-                className={`relative w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors justify-center lg:justify-start ${
-                  isActive
-                    ? "bg-white/10 text-[var(--color-gold)]"
-                    : "text-white/60 hover:bg-white/5 hover:text-white"
-                }`}
-              >
-                {isActive && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-0.5 rounded-full bg-[var(--color-gold)]" />
+              <Fragment key={t.key}>
+                {showGroup && (
+                  <div className="pt-3">
+                    <p className="hidden lg:block px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-white/35">
+                      {t.group}
+                    </p>
+                    <div className="lg:hidden h-px bg-white/10 mx-1" />
+                  </div>
                 )}
-                <TabIcon className="h-5 w-5 flex-shrink-0" />
-                <span className="hidden lg:inline truncate">{t.label}</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => onTab(t.key)}
+                  title={t.label}
+                  aria-label={t.label}
+                  aria-current={isActive ? "page" : undefined}
+                  className={`relative w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors justify-center lg:justify-start ${
+                    isActive
+                      ? "bg-white/10 text-[var(--color-gold)]"
+                      : "text-white/60 hover:bg-white/5 hover:text-white"
+                  }`}
+                >
+                  {isActive && (
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-0.5 rounded-full bg-[var(--color-gold)]" />
+                  )}
+                  <TabIcon className="h-5 w-5 flex-shrink-0" />
+                  <span className="hidden lg:inline truncate">{t.label}</span>
+                </button>
+              </Fragment>
             );
           })}
         </nav>

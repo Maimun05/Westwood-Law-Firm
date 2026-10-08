@@ -16,13 +16,29 @@ import MattersTimeline from "./portal/MattersTimeline";
 
 import PortalShell, { type PortalSearchItem } from "./portal/PortalShell";
 
-import ProfileRail from "./portal/ProfileRail";
+import StatCard from "./portal/StatCard";
+
+import { Panel, PanelHeader } from "./portal/Panel";
+
+import StatusBreakdown from "./portal/StatusBreakdown";
 
 import ForcePasswordChange from "./portal/ForcePasswordChange";
 
 import Avatar from "./portal/Avatar";
 
 import ProfilePictureModal from "./portal/ProfilePictureModal";
+
+import {
+  IconBell,
+  IconBriefcase,
+  IconClock,
+  IconDocumentText,
+  IconEnvelope,
+  IconGavel,
+  IconShield,
+  IconTrendingUp,
+  IconUsers,
+} from "@/components/Icons";
 
 import {
   getLawyers,
@@ -118,6 +134,16 @@ type Appointment = Database["public"]["Tables"]["appointments"]["Row"];
 
 type AuditLog = Database["public"]["Tables"]["audit_logs"]["Row"];
 
+type MatterEvent = {
+  id: string;
+  matter_id?: string;
+  event_type: string;
+  title: string;
+  detail: string | null;
+  created_at: string;
+  actor_id: string | null;
+};
+
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
 type ClientPortalProps = {
@@ -133,35 +159,35 @@ type ClientPortalProps = {
 
 const CLIENT_TABS = [
   { key: "dashboard", label: "Dashboard" },
-  { key: "matters", label: "My Matters" },
-  { key: "appointments", label: "Appointments" },
-  { key: "documents", label: "Documents" },
-  { key: "partners", label: "Partner Network" },
-  { key: "profile", label: "Profile" },
+  { key: "matters", label: "My Matters", group: "My Cases" },
+  { key: "appointments", label: "Appointments", group: "My Cases" },
+  { key: "documents", label: "Documents", group: "My Cases" },
+  { key: "partners", label: "Partner Network", group: "Network" },
+  { key: "profile", label: "Profile", group: "Account" },
 ];
 
 const LAWYER_TABS = [
   { key: "dashboard", label: "Dashboard" },
-  { key: "matters", label: "My Matters" },
-  { key: "clients", label: "Clients" },
-  { key: "appointments", label: "Appointments" },
-  { key: "documents", label: "Documents" },
-  { key: "profile", label: "Profile" },
+  { key: "matters", label: "My Matters", group: "Casework" },
+  { key: "clients", label: "Clients", group: "Casework" },
+  { key: "appointments", label: "Appointments", group: "Casework" },
+  { key: "documents", label: "Documents", group: "Casework" },
+  { key: "profile", label: "Profile", group: "Account" },
 ];
 
 const ADMIN_TABS = [
   { key: "dashboard", label: "Dashboard" },
-  { key: "users", label: "User Accounts" },
-  { key: "intake", label: "Client Intake" },
-  { key: "matters", label: "Matters" },
-  { key: "appointments", label: "Appointments" },
-  { key: "lawyers", label: "Lawyers" },
-  { key: "documents", label: "Documents" },
-  { key: "content", label: "Website Content" },
-  { key: "reports", label: "Reports" },
-  { key: "settings", label: "System Settings" },
-  { key: "profile", label: "My Profile" },
-  { key: "audit", label: "Audit Logs" },
+  { key: "users", label: "User Accounts", group: "Practice" },
+  { key: "intake", label: "Client Intake", group: "Practice" },
+  { key: "matters", label: "Matters", group: "Practice" },
+  { key: "appointments", label: "Appointments", group: "Practice" },
+  { key: "lawyers", label: "Lawyers", group: "Practice" },
+  { key: "documents", label: "Documents", group: "Practice" },
+  { key: "content", label: "Website Content", group: "Insights" },
+  { key: "reports", label: "Reports", group: "Insights" },
+  { key: "settings", label: "System Settings", group: "System" },
+  { key: "profile", label: "My Profile", group: "System" },
+  { key: "audit", label: "Audit Logs", group: "System" },
 ];
 
 // ── Status colors ─────────────────────────────────────────────────────────────
@@ -193,6 +219,19 @@ const statusColors: Record<string, string> = {
 
   Inactive: "bg-gray-100 text-gray-500",
 };
+
+// Canonical lifecycle order for the "Matters by Status" breakdown so the bar
+// segments always read left-to-right from newest to resolved.
+const MATTER_STATUS_ORDER = [
+  "New Inquiry",
+  "Under Review",
+  "Consultation",
+  "Conflict Check",
+  "Accepted",
+  "Active",
+  "Resolved",
+  "Closed",
+];
 
 const priorityColors: Record<string, string> = {
   High: "text-red-600",
@@ -1126,7 +1165,6 @@ function MatterDetail({
   currentUser,
   practiceAreas = [],
   lawyers = [],
-  auditLogs = [],
   onMatterUpdated,
 }: {
   matter: Matter;
@@ -1134,7 +1172,6 @@ function MatterDetail({
   currentUser: AuthUser;
   practiceAreas?: PracticeArea[];
   lawyers?: Lawyer[];
-  auditLogs?: AuditLog[];
   onMatterUpdated?: (id: string, patch: Partial<Matter>) => void;
 }) {
   const [status, setStatus] = useState<Matter["status"]>(matter.status);
@@ -1173,6 +1210,38 @@ function MatterDetail({
     getDocumentsByMatter(matter.id).then(({ data }) => {
       if (!cancelled && data) setMatterDocs(data);
     });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [matter.id]);
+
+  // The Activity Timeline is the matter's own history, not the signed-in
+  // user's account audit log (which is where logins/logouts/password resets
+  // live). 'note' events are excluded because the note itself is rendered in
+  // the Messages panel, so the marker would only duplicate it.
+  const [matterTimeline, setMatterTimeline] = useState<MatterEvent[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    supabase
+
+      .from("matter_events")
+
+      .select("id,event_type,title,detail,created_at,actor_id")
+
+      .eq("matter_id", matter.id)
+
+      .neq("event_type", "note")
+
+      .order("created_at", { ascending: false })
+
+      .limit(20)
+
+      .then(({ data }) => {
+        if (!cancelled && data) setMatterTimeline(data as MatterEvent[]);
+      });
 
     return () => {
       cancelled = true;
@@ -1273,6 +1342,16 @@ function MatterDetail({
   };
 
   const pa = practiceAreas.find((p) => p.id === matter.practice_area);
+
+  // Who performed a timeline event. The actor is usually a lawyer or the
+  // admin; anything else (a deleted account, a system trigger) reads as
+  // "System", and the viewer's own actions read as "You".
+  const matterEventActor = (id: string | null) =>
+    !id
+      ? "System"
+      : id === currentUser.id
+        ? "You"
+        : (lawyers.find((l) => l.id === id)?.full_name ?? "The firm");
 
   const [assignedId, setAssignedId] = useState<string | null>(matter.lawyer_id ?? null);
 
@@ -1479,20 +1558,21 @@ function MatterDetail({
                 Activity Timeline
               </h3>
               <div className="relative">
-                {auditLogs.length > 0 ? (
+                {matterTimeline.length > 0 ? (
                   <>
                     <div className="absolute left-2 top-0 bottom-0 w-px bg-[#e8e4dc]" />
                     <div className="space-y-5">
-                      {auditLogs.slice(0, 7).map((log) => (
-                        <div key={log.id} className="flex gap-4 pl-8 relative">
+                      {matterTimeline.slice(0, 7).map((ev) => (
+                        <div key={ev.id} className="flex gap-4 pl-8 relative">
                           <div className="absolute left-0 top-1 w-4 h-4 rounded-full bg-[#c9a84c]/20 border-2 border-[#c9a84c] flex-shrink-0" />
                           <div>
                             <p className="text-sm font-medium text-[#0d1f3c]">
-                              {log.event_description}
+                              {ev.title}
+                              {ev.detail ? ` — ${ev.detail}` : ""}
                             </p>
                             <p className="text-xs text-[#8a9ab5] mt-0.5">
-                              {log.user_email || "System"} ·{" "}
-                              {new Date(log.created_at || "").toLocaleDateString()}
+                              {matterEventActor(ev.actor_id)} ·{" "}
+                              {new Date(ev.created_at).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
@@ -1785,7 +1865,6 @@ function MattersTable({
   onNavigate,
   practiceAreas = [],
   lawyers = [],
-  auditLogs = [],
   onMatterUpdated,
 }: {
   matters: Matter[];
@@ -1793,7 +1872,6 @@ function MattersTable({
   onNavigate: (p: Page) => void;
   practiceAreas?: PracticeArea[];
   lawyers?: Lawyer[];
-  auditLogs?: AuditLog[];
   onMatterUpdated?: (id: string, patch: Partial<Matter>) => void;
 }) {
   const [selected, setSelected] = useState<Matter | null>(null);
@@ -2003,7 +2081,6 @@ function MattersTable({
           currentUser={currentUser}
           practiceAreas={practiceAreas}
           lawyers={lawyers}
-          auditLogs={auditLogs}
           onMatterUpdated={(id, patch) => {
             // Keep the open modal and the table behind it in step, so the
 
@@ -2335,7 +2412,7 @@ function ClientPortalView({
 
   const [myAppts, setMyAppts] = useState<Appointment[]>([]);
 
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [myMatterEvents, setMyMatterEvents] = useState<MatterEvent[]>([]);
 
   const [lawyers, setLawyers] = useState<Lawyer[]>([]);
 
@@ -2380,6 +2457,25 @@ function ClientPortalView({
           const { data: docs } = await getMyDocuments();
 
           setMyDocs(docs);
+
+          // Recent matter activity for the dashboard: the client's own matters'
+          // history (opened / status changed / lawyer assigned / document
+          // events), not the account audit log. 'note' events live in the
+          // Messages panel, so they are excluded here too.
+          if (matters.length > 0) {
+            const { data: events } = await supabase
+              .from("matter_events")
+              .select("id,matter_id,event_type,title,detail,created_at,actor_id")
+              .in(
+                "matter_id",
+                matters.map((m) => m.id),
+              )
+              .neq("event_type", "note")
+              .order("created_at", { ascending: false })
+              .limit(5);
+
+            if (events) setMyMatterEvents(events as MatterEvent[]);
+          }
         }
 
         // Load appointments
@@ -2387,12 +2483,6 @@ function ClientPortalView({
         const { data: appts } = await getMyAppointments(currentUser.id, currentUser.role);
 
         if (appts) setMyAppts(appts);
-
-        // Load audit logs
-
-        const { data: logs } = await getMyAuditLogs(currentUser.id, currentUser.role);
-
-        if (logs) setAuditLogs(logs);
 
         // Load public content (lawyers, practice areas, specialists)
 
@@ -2452,6 +2542,18 @@ function ClientPortalView({
     return items;
   }, [myMatters, myDocs, myAppts, specialists, practiceAreas]);
 
+  // Who performed a matter event, and which matter it belongs to. The dashboard
+  // panel spans every matter the client owns, so each row names its matter.
+  const matterEventActor = (id: string | null) =>
+    !id
+      ? "System"
+      : id === currentUser.id
+        ? "You"
+        : (lawyers.find((l) => l.id === id)?.full_name ?? "The firm");
+
+  const matterNumber = (id?: string) =>
+    myMatters.find((m) => m.id === id)?.matter_number ?? "Matter";
+
   if (loading) {
     return (
       <PortalShell
@@ -2488,130 +2590,107 @@ function ClientPortalView({
         onSearchSelect={(item) => setTab(item.tab)}
       >
         {tab === "dashboard" && (
-          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
-            <div className="min-w-0 space-y-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  // "Active" is one of eight statuses (New Inquiry, Under Review).
-
-                  // Consultation, Conflict Check, Accepted, Active, Resolved,
-
-                  // Closed). Counting only the literal "Active" showed 0 to a
-
-                  // client whose matter was still under review, so count
-
-                  // everything that has not been closed.
-
-                  {
-                    label: "Open Matters",
-                    value: String(myMatters.filter((m) => m.status !== "Closed").length),
-                    color: "text-green-600",
-                    bg: "bg-green-50",
-                  },
-
-                  {
-                    label: "Appointments",
-                    value: String(myAppts.length),
-                    color: "text-blue-600",
-                    bg: "bg-blue-50",
-                  },
-
-                  {
-                    label: "Documents",
-                    value: String(myDocs.length),
-                    color: "text-purple-600",
-                    bg: "bg-purple-50",
-                  },
-
-                  {
-                    label: "Notifications",
-                    value: String(notifs.unreadCount),
-                    color: "text-[#c9a84c]",
-                    bg: "bg-[#c9a84c]/10",
-                  },
-                ].map((s) => (
-                  <div key={s.label} className={`${s.bg} rounded-xl p-5 border border-[#e8e4dc]`}>
-                    <p className={`font-serif text-3xl font-bold ${s.color}`}>{s.value}</p>
-                    <p className="text-xs text-[#8a9ab5] mt-1">{s.label}</p>
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <StatCard
+                label="Open Matters"
+                value={myMatters.filter((m) => m.status !== "Closed").length}
+                tone="green"
+                icon={<IconBriefcase className="h-5 w-5" />}
+              />
+              <StatCard
+                label="Appointments"
+                value={myAppts.length}
+                tone="blue"
+                icon={<IconClock className="h-5 w-5" />}
+              />
+              <StatCard
+                label="Documents"
+                value={myDocs.length}
+                tone="purple"
+                icon={<IconDocumentText className="h-5 w-5" />}
+              />
+              <StatCard
+                label="Notifications"
+                value={notifs.unreadCount}
+                tone="gold"
+                icon={<IconBell className="h-5 w-5" />}
+              />
+            </div>
+            <Panel>
+              <PanelHeader title="Matter Status" subtitle="Where your matters currently stand" />
+              {myMatters.length === 0 ? (
+                <p className="text-sm text-[#8a9ab5]">No active matters.</p>
+              ) : (
+                myMatters.map((m) => (
+                  <div
+                    key={m.id}
+                    className="flex items-center justify-between py-3 border-b border-[#f7f5f0] last:border-0"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-[#0d1f3c]">{m.matter_number}</p>
+                      <p className="text-xs text-[#8a9ab5]">
+                        {practiceAreas.find((p) => p.id === m.practice_area)?.name ||
+                          m.practice_area}
+                      </p>
+                    </div>
+                    <Badge text={m.status} />
                   </div>
-                ))}
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                <div className="bg-white rounded-xl border border-[#e8e4dc] p-6">
-                  <h3 className="font-serif text-lg font-bold text-[#0d1f3c] mb-4">
-                    Matter Status
-                  </h3>
-                  {myMatters.length === 0 ? (
-                    <p className="text-sm text-[#8a9ab5]">No active matters.</p>
-                  ) : (
-                    myMatters.map((m) => (
-                      <div
-                        key={m.id}
-                        className="flex items-center justify-between py-3 border-b border-[#f7f5f0] last:border-0"
-                      >
+                ))
+              )}
+            </Panel>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              <Panel>
+                <PanelHeader title="Matters by Status" />
+                <StatusBreakdown
+                  items={MATTER_STATUS_ORDER.map((s) => ({
+                    label: s,
+                    value: myMatters.filter((m) => m.status === s).length,
+                  }))}
+                />
+              </Panel>
+              <Panel>
+                <PanelHeader
+                  title="Recent Activity"
+                  subtitle="Latest updates across your matters"
+                />
+                <div className="space-y-3">
+                  {myMatterEvents.length > 0 ? (
+                    myMatterEvents.map((ev) => (
+                      <div key={ev.id} className="flex gap-3">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#c9a84c] mt-1.5 flex-shrink-0" />
                         <div>
-                          <p className="text-sm font-semibold text-[#0d1f3c]">{m.matter_number}</p>
+                          <p className="text-sm text-[#2c3347]">
+                            {ev.title}
+                            {ev.detail ? ` — ${ev.detail}` : ""}
+                          </p>
                           <p className="text-xs text-[#8a9ab5]">
-                            {practiceAreas.find((p) => p.id === m.practice_area)?.name ||
-                              m.practice_area}
+                            {matterNumber(ev.matter_id)} · {matterEventActor(ev.actor_id)} ·{" "}
+                            {new Date(ev.created_at).toLocaleDateString()}
                           </p>
                         </div>
-                        <Badge text={m.status} />
                       </div>
                     ))
+                  ) : (
+                    <p className="text-xs text-[#8a9ab5] text-center py-2">No recent activity</p>
                   )}
                 </div>
-                <div className="bg-white rounded-xl border border-[#e8e4dc] p-6">
-                  <h3 className="font-serif text-lg font-bold text-[#0d1f3c] mb-4">
-                    Recent Activity
-                  </h3>
-                  <div className="space-y-3">
-                    {auditLogs.length > 0 ? (
-                      auditLogs.slice(0, 4).map((log) => (
-                        <div key={log.id} className="flex gap-3">
-                          <div className="w-1.5 h-1.5 rounded-full bg-[#c9a84c] mt-1.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-sm text-[#2c3347]">{log.event_description}</p>
-                            <p className="text-xs text-[#8a9ab5]">
-                              {new Date(log.created_at || "").toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-xs text-[#8a9ab5] text-center py-2">No recent activity</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="bg-[#0d1f3c] rounded-xl p-6 flex items-center justify-between">
-                <div>
-                  <p className="text-white font-semibold">Need to submit a new legal concern?</p>
-                  <p className="text-white/50 text-sm mt-0.5">
-                    Our team will review and contact you within 1–2 business days.
-                  </p>
-                </div>
-                <button
-                  onClick={() => onNavigate("inquiry")}
-                  className="bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] text-sm font-semibold px-6 py-3 rounded transition-colors whitespace-nowrap"
-                >
-                  New Inquiry
-                </button>
-              </div>
+              </Panel>
             </div>
-            <ProfileRail
-              user={currentUser}
-              stats={[
-                {
-                  label: "Open Matters",
-                  value: myMatters.filter((m) => m.status !== "Closed").length,
-                },
-                { label: "Appointments", value: myAppts.length },
-                { label: "Documents", value: myDocs.length },
-                { label: "Unread", value: notifs.unreadCount },
-              ]}
-              onEditProfile={() => setTab("profile")}
-            />
+            <div className="bg-[#0d1f3c] rounded-xl p-6 flex items-center justify-between">
+              <div>
+                <p className="text-white font-semibold">Need to submit a new legal concern?</p>
+                <p className="text-white/50 text-sm mt-0.5">
+                  Our team will review and contact you within 1–2 business days.
+                </p>
+              </div>
+              <button
+                onClick={() => onNavigate("inquiry")}
+                className="bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] text-sm font-semibold px-6 py-3 rounded transition-colors whitespace-nowrap"
+              >
+                New Inquiry
+              </button>
+            </div>
           </div>
         )}
 
@@ -2635,7 +2714,6 @@ function ClientPortalView({
                 onNavigate={onNavigate}
                 practiceAreas={practiceAreas}
                 lawyers={lawyers}
-                auditLogs={auditLogs}
                 onMatterUpdated={applyMatterPatch}
               />
             )}
@@ -2707,12 +2785,9 @@ function ClientPortalView({
         )}
 
         {tab === "profile" && (
-          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
-            <div className="min-w-0 space-y-5">
-              <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Profile</h2>
-              <ProfileEditor userId={currentUser.id} onSaved={onUserRefresh} />
-            </div>
-            <ProfileRail user={currentUser} />
+          <div className="space-y-5">
+            <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Profile</h2>
+            <ProfileEditor userId={currentUser.id} onSaved={onUserRefresh} />
           </div>
         )}
         {showUpload && (
@@ -2932,63 +3007,69 @@ function LawyerPortalView({
       >
         {tab === "dashboard" && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
-              <div className="min-w-0">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {[
-                    // Same reasoning as the client dashboard: a lawyer's caseload is
-
-                    // everything not yet closed, not just the narrow "Active" stage.
-
-                    {
-                      label: "Open Matters",
-                      value: String(myMatters.filter((m) => m.status !== "Closed").length),
-                      color: "text-green-600",
-                      bg: "bg-green-50",
-                    },
-
-                    {
-                      label: "Total Matters",
-                      value: String(myMatters.length),
-                      color: "text-blue-600",
-                      bg: "bg-blue-50",
-                    },
-
-                    {
-                      label: "Appointments",
-                      value: String(myAppts.length),
-                      color: "text-purple-600",
-                      bg: "bg-purple-50",
-                    },
-
-                    {
-                      label: "Unread Notifications",
-                      value: String(notifs.unreadCount),
-                      color: "text-[#c9a84c]",
-                      bg: "bg-[#c9a84c]/10",
-                    },
-                  ].map((s) => (
-                    <div key={s.label} className={`${s.bg} rounded-xl p-5 border border-[#e8e4dc]`}>
-                      <p className={`font-serif text-3xl font-bold ${s.color}`}>{s.value}</p>
-                      <p className="text-xs text-[#8a9ab5] mt-1">{s.label}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <ProfileRail
-                user={currentUser}
-                stats={[
-                  {
-                    label: "Open Matters",
-                    value: myMatters.filter((m) => m.status !== "Closed").length,
-                  },
-                  { label: "Total Matters", value: myMatters.length },
-                  { label: "Appointments", value: myAppts.length },
-                  { label: "Unread", value: notifs.unreadCount },
-                ]}
-                onEditProfile={() => setTab("profile")}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <StatCard
+                label="Open Matters"
+                value={myMatters.filter((m) => m.status !== "Closed").length}
+                tone="green"
+                icon={<IconBriefcase className="h-5 w-5" />}
+              />
+              <StatCard
+                label="Total Matters"
+                value={myMatters.length}
+                tone="blue"
+                icon={<IconGavel className="h-5 w-5" />}
+              />
+              <StatCard
+                label="Appointments"
+                value={myAppts.length}
+                tone="purple"
+                icon={<IconClock className="h-5 w-5" />}
+              />
+              <StatCard
+                label="Unread Notifications"
+                value={notifs.unreadCount}
+                tone="gold"
+                icon={<IconBell className="h-5 w-5" />}
               />
             </div>
+            <Panel>
+              <PanelHeader title="Matters by Status" />
+              <StatusBreakdown
+                items={MATTER_STATUS_ORDER.map((s) => ({
+                  label: s,
+                  value: myMatters.filter((m) => m.status === s).length,
+                }))}
+              />
+            </Panel>
+            <Panel>
+              <PanelHeader
+                title="Recent Appointments"
+                subtitle="Your latest scheduled consultations"
+              />
+              <div className="space-y-3">
+                {myAppts.length > 0 ? (
+                  myAppts.slice(0, 4).map((a) => (
+                    <div
+                      key={a.id}
+                      className="flex items-center justify-between gap-3 py-2 border-b border-[#f7f5f0] last:border-0"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-[#0d1f3c] truncate">
+                          {a.appointment_type}
+                        </p>
+                        <p className="text-xs text-[#8a9ab5]">
+                          {new Date(a.date + "T00:00").toLocaleDateString()} · {a.time}
+                        </p>
+                      </div>
+                      <Badge text={a.status} />
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-[#8a9ab5] text-center py-2">No appointments yet</p>
+                )}
+              </div>
+            </Panel>
             <MattersTable
               matters={myMatters}
               currentUser={currentUser}
@@ -3116,31 +3197,17 @@ function LawyerPortalView({
         )}
 
         {tab === "profile" && (
-          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
-            <div className="min-w-0 space-y-5">
-              <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Profile</h2>
-              <ProfileEditor userId={currentUser.id} onSaved={onUserRefresh} />
-              {currentUser.lawyerId && (
-                <button
-                  onClick={() => onNavigate("lawyers", { lawyer: currentUser.lawyerId! })}
-                  className="w-full border-2 border-[#0d1f3c] text-[#0d1f3c] hover:bg-[#0d1f3c] hover:text-white font-semibold py-3 rounded transition-colors text-sm"
-                >
-                  View Public Lawyer Profile
-                </button>
-              )}
-            </div>
-            <ProfileRail
-              user={currentUser}
-              stats={[
-                {
-                  label: "Open Matters",
-                  value: myMatters.filter((m) => m.status !== "Closed").length,
-                },
-                { label: "Total Matters", value: myMatters.length },
-                { label: "Appointments", value: myAppts.length },
-                { label: "Documents", value: myDocs.length },
-              ]}
-            />
+          <div className="space-y-5">
+            <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Profile</h2>
+            <ProfileEditor userId={currentUser.id} onSaved={onUserRefresh} />
+            {currentUser.lawyerId && (
+              <button
+                onClick={() => onNavigate("lawyers", { lawyer: currentUser.lawyerId! })}
+                className="w-full border-2 border-[#0d1f3c] text-[#0d1f3c] hover:bg-[#0d1f3c] hover:text-white font-semibold py-3 rounded transition-colors text-sm"
+              >
+                View Public Lawyer Profile
+              </button>
+            )}
           </div>
         )}
         {showUpload && (
@@ -3643,99 +3710,73 @@ function AdminPortalView({
 
         {tab === "dashboard" && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
-              <div className="min-w-0 space-y-6">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {[
-                    {
-                      label: "Total Matters",
-                      value: String(allMatters.length),
-                      color: "text-blue-600",
-                      bg: "bg-blue-50",
-                    },
-
-                    {
-                      label: "Active Matters",
-                      value: String(allMatters.filter((m) => m.status === "Active").length),
-                      color: "text-green-600",
-                      bg: "bg-green-50",
-                    },
-
-                    {
-                      label: "Pending Conflict Checks",
-                      value: String(allMatters.filter((m) => m.status === "Conflict Check").length),
-                      color: "text-amber-600",
-                      bg: "bg-amber-50",
-                    },
-
-                    {
-                      label: "Unassigned Matters",
-                      value: String(unassigned.length),
-                      color: "text-red-600",
-                      bg: "bg-red-50",
-                    },
-                  ].map((s) => (
-                    <div key={s.label} className={`${s.bg} rounded-xl p-5 border border-[#e8e4dc]`}>
-                      <p className={`font-serif text-3xl font-bold ${s.color}`}>{s.value}</p>
-                      <p className="text-xs text-[#8a9ab5] mt-1">{s.label}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {[
-                    {
-                      label: "Total Users",
-                      value: String(userAccounts.length),
-                      color: "text-purple-600",
-                      bg: "bg-purple-50",
-                    },
-
-                    {
-                      label: "Total Lawyers",
-                      value: String(lawyers.length),
-                      color: "text-[#c9a84c]",
-                      bg: "bg-[#c9a84c]/10",
-                    },
-
-                    {
-                      label: "Client Inquiries",
-                      value: String(inquiryCount),
-                      color: "text-blue-600",
-                      bg: "bg-blue-50",
-                    },
-
-                    {
-                      label: "Audit Events",
-                      value: String(auditLogs.length),
-                      color: "text-green-600",
-                      bg: "bg-green-50",
-                    },
-                  ].map((s) => (
-                    <div key={s.label} className={`${s.bg} rounded-xl p-5 border border-[#e8e4dc]`}>
-                      <p className={`font-serif text-3xl font-bold ${s.color}`}>{s.value}</p>
-                      <p className="text-xs text-[#8a9ab5] mt-1">{s.label}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <ProfileRail
-                user={currentUser}
-                stats={[
-                  { label: "Total Matters", value: allMatters.length },
-                  { label: "Unassigned", value: unassigned.length },
-                  { label: "Users", value: userAccounts.length },
-                  { label: "Inquiries", value: inquiryCount },
-                ]}
-                onEditProfile={() => setTab("profile")}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <StatCard
+                label="Total Matters"
+                value={allMatters.length}
+                tone="blue"
+                icon={<IconBriefcase className="h-5 w-5" />}
+              />
+              <StatCard
+                label="Active Matters"
+                value={allMatters.filter((m) => m.status === "Active").length}
+                tone="green"
+                icon={<IconTrendingUp className="h-5 w-5" />}
+              />
+              <StatCard
+                label="Pending Conflict Checks"
+                value={allMatters.filter((m) => m.status === "Conflict Check").length}
+                tone="amber"
+                icon={<IconShield className="h-5 w-5" />}
+              />
+              <StatCard
+                label="Unassigned Matters"
+                value={unassigned.length}
+                tone="red"
+                icon={<IconUsers className="h-5 w-5" />}
               />
             </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <StatCard
+                label="Total Users"
+                value={userAccounts.length}
+                tone="purple"
+                icon={<IconUsers className="h-5 w-5" />}
+              />
+              <StatCard
+                label="Total Lawyers"
+                value={lawyers.length}
+                tone="gold"
+                icon={<IconGavel className="h-5 w-5" />}
+              />
+              <StatCard
+                label="Client Inquiries"
+                value={inquiryCount}
+                tone="blue"
+                icon={<IconEnvelope className="h-5 w-5" />}
+              />
+              <StatCard
+                label="Audit Events"
+                value={auditLogs.length}
+                tone="green"
+                icon={<IconShield className="h-5 w-5" />}
+              />
+            </div>
+            <Panel>
+              <PanelHeader title="Matters by Status" subtitle="All matters across the practice" />
+              <StatusBreakdown
+                items={MATTER_STATUS_ORDER.map((s) => ({
+                  label: s,
+                  value: allMatters.filter((m) => m.status === s).length,
+                }))}
+              />
+            </Panel>
             <MattersTable
               matters={allMatters}
               currentUser={currentUser}
               onNavigate={onNavigate}
               practiceAreas={practiceAreas}
               lawyers={lawyers}
-              auditLogs={auditLogs}
               onMatterUpdated={applyMatterPatch}
             />
           </div>
@@ -4038,7 +4079,6 @@ function AdminPortalView({
               onNavigate={onNavigate}
               practiceAreas={practiceAreas}
               lawyers={lawyers}
-              auditLogs={auditLogs}
               onMatterUpdated={applyMatterPatch}
             />
 
@@ -4419,20 +4459,9 @@ function AdminPortalView({
         )}
 
         {tab === "profile" && (
-          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
-            <div className="min-w-0 space-y-5">
-              <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Profile</h2>
-              <ProfileEditor userId={currentUser.id} onSaved={onUserRefresh} />
-            </div>
-            <ProfileRail
-              user={currentUser}
-              stats={[
-                { label: "Total Matters", value: allMatters.length },
-                { label: "Users", value: userAccounts.length },
-                { label: "Lawyers", value: lawyers.length },
-                { label: "Audit Events", value: auditLogs.length },
-              ]}
-            />
+          <div className="space-y-5">
+            <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Profile</h2>
+            <ProfileEditor userId={currentUser.id} onSaved={onUserRefresh} />
           </div>
         )}
         {tab === "audit" && (
