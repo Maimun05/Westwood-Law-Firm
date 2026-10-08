@@ -90,7 +90,15 @@ export default function ProfileEditor({
       return;
     }
     const r = data as Row;
-    // Older accounts only have a full name: pre-fill the parts so people can correct them.
+    // Older accounts only have a full name and no structured parts, so derive
+    // first/middle/last by splitting it so people can correct them. But when the
+    // row already HAS parts, trust them exactly: a NULL middle_name means "no
+    // middle name", not "split full_name again". Re-deriving it there invented a
+    // phantom middle name for a two-word first name (e.g. first_name "Augoste
+    // Ras" + full_name "Augoste Ras Flores" showed a middle name "Ras" that
+    // could never be cleared: clearing it wrote NULL, which was already NULL,
+    // and the next load re-derived it from full_name).
+    const legacyParts = r.first_name == null && r.last_name == null;
     const parts = (r.full_name || "")
       .replace(/^(Atty\.|Dr\.|Mr\.|Ms\.|Mrs\.)\s+/, "")
       .trim()
@@ -98,7 +106,8 @@ export default function ProfileEditor({
     setRow(r);
     setF({
       first_name: r.first_name ?? parts[0] ?? "",
-      middle_name: r.middle_name ?? (parts.length > 2 ? parts.slice(1, -1).join(" ") : ""),
+      middle_name:
+        r.middle_name ?? (legacyParts && parts.length > 2 ? parts.slice(1, -1).join(" ") : ""),
       last_name: r.last_name ?? (parts.length > 1 ? parts[parts.length - 1] : ""),
       suffix: r.suffix ?? "",
       phone: r.phone ?? "",

@@ -220,18 +220,21 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
     contactMethod: "Email",
   });
 
-  // Pre-populate form with authenticated user data
+  // The contact details come from the signed-in account, not from typed fields
+  // (the name/email/phone inputs were removed). `user` is the live `profiles`
+  // row from useAuth -> getCurrentUserProfile, so it tracks the Profile screen
+  // rather than the stale sign-up metadata.
 
   useEffect(() => {
     if (user) {
       setForm((prev) => ({
         ...prev,
 
-        fullName: user.user_metadata?.full_name || prev.fullName,
+        fullName: user.fullName || prev.fullName,
 
         email: user.email || prev.email,
 
-        phone: user.user_metadata?.phone || prev.phone,
+        phone: user.phone || prev.phone,
       }));
     }
   }, [user]);
@@ -468,11 +471,14 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
             Select the option that best describes your situation.
           </p>
 
-          <div className="space-y-3 mb-10">
+          <div className="space-y-3">
             {inquiryTypes.map((t) => (
               <button
                 key={t.id}
-                onClick={() => setInquiryType(t.id)}
+                onClick={() => {
+                  setInquiryType(t.id);
+                  setStep("form");
+                }}
                 className={`w-full p-5 rounded-xl border-2 text-left transition-all flex items-center gap-5 ${
                   inquiryType === t.id
                     ? "border-[#c9a84c] bg-[#0d1f3c] text-white"
@@ -505,14 +511,6 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
               </button>
             ))}
           </div>
-
-          <button
-            disabled={!inquiryType}
-            onClick={() => setStep("form")}
-            className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] disabled:opacity-40 disabled:cursor-not-allowed text-[#0d1f3c] font-semibold py-4 rounded transition-colors text-sm"
-          >
-            Continue
-          </button>
         </div>
       </div>
     );
@@ -542,51 +540,32 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
       <div className="max-w-3xl mx-auto px-6 lg:px-8 py-12">
         <div className="bg-white rounded-2xl border border-[#e8e4dc] p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Contact info */}
-            <div>
-              <h3 className="font-serif text-lg font-bold text-[#0d1f3c] mb-4">
-                Your Contact Information
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {[
-                  {
-                    key: "fullName",
-                    label: "Full Name",
-                    type: "text",
-                    placeholder: "Your full name",
-                    required: true,
-                  },
-
-                  {
-                    key: "email",
-                    label: "Email Address",
-                    type: "email",
-                    placeholder: "email@example.com",
-                    required: true,
-                  },
-
-                  {
-                    key: "phone",
-                    label: "Phone Number",
-                    type: "tel",
-                    placeholder: "+63 9XX XXX XXXX",
-                    required: true,
-                  },
-                ].map((f) => (
-                  <div key={f.key} className={f.key === "fullName" ? "sm:col-span-2" : ""}>
-                    <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
-                      {f.label} {f.required && <span className="text-red-400">*</span>}
-                    </label>
-                    <input
-                      type={f.type}
-                      required={f.required}
-                      placeholder={f.placeholder}
-                      value={(form as Record<string, string>)[f.key]}
-                      onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
-                      className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-3 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] focus:outline-none focus:border-[#c9a84c]"
-                    />
-                  </div>
-                ))}
+            {/* Contact details come from the signed-in account — nothing to type. */}
+            <div className="flex items-start gap-3 rounded-xl bg-[#f7f5f0] border border-[#e8e4dc] px-4 py-3.5">
+              <svg
+                className="w-5 h-5 text-[#c9a84c] flex-shrink-0 mt-0.5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.8}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-[#0d1f3c] truncate">
+                  {form.fullName || "Your account"}
+                </p>
+                <p className="text-xs text-[#8a9ab5] truncate">
+                  {form.email}
+                  {form.phone ? ` · ${form.phone}` : ""}
+                </p>
+                <p className="text-xs text-[#8a9ab5] mt-1">
+                  We&rsquo;ll contact you using the details on your account.
+                </p>
               </div>
             </div>
 
