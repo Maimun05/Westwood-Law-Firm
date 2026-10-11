@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /portal
+Disallow: /auth
+Disallow: /forgot-password
+Disallow: /reset-password
+
+Sitemap: https://westwood-law-firm.vercel.app/sitemap.xml

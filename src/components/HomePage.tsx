@@ -17,6 +17,7 @@ import { formatSeminarDate } from "@/utils/seminar";
 import RetainerPackageCard from "@/components/RetainerPackageCard";
 import SeminarRegistrationModal from "@/components/SeminarRegistrationModal";
 import { useAuth } from "@/hooks/useAuth";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { useReveal } from "@/hooks/useReveal";
 import { useParallax } from "@/hooks/useParallax";
 import { useSpotlight } from "@/hooks/useSpotlight";
@@ -74,6 +75,7 @@ function StatValue({ value }: { value: string }) {
 }
 
 export default function HomePage({ onNavigate }: HomePageProps) {
+  usePageMeta("home");
   const { user } = useAuth();
   // Consultations are for registered clients; visitors are pointed at the
   // Contact page instead.

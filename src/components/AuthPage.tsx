@@ -18,6 +18,8 @@ import { signIn, signUp, verifyOTP, resendOTP } from "@/lib/auth";
 
 import OTPVerification from "@/components/OTPVerification";
 
+import { usePageMeta } from "@/hooks/usePageMeta";
+
 import type { Page } from "@/types/navigation";
 
 type AuthPageProps = {
@@ -27,6 +29,8 @@ type AuthPageProps = {
 };
 
 export default function AuthPage({ onNavigate, initialMode = "login" }: AuthPageProps) {
+  usePageMeta("auth");
+
   const [mode, setMode] = useState<"login" | "register" | "verify">(initialMode);
 
   const [formData, setFormData] = useState({

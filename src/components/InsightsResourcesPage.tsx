@@ -16,6 +16,8 @@ import { onPortraitError } from "@/utils/image";
 import { formatSeminarDate } from "@/utils/seminar";
 import RetainerPackageCard from "@/components/RetainerPackageCard";
 import SeminarRegistrationModal from "@/components/SeminarRegistrationModal";
+import { usePageMeta } from "@/hooks/usePageMeta";
+import { articleJsonLd } from "@/lib/seo";
 
 type Page =
   | "home"
@@ -106,6 +108,16 @@ export default function InsightsResourcesPage({
   const openRegistration = (event: SeminarEvent) => setRegistering(event);
 
   const article = articleId ? articles.find((a) => a.id === articleId) : null;
+
+  usePageMeta(
+    "insights-resources",
+    article
+      ? { title: `${article.title} — Westwood Law Firm`, description: article.excerpt }
+      : undefined,
+    article
+      ? articleJsonLd(article, lawyers.find((l) => l.id === article.author_id)?.full_name)
+      : null,
+  );
 
   if (loading) {
     return (

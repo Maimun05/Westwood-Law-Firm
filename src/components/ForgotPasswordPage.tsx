@@ -12,6 +12,8 @@ import { useState } from "react";
 
 import { supabase } from "@/lib/supabase";
 
+import { usePageMeta } from "@/hooks/usePageMeta";
+
 type Page =
   | "home"
   | "about"
@@ -30,6 +32,8 @@ interface ForgotPasswordPageProps {
 }
 
 export default function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
+  usePageMeta("forgot-password");
+
   const [email, setEmail] = useState("");
 
   const [error, setError] = useState("");

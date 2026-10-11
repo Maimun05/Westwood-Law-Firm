@@ -50,6 +50,7 @@ import {
 } from "@/lib/content";
 
 import { useAuth } from "@/hooks/useAuth";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 import { signIn, signUp, signOut, type AuthUser } from "@/lib/auth";
 
@@ -5925,6 +5926,8 @@ function CreateUserModal({
 // ── Root export ───────────────────────────────────────────────────────────────
 
 export default function ClientPortal({ onNavigate, savedLawyers }: ClientPortalProps) {
+  usePageMeta("portal");
+
   const { user, loading, refresh } = useAuth();
 
   const handleSignOut = async () => {

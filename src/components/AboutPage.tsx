@@ -10,6 +10,7 @@ import {
 import { IconMapPin, IconPhone, IconEnvelope } from "@/components/Icons";
 import { PORTRAIT_PLACEHOLDER, onPortraitError } from "@/utils/image";
 import { useAuth } from "@/hooks/useAuth";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { FIRM_EMAIL } from "@/lib/firm";
 
 type Page =
@@ -90,6 +91,7 @@ const foundingPartners = [
 ];
 
 export default function AboutPage({ onNavigate }: AboutPageProps) {
+  usePageMeta("about");
   const { user } = useAuth();
   const [activeSection, setActiveSection] = useState<Section>("profile");
   const [lawyers, setLawyers] = useState<Lawyer[]>([]);

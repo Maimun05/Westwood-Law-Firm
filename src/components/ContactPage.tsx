@@ -7,6 +7,7 @@ import { getPracticeAreas, getCorporateClients, getLawyers } from "@/lib/content
 import { submitInquiry } from "@/utils/api";
 
 import { useAuth } from "@/hooks/useAuth";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 import { FIRM_EMAIL, FIRM_EMAIL_HREF, FIRM_DIRECTIONS_URL } from "@/lib/firm";
 
@@ -23,6 +24,7 @@ type Page =
   | "portal";
 
 export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) => void }) {
+  usePageMeta("contact");
   const { user } = useAuth();
 
   const [form, setForm] = useState({

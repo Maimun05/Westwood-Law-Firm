@@ -11,4 +11,5 @@ export type Page =
   | "portal"
   | "auth"
   | "forgot-password"
-  | "reset-password";
+  | "reset-password"
+  | "not-found";

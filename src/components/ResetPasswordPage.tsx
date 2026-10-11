@@ -14,6 +14,8 @@ import { supabase } from "@/lib/supabase";
 
 import { logAuditEvent } from "@/lib/services/audit";
 
+import { usePageMeta } from "@/hooks/usePageMeta";
+
 type Page =
   | "home"
   | "about"
@@ -32,6 +34,8 @@ interface ResetPasswordPageProps {
 }
 
 export default function ResetPasswordPage({ onNavigate }: ResetPasswordPageProps) {
+  usePageMeta("reset-password");
+
   const [password, setPassword] = useState("");
 
   const [confirmPassword, setConfirmPassword] = useState("");

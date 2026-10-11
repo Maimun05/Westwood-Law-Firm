@@ -13,6 +13,7 @@ import {
 import { formatFileSize } from "@/lib/services/documents";
 
 import { useAuth } from "@/hooks/useAuth";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 import InquiryFallback from "@/components/InquiryFallback";
 
@@ -773,6 +774,7 @@ export default function InquiryFlow({
   prefilledLawyerId,
   prefilledAreaId,
 }: InquiryFlowProps) {
+  usePageMeta("inquiry");
   const { user, loading } = useAuth();
 
   if (loading) {

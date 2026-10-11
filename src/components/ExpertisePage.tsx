@@ -10,6 +10,8 @@ import {
 import { PracticeAreaIcon, IconArrowRight, IconCheck } from "@/components/Icons";
 import { onPortraitError } from "@/utils/image";
 import { useAuth } from "@/hooks/useAuth";
+import { usePageMeta } from "@/hooks/usePageMeta";
+import { practiceAreaJsonLd } from "@/lib/seo";
 
 type Page =
   | "home"
@@ -81,6 +83,14 @@ export default function ExpertisePage({ onNavigate, selectedArea }: ExpertisePag
   const areaArticles = detail
     ? articles.filter((a) => areaLawyers.some((l) => l.id === a.author_id))
     : [];
+
+  usePageMeta(
+    "expertise",
+    detail
+      ? { title: `${detail.name} — Westwood Law Firm`, description: detail.description }
+      : undefined,
+    detail ? practiceAreaJsonLd(detail) : null,
+  );
 
   if (loading) {
     return (

@@ -18,6 +18,8 @@ import AboutPage from "@/components/AboutPage";
 
 import ContactPage from "@/components/ContactPage";
 
+import NotFoundPage from "@/components/NotFoundPage";
+
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 import ErrorFallback from "@/components/ErrorFallback";
@@ -237,6 +239,7 @@ export default function App() {
             )}
             {page === "forgot-password" && <ForgotPasswordPage onNavigate={navigate} />}
             {page === "reset-password" && <ResetPasswordPage onNavigate={navigate} />}
+            {page === "not-found" && <NotFoundPage onNavigate={navigate} />}
           </Suspense>
         </ErrorBoundary>
       </main>

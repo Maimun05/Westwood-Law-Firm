@@ -11,6 +11,8 @@ import { IconBookmark, IconSearch, IconArrowRight } from "@/components/Icons";
 import { PracticeAreaIcon } from "@/components/Icons";
 import { onPortraitError } from "@/utils/image";
 import { useAuth } from "@/hooks/useAuth";
+import { usePageMeta } from "@/hooks/usePageMeta";
+import { lawyerJsonLd } from "@/lib/seo";
 import InquiryFallback from "@/components/InquiryFallback";
 
 type Page =
@@ -113,6 +115,17 @@ export default function LawyersPage({
   });
 
   const profile = profileId ? lawyers.find((l) => l.id === profileId) : null;
+
+  usePageMeta(
+    "lawyers",
+    profile
+      ? {
+          title: `${profile.full_name} — Westwood Law Firm`,
+          description: profile.position || profile.bio || undefined,
+        }
+      : undefined,
+    profile ? lawyerJsonLd(profile) : null,
+  );
 
   if (loading) {
     return (

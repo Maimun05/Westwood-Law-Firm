@@ -3,6 +3,7 @@ import { getLawyers, getPracticeAreas, type Lawyer, type PracticeArea } from "@/
 import { signIn } from "@/lib/auth";
 import { submitConsultation } from "@/utils/api";
 import { useAuth } from "@/hooks/useAuth";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { PracticeAreaIcon, IconArrowRight, IconCheck } from "@/components/Icons";
 import { PORTRAIT_PLACEHOLDER, onPortraitError } from "@/utils/image";
 
@@ -754,6 +755,7 @@ export default function ConsultationFlow({
   // The old local flag started at false on every mount, so an already
   // signed-in client was shown the sign-in wall again after any navigation
   // away and back — and again after signing in, if the component remounted.
+  usePageMeta("consultation");
   const { user, loading } = useAuth();
 
   if (loading) {

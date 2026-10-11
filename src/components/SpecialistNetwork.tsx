@@ -9,6 +9,7 @@ import {
 } from "@/lib/content";
 import { PracticeAreaIcon, IconSearch } from "@/components/Icons";
 import { PORTRAIT_PLACEHOLDER, onPortraitError } from "@/utils/image";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 type Page =
   | "home"
@@ -35,6 +36,7 @@ const specialistTypes = [
 ];
 
 export default function SpecialistNetwork({ onNavigate }: SpecialistNetworkProps) {
+  usePageMeta("specialists");
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
   const [selectedId, setSelectedId] = useState<string | null>(null);

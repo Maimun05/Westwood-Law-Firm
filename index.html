@@ -29,6 +29,51 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&display=swap"
     />
+    <!-- Social sharing. og:title/description are updated per route at runtime
+         by usePageMeta (src/lib/seo.ts); the image stays site-wide. -->
+    <meta property="og:url" content="https://westwood-law-firm.vercel.app/" />
+    <meta property="og:site_name" content="Westwood Law Firm" />
+    <meta property="og:locale" content="en_PH" />
+    <meta property="og:image" content="https://westwood-law-firm.vercel.app/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Westwood Law Firm — Legal Counsel in San Juan City" />
+    <meta
+      name="twitter:description"
+      content="Corporate, labor, civil, and family law services in San Juan City, Metro Manila."
+    />
+    <meta name="twitter:image" content="https://westwood-law-firm.vercel.app/og-image.png" />
+    <!-- Structured data for local search. Values mirror src/lib/firm.ts and the
+         Contact page — update all three together if the office or numbers
+         change. Keep inside one script tag; do not minify into a single line
+         of prose. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "LegalService",
+        "name": "Westwood Law Firm",
+        "url": "https://westwood-law-firm.vercel.app/",
+        "image": "https://westwood-law-firm.vercel.app/og-image.png",
+        "logo": "https://westwood-law-firm.vercel.app/westwood-mark.png",
+        "email": "westwoodlawfirm1@gmail.com",
+        "telephone": "(02) 7957 2121",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Suite 1004 Atlanta Center, 31 Annapolis St., Greenhills",
+          "addressLocality": "San Juan City",
+          "addressRegion": "Metro Manila",
+          "postalCode": "1502",
+          "addressCountry": "PH"
+        },
+        "openingHoursSpecification": {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          "opens": "08:30",
+          "closes": "17:30"
+        },
+        "foundingDate": "1998-08",
+        "areaServed": "PH"
+      }
+    </script>
   </head>
   <body>
     <!-- figma:body-start -->

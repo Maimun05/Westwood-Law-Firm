@@ -23,6 +23,7 @@ const PAGE_PATHS: Record<Page, string> = {
   auth: "/auth",
   "forgot-password": "/forgot-password",
   "reset-password": "/reset-password",
+  "not-found": "/404",
 };
 
 // Which query parameters each page actually understands. Anything else is
@@ -56,9 +57,11 @@ export function locationToRoute(
   const path = pathname.replace(/\/+$/, "") || "/";
   const match = (Object.entries(PAGE_PATHS) as [Page, string][]).find(([, p]) => p === path);
 
-  // An unrecognised path (typo, old bookmark) falls back to the home page
-  // rather than rendering nothing.
-  const page: Page = match ? match[0] : "home";
+  // An unrecognised path (typo, old bookmark) renders the NotFound page —
+  // which is noindexed — instead of silently showing home, because serving
+  // the home page with HTTP 200 for a bad URL reads as a soft 404 to search
+  // engines.
+  const page: Page = match ? match[0] : "not-found";
 
   const params: Record<string, string> = {};
   const query = new URLSearchParams(search);
