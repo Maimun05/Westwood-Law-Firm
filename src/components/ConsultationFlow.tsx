@@ -517,6 +517,8 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
                       src={l.profile_image || PORTRAIT_PLACEHOLDER}
                       onError={onPortraitError}
                       alt={l.full_name}
+                      loading="lazy"
+                      decoding="async"
                       className="w-10 h-10 rounded-full object-cover object-top flex-shrink-0"
                     />
                     <div className="flex-1">

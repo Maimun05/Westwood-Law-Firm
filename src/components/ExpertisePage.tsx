@@ -205,6 +205,8 @@ export default function ExpertisePage({ onNavigate, selectedArea }: ExpertisePag
                       src={l.profile_image || "/lawyers/placeholder.svg"}
                       onError={onPortraitError}
                       alt={l.full_name}
+                      loading="lazy"
+                      decoding="async"
                       className="w-11 h-11 rounded-full object-cover object-top flex-shrink-0"
                     />
                     <div className="text-left">

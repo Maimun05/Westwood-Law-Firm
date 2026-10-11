@@ -357,6 +357,8 @@ export default function HomePage({ onNavigate }: HomePageProps) {
                     src={lawyer.profile_image || "/lawyers/placeholder.svg"}
                     onError={onPortraitError}
                     alt={lawyer.full_name}
+                    loading="lazy"
+                    decoding="async"
                     className="img-cover h-64 group-hover:scale-[1.03] transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-navy)]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -478,6 +480,8 @@ export default function HomePage({ onNavigate }: HomePageProps) {
                   <img
                     src="https://images.unsplash.com/photo-1571055931484-22dce9d6c510?w=800&h=600&fit=crop&auto=format"
                     alt=""
+                    loading="lazy"
+                    decoding="async"
                     className="img-cover opacity-70 animate-kenburns"
                   />
                   <span className="absolute top-4 left-4 badge-gold">{article.category}</span>

@@ -208,6 +208,7 @@ export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) 
                 src="https://images.unsplash.com/photo-1598139384902-5a8217874645?w=600&h=300&fit=crop&auto=format"
                 alt="Map of the Westwood Law Firm office in Greenhills, San Juan City"
                 loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover opacity-40 transition-transform duration-300 group-hover:scale-105"
               />
               <div className="absolute inset-0 flex items-center justify-center">

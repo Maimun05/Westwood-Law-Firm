@@ -219,8 +219,10 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
               </div>
               <div className="bg-[#0d1f3c] rounded-2xl overflow-hidden h-72 lg:h-auto relative">
                 <img
-                  src="/lawyers/atty-tabao-secondary.png"
+                  src="/lawyers/atty-tabao-secondary.jpg"
                   alt="Atty. Ernesto Tabao — Managing Partner"
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover object-top"
                   style={{ minHeight: "280px" }}
                 />
@@ -264,6 +266,8 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
                         src={l.profile_image || PORTRAIT_PLACEHOLDER}
                         onError={onPortraitError}
                         alt={l.full_name}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-60 object-cover object-top group-hover:scale-105 transition-transform duration-500"
                       />
                     </div>

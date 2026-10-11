@@ -176,6 +176,8 @@ export default function InsightsResourcesPage({
                   <img
                     src={lawyer.profile_image || "/lawyers/placeholder.svg"}
                     alt={lawyer.full_name}
+                    loading="lazy"
+                    decoding="async"
                     className="w-12 h-12 rounded-full object-cover object-top"
                     onError={onPortraitError}
                   />
@@ -323,6 +325,7 @@ export default function InsightsResourcesPage({
                         }
                         alt=""
                         loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500"
                       />
                       <span className="absolute top-4 left-4 bg-[#c9a84c] text-[#0d1f3c] text-xs font-semibold px-2.5 py-1 rounded">

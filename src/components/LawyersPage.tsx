@@ -306,6 +306,8 @@ function FindMyLawyer({
                   <img
                     src={l.profile_image || "/lawyers/placeholder.svg"}
                     alt={l.full_name}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full aspect-[4/5] object-cover object-top"
                     onError={onPortraitError}
                   />
@@ -473,6 +475,8 @@ function LawyerCard({
           src={lawyer.profile_image || "/lawyers/placeholder.svg"}
           onError={onPortraitError}
           alt={lawyer.full_name}
+          loading="lazy"
+          decoding="async"
           className="w-full aspect-[4/5] object-cover object-top group-hover:scale-[1.03] transition-transform duration-700"
         />
         <button
@@ -561,6 +565,8 @@ function LawyerProfile({
                   src={lawyer.profile_image || "/lawyers/placeholder.svg"}
                   onError={onPortraitError}
                   alt={lawyer.full_name}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full aspect-[4/5] object-cover object-top"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-navy)] to-transparent" />

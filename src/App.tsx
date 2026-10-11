@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 
 import Navigation from "@/components/Navigation";
 
@@ -18,17 +18,28 @@ import AboutPage from "@/components/AboutPage";
 
 import ContactPage from "@/components/ContactPage";
 
-import InquiryFlow from "@/components/InquiryFlow";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
-import ConsultationFlow from "@/components/ConsultationFlow";
+import ErrorFallback from "@/components/ErrorFallback";
 
-import ClientPortal from "@/components/ClientPortal";
+import PageLoader from "@/components/PageLoader";
 
-import AuthPage from "@/components/AuthPage";
+// Non-marketing routes are loaded on demand so a public visitor never
+// downloads the portal, the auth pages, or the two inquiry flows. The seven
+// marketing pages stay eager: they are the SEO surface and the most common
+// first-visit targets, and a spinner flash on navigation would be a regression.
 
-import ForgotPasswordPage from "@/components/ForgotPasswordPage";
+const InquiryFlow = lazy(() => import("@/components/InquiryFlow"));
 
-import ResetPasswordPage from "@/components/ResetPasswordPage";
+const ConsultationFlow = lazy(() => import("@/components/ConsultationFlow"));
+
+const ClientPortal = lazy(() => import("@/components/ClientPortal"));
+
+const AuthPage = lazy(() => import("@/components/AuthPage"));
+
+const ForgotPasswordPage = lazy(() => import("@/components/ForgotPasswordPage"));
+
+const ResetPasswordPage = lazy(() => import("@/components/ResetPasswordPage"));
 
 import { syncSavedLawyers, fetchSavedLawyers } from "@/utils/api";
 
@@ -168,47 +179,66 @@ export default function App() {
       {showNavigation && <Navigation currentPage={page} onNavigate={navigate} />}
 
       <main className="flex-1">
-        {page === "home" && <HomePage onNavigate={navigate} />}
-        {page === "about" && <AboutPage onNavigate={navigate} />}
-        {page === "expertise" && (
-          <ExpertisePage onNavigate={navigate} selectedArea={pageParams.area} />
-        )}
-        {page === "lawyers" && (
-          <LawyersPage
-            onNavigate={navigate}
-            selectedLawyerId={pageParams.lawyer}
-            savedLawyers={savedLawyers}
-            onToggleSave={toggleSave}
-          />
-        )}
-        {page === "specialists" && <SpecialistNetwork onNavigate={navigate} />}
-        {page === "insights-resources" && (
-          <InsightsResourcesPage onNavigate={navigate} selectedArticleId={pageParams.article} />
-        )}
-        {page === "contact" && <ContactPage onNavigate={navigate} />}
-        {page === "consultation" && (
-          <ConsultationFlow
-            onNavigate={navigate}
-            prefilledLawyerId={pageParams.lawyer}
-            prefilledAreaId={pageParams.area}
-          />
-        )}
-        {page === "inquiry" && (
-          <InquiryFlow
-            onNavigate={navigate}
-            prefilledLawyerId={pageParams.lawyer}
-            prefilledAreaId={pageParams.area}
-          />
-        )}
-        {page === "portal" && <ClientPortal onNavigate={navigate} savedLawyers={savedLawyers} />}
-        {page === "auth" && (
-          <AuthPage
-            onNavigate={navigate}
-            initialMode={(pageParams.mode as "login" | "register") || "login"}
-          />
-        )}
-        {page === "forgot-password" && <ForgotPasswordPage onNavigate={navigate} />}
-        {page === "reset-password" && <ResetPasswordPage onNavigate={navigate} />}
+        {/* Keyed by page so a crash on one page clears when the user navigates
+            away, and the chrome (nav/footer) survives any single page failing. */}
+        <ErrorBoundary
+          key={page}
+          fallback={(error, reset) => (
+            <ErrorFallback
+              error={error}
+              onGoHome={() => {
+                reset();
+                navigate("home");
+              }}
+            />
+          )}
+        >
+          <Suspense fallback={<PageLoader />}>
+            {page === "home" && <HomePage onNavigate={navigate} />}
+            {page === "about" && <AboutPage onNavigate={navigate} />}
+            {page === "expertise" && (
+              <ExpertisePage onNavigate={navigate} selectedArea={pageParams.area} />
+            )}
+            {page === "lawyers" && (
+              <LawyersPage
+                onNavigate={navigate}
+                selectedLawyerId={pageParams.lawyer}
+                savedLawyers={savedLawyers}
+                onToggleSave={toggleSave}
+              />
+            )}
+            {page === "specialists" && <SpecialistNetwork onNavigate={navigate} />}
+            {page === "insights-resources" && (
+              <InsightsResourcesPage onNavigate={navigate} selectedArticleId={pageParams.article} />
+            )}
+            {page === "contact" && <ContactPage onNavigate={navigate} />}
+            {page === "consultation" && (
+              <ConsultationFlow
+                onNavigate={navigate}
+                prefilledLawyerId={pageParams.lawyer}
+                prefilledAreaId={pageParams.area}
+              />
+            )}
+            {page === "inquiry" && (
+              <InquiryFlow
+                onNavigate={navigate}
+                prefilledLawyerId={pageParams.lawyer}
+                prefilledAreaId={pageParams.area}
+              />
+            )}
+            {page === "portal" && (
+              <ClientPortal onNavigate={navigate} savedLawyers={savedLawyers} />
+            )}
+            {page === "auth" && (
+              <AuthPage
+                onNavigate={navigate}
+                initialMode={(pageParams.mode as "login" | "register") || "login"}
+              />
+            )}
+            {page === "forgot-password" && <ForgotPasswordPage onNavigate={navigate} />}
+            {page === "reset-password" && <ResetPasswordPage onNavigate={navigate} />}
+          </Suspense>
+        </ErrorBoundary>
       </main>
 
       {showFooter && <Footer onNavigate={navigate} />}
