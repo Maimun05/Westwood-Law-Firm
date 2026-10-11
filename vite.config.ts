@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
@@ -15,6 +16,13 @@ export default defineConfig(({ mode }) => {
       outDir: "dist",
     },
     plugins: [react(), tailwindcss()],
+    // Pure-logic suites only (routes, SEO map, content schema, fallback
+    // semantics) — node environment, no DOM. The `@` alias and the dedupe
+    // below are reused from this config, so tests resolve exactly like the app.
+    test: {
+      environment: "node",
+      include: ["src/**/*.test.ts"],
+    },
     resolve: {
       // Without this, a rolldown bug (Vite 8 on Windows, seen through 8.3.2)
       // bundles React twice when the "@" alias is configured: react-dom and
