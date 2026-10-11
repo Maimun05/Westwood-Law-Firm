@@ -324,12 +324,12 @@ function FindMyLawyer({
                     className="w-full aspect-[4/5] object-cover object-top"
                     onError={onPortraitError}
                   />
-                  <div className="p-5">
+                  <div className="p-5 flex flex-col flex-1">
                     <h3 className="heading-card text-sm mb-0.5">{l.full_name}</h3>
                     <p className="text-accent-sm text-[var(--color-gold)] mb-4">
                       {l.position || "Lawyer"}
                     </p>
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-2 mt-auto">
                       <button onClick={() => onView(l.id)} className="btn-secondary text-sm py-2.5">
                         View Profile
                       </button>
@@ -504,7 +504,7 @@ function LawyerCard({
           <IconBookmark className="w-4.5 h-4.5" filled={saved} />
         </button>
       </div>
-      <div className="p-5">
+      <div className="p-5 flex flex-col flex-1">
         <h3 className="heading-card text-sm mb-1 group-hover:text-[var(--color-gold)] transition-colors">
           {lawyer.full_name}
         </h3>
@@ -518,7 +518,7 @@ function LawyerCard({
             </span>
           ))}
         </div>
-        <div className="flex flex-col gap-2 pt-2 border-t border-[var(--color-border-light)]">
+        <div className="flex flex-col gap-2 pt-2 border-t border-[var(--color-border-light)] mt-auto">
           <button onClick={onView} className="btn-secondary text-sm py-2.5">
             View Profile
           </button>
