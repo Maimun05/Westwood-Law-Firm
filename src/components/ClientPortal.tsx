@@ -1879,6 +1879,7 @@ function MattersTable({
   practiceAreas = [],
   lawyers = [],
   onMatterUpdated,
+  initialFilters,
 }: {
   matters: Matter[];
   currentUser: AuthUser;
@@ -1886,12 +1887,14 @@ function MattersTable({
   practiceAreas?: PracticeArea[];
   lawyers?: Lawyer[];
   onMatterUpdated?: (id: string, patch: Partial<Matter>) => void;
+  /** Pre-applied filters when a dashboard card jumps straight to a subset. */
+  initialFilters?: Record<string, string>;
 }) {
   const [selected, setSelected] = useState<Matter | null>(null);
 
   const [search, setSearch] = useState("");
 
-  const [filters, setFilters] = useState<Record<string, string>>({});
+  const [filters, setFilters] = useState<Record<string, string>>(initialFilters ?? {});
 
   const [clientNames, setClientNames] = useState<Record<string, string>>({});
 
@@ -3356,6 +3359,20 @@ function AdminPortalView({
 }) {
   const [tab, setTab] = useState("dashboard");
 
+  // Filters a dashboard stat card hands to the Matters tab (e.g. status=Active).
+  // Empty means the plain "All Matters" list.
+
+  const [matterSeed, setMatterSeed] = useState<Record<string, string>>({});
+
+  // Every tab switch goes through here so a card's seed never leaks into a
+  // later visit — only the dashboard cards pass one.
+
+  const goToTab = (next: string, seed: Record<string, string> = {}) => {
+    setMatterSeed(seed);
+
+    setTab(next);
+  };
+
   const [conflictName, setConflictName] = useState("");
 
   const [conflictResult, setConflictResult] = useState<string | null>(null);
@@ -3761,7 +3778,7 @@ function AdminPortalView({
         currentUser={currentUser}
         tabs={ADMIN_TABS}
         activeTab={tab}
-        onTab={setTab}
+        onTab={goToTab}
         onSignOut={onSignOut}
         unreadCount={notifs.unreadCount}
       >
@@ -3782,14 +3799,14 @@ function AdminPortalView({
         currentUser={currentUser}
         tabs={ADMIN_TABS}
         activeTab={tab}
-        onTab={setTab}
+        onTab={goToTab}
         onSignOut={onSignOut}
         unreadCount={notifs.unreadCount}
         onOpenNotifications={() => setShowNotifs(true)}
         searchPlaceholder="Search users, matters, lawyers…"
         searchItems={searchItems}
         onSearchSelect={(item) => {
-          setTab(item.tab);
+          goToTab(item.tab);
           if (item.tab === "users") setUserSearch(item.title);
         }}
       >
@@ -3807,24 +3824,28 @@ function AdminPortalView({
                 value={allMatters.length}
                 tone="blue"
                 icon={<IconBriefcase className="h-5 w-5" />}
+                onClick={() => goToTab("matters")}
               />
               <StatCard
                 label="Active Matters"
                 value={allMatters.filter((m) => m.status === "Active").length}
                 tone="green"
                 icon={<IconTrendingUp className="h-5 w-5" />}
+                onClick={() => goToTab("matters", { status: "Active" })}
               />
               <StatCard
                 label="Pending Conflict Checks"
                 value={allMatters.filter((m) => m.status === "Conflict Check").length}
                 tone="amber"
                 icon={<IconShield className="h-5 w-5" />}
+                onClick={() => goToTab("matters", { status: "Conflict Check" })}
               />
               <StatCard
                 label="Unassigned Matters"
                 value={unassigned.length}
                 tone="red"
                 icon={<IconUsers className="h-5 w-5" />}
+                onClick={() => goToTab("matters", { lawyer: "Unassigned" })}
               />
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -3833,24 +3854,28 @@ function AdminPortalView({
                 value={userAccounts.length}
                 tone="purple"
                 icon={<IconUsers className="h-5 w-5" />}
+                onClick={() => goToTab("users")}
               />
               <StatCard
                 label="Total Lawyers"
                 value={lawyers.length}
                 tone="gold"
                 icon={<IconGavel className="h-5 w-5" />}
+                onClick={() => goToTab("lawyers")}
               />
               <StatCard
                 label="Client Inquiries"
                 value={inquiryCount}
                 tone="blue"
                 icon={<IconEnvelope className="h-5 w-5" />}
+                onClick={() => goToTab("intake")}
               />
               <StatCard
                 label="Audit Events"
                 value={auditLogs.length}
                 tone="green"
                 icon={<IconShield className="h-5 w-5" />}
+                onClick={() => goToTab("audit")}
               />
             </div>
             <Panel>
@@ -4164,13 +4189,16 @@ function AdminPortalView({
         {tab === "matters" && (
           <div className="space-y-5">
             <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">All Matters</h2>
+            {/* Remounts when a dashboard card jumps in with a different filter seed. */}
             <MattersTable
+              key={JSON.stringify(matterSeed)}
               matters={allMatters}
               currentUser={currentUser}
               onNavigate={onNavigate}
               practiceAreas={practiceAreas}
               lawyers={lawyers}
               onMatterUpdated={applyMatterPatch}
+              initialFilters={matterSeed}
             />
 
             <div className="space-y-4 max-w-2xl pt-4 border-t border-[#e8e4dc]">

@@ -4,6 +4,8 @@
 // Mirrors the reference dashboard's metric tiles: a white card with the value in
 // the serif display face, a small tone-tinted icon chip, and a caption. The tone
 // classes are written out statically so Tailwind's scanner keeps them.
+// A tile with a destination gets an onClick and renders as a button; tiles with
+// no counterpart stay non-interactive.
 
 import type { ReactNode } from "react";
 
@@ -25,16 +27,19 @@ export default function StatCard({
   tone = "navy",
   icon,
   hint,
+  onClick,
 }: {
   label: string;
   value: string | number;
   tone?: StatTone;
   icon?: ReactNode;
   hint?: string;
+  /** When set, the tile becomes a button that jumps to the stat's section. */
+  onClick?: () => void;
 }) {
   const t = TONES[tone];
-  return (
-    <div className="bg-white rounded-xl border border-[#e8e4dc] p-5">
+  const body = (
+    <>
       <div className="flex items-start justify-between gap-2">
         <p className={`font-serif text-3xl font-bold leading-none ${t.value}`}>{value}</p>
         {icon && (
@@ -45,6 +50,20 @@ export default function StatCard({
       </div>
       <p className="text-xs text-[#8a9ab5] mt-2">{label}</p>
       {hint && <p className="text-[11px] text-[#8a9ab5] mt-0.5">{hint}</p>}
-    </div>
+    </>
+  );
+
+  if (!onClick) {
+    return <div className="bg-white rounded-xl border border-[#e8e4dc] p-5">{body}</div>;
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full text-left bg-white rounded-xl border border-[#e8e4dc] p-5 cursor-pointer transition-colors hover:border-[#c9a84c] hover:bg-[#fdfbf6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c]/60"
+    >
+      {body}
+    </button>
   );
 }

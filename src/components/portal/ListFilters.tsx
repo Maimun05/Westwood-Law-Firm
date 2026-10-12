@@ -70,22 +70,32 @@ export default function ListFilters({
         className={`${inputCls} w-44`}
       />
 
-      {filters.map((f) => (
-        <select
-          key={f.key}
-          value={values[f.key] ?? ALL}
-          onChange={(e) => onFilter(f.key, e.target.value)}
-          aria-label={f.label}
-          className={`${inputCls} cursor-pointer`}
-        >
-          <option value={ALL}>{f.label}: All</option>
-          {f.options.map((o) => (
-            <option key={o} value={o}>
-              {o}
-            </option>
-          ))}
-        </select>
-      ))}
+      {filters.map((f) => {
+        const selected = values[f.key];
+        // A card can jump in with a filter whose option is missing from the
+        // list (e.g. no unassigned matters right now) — keep it selectable
+        // instead of showing a blank control.
+        const options =
+          selected && selected !== ALL && !f.options.includes(selected)
+            ? [...f.options, selected]
+            : f.options;
+        return (
+          <select
+            key={f.key}
+            value={selected ?? ALL}
+            onChange={(e) => onFilter(f.key, e.target.value)}
+            aria-label={f.label}
+            className={`${inputCls} cursor-pointer`}
+          >
+            <option value={ALL}>{f.label}: All</option>
+            {options.map((o) => (
+              <option key={o} value={o}>
+                {o}
+              </option>
+            ))}
+          </select>
+        );
+      })}
 
       {filtering && (
         <button
