@@ -47,6 +47,19 @@ const stats = [
   { value: "Nationwide", label: "Lawyer Network" },
 ] as const;
 
+/** Generated firm-overview clip for the hero background. Drop the MP4 at this
+    path (public/video/hero.mp4) and the hero lights up with no code change. */
+const HERO_VIDEO_SRC = "/video/hero.mp4";
+
+/** True when the visitor asked the OS to reduce motion. An autoplaying hero
+    video is exactly the motion that setting exists to suppress, so we skip it
+    and leave the static navy hero in place. */
+function prefersReducedMotion() {
+  return (
+    typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
 /** Splits a stat like "40+" into prefix "", target 40, suffix "+". */
 function parseStat(value: string) {
   const match = value.match(/^(\D*?)(\d[\d,]*)(.*)$/);
@@ -92,6 +105,14 @@ export default function HomePage({ onNavigate }: HomePageProps) {
   // "Registered!" state is per-session only, same as the Insights page.
   const [registering, setRegistering] = useState<SeminarEvent | null>(null);
   const [registered, setRegistered] = useState<string[]>([]);
+
+  // Hero background video: fades in once the first frame is decodable (so the
+  // navy gradient never flashes to black) and unmounts itself on error, which
+  // leaves the gradient hero as the untouched fallback while the file is absent.
+  const [heroVideoReady, setHeroVideoReady] = useState(false);
+  const [heroVideoFailed, setHeroVideoFailed] = useState(false);
+  const reducedMotion = useMemo(() => prefersReducedMotion(), []);
+  const showHeroVideo = !heroVideoFailed && !reducedMotion;
 
   // Below-the-fold sections reveal as they scroll into view. The deps re-scan
   // the observer once the loading gate lifts and the sections actually exist.
@@ -153,6 +174,34 @@ export default function HomePage({ onNavigate }: HomePageProps) {
     <div ref={revealRef} className="bg-[var(--color-bg-primary)]">
       {/* ── Hero ── */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden gradient-navy">
+        {/* Background video. Muted + looping + playsInline so mobile browsers
+            allow the autoplay. Sits under the parallax grid/glow and the hero
+            copy; pointer-events-none so it never swallows a click. */}
+        {showHeroVideo && (
+          <>
+            <video
+              className={`hero-video pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ${
+                heroVideoReady ? "opacity-100" : "opacity-0"
+              }`}
+              src={HERO_VIDEO_SRC}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              aria-hidden
+              tabIndex={-1}
+              onCanPlay={() => setHeroVideoReady(true)}
+              onError={() => setHeroVideoFailed(true)}
+            />
+            {/* Navy scrim keeps the white hero copy legible over any frame. */}
+            <div
+              aria-hidden
+              className="absolute inset-0 bg-gradient-to-b from-[var(--color-navy)]/75 via-[var(--color-navy)]/45 to-[var(--color-navy)]/85"
+            />
+          </>
+        )}
+
         {/* Parallax background (grid + gold glow). Oversized so the lagging
             layer never exposes an edge at the section boundary. */}
         <div ref={parallaxRef} aria-hidden className="absolute -inset-[15%] pointer-events-none">
