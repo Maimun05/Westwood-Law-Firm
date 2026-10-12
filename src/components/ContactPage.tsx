@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 import { IconMapPin, IconPhone, IconEnvelope, IconClock, IconCheck } from "@/components/Icons";
 
@@ -8,6 +8,8 @@ import { submitInquiry } from "@/utils/api";
 
 import { useAuth } from "@/hooks/useAuth";
 import { usePageMeta } from "@/hooks/usePageMeta";
+
+import { subscribeToTables } from "@/lib/realtime";
 
 import { FIRM_EMAIL, FIRM_EMAIL_HREF, FIRM_DIRECTIONS_URL } from "@/lib/firm";
 
@@ -61,27 +63,35 @@ export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) 
 
   // them from the database so they cannot drift from the real content.
 
-  useEffect(() => {
-    async function load() {
-      const [areas, clients, lawyers] = await Promise.all([
-        getPracticeAreas(),
+  const loadStats = useCallback(async () => {
+    const [areas, clients, lawyers] = await Promise.all([
+      getPracticeAreas(),
 
-        getCorporateClients(),
+      getCorporateClients(),
 
-        getLawyers(),
-      ]);
+      getLawyers(),
+    ]);
 
-      setStats({
-        areas: areas.data?.length ?? 0,
+    setStats({
+      areas: areas.data?.length ?? 0,
 
-        clients: clients.data?.length ?? 0,
+      clients: clients.data?.length ?? 0,
 
-        lawyers: lawyers.data?.length ?? 0,
-      });
-    }
-
-    load();
+      lawyers: lawyers.data?.length ?? 0,
+    });
   }, []);
+
+  useEffect(() => {
+    void loadStats();
+  }, [loadStats]);
+
+  // Live counters: a content edit saved in the portal updates the tiles
+  // without a reload.
+  useEffect(() => {
+    return subscribeToTables(["practice_areas", "corporate_clients", "profiles"], loadStats, {
+      channelKey: "contact",
+    });
+  }, [loadStats]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

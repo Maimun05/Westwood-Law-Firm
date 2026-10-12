@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getLawyers, type Lawyer } from "@/lib/content";
 import ListFilters, { applyFilters } from "@/components/portal/ListFilters";
-import { subscribeToTable } from "@/lib/realtime";
+import { subscribeToTables } from "@/lib/realtime";
 import { notifyEvent } from "@/utils/api";
 import type { Database } from "@/lib/database.types";
 
@@ -108,10 +108,10 @@ export default function AdminIntake({ onConverted }: { onConverted?: () => void 
   useEffect(() => {
     void load();
     void getLawyers().then((r) => setLawyers(r.data ?? []));
-    // Live intake: a new inquiry, an assignment or a lawyer's status change
-    // shows up without a refresh. Admin RLS admits every inquiry, so the
-    // subscription needs no filter.
-    return subscribeToTable("inquiries", () => void load());
+    // Live intake: a new inquiry, an assignment, a lawyer's status change or
+    // an attachment a visitor added shows up without a refresh. Admin RLS
+    // admits every inquiry, so the subscription needs no filter.
+    return subscribeToTables(["inquiries", "inquiry_attachments"], () => void load());
   }, []);
 
   const setStatus = async (id: string, status: InquiryStatus) => {

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 
 import { getCurrentUserProfile, onAuthStateChange, type AuthUser } from "@/lib/auth";
+import { subscribeToTable } from "@/lib/realtime";
 
 export function useAuth() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -84,6 +85,19 @@ export function useAuth() {
       subscription.unsubscribe();
     };
   }, []);
+
+  // Live profile: a name or picture change made on another device (or by an
+  // admin) reaches this session without a reload, so the portal shell's avatar
+  // and greeting never go stale. RLS admits the user's own row, and the filter
+  // names it so no other profile change wakes this session.
+  const userId = user?.id;
+  useEffect(() => {
+    if (!userId) return;
+    return subscribeToTable("profiles", () => void refresh(), {
+      filter: `id=eq.${userId}`,
+      channelKey: userId,
+    });
+  }, [userId, refresh]);
 
   return { user, loading, refresh };
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   getLawyers,
   getSpecialists,
@@ -11,6 +11,7 @@ import { IconMapPin, IconPhone, IconEnvelope } from "@/components/Icons";
 import { PORTRAIT_PLACEHOLDER, onPortraitError } from "@/utils/image";
 import { useAuth } from "@/hooks/useAuth";
 import { usePageMeta } from "@/hooks/usePageMeta";
+import { subscribeToTables } from "@/lib/realtime";
 import { FIRM_EMAIL } from "@/lib/firm";
 
 type Page =
@@ -99,29 +100,40 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
   const [corporateClients, setCorporateClients] = useState<CorporateClient[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch data on mount
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      try {
-        const [lawyerResult, specResult, clientResult] = await Promise.all([
-          getLawyers(),
-          getSpecialists(),
-          getCorporateClients(),
-        ]);
+  // Fetch data on mount. The same function serves every live refetch.
+  const loadData = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      const [lawyerResult, specResult, clientResult] = await Promise.all([
+        getLawyers(),
+        getSpecialists(),
+        getCorporateClients(),
+      ]);
 
-        if (lawyerResult.data) setLawyers(lawyerResult.data);
-        if (specResult.data) setSpecialists(specResult.data);
-        if (clientResult.data) setCorporateClients(clientResult.data);
-      } catch (error) {
-        console.error("Failed to load about page data:", error);
-      } finally {
-        setLoading(false);
-      }
+      if (lawyerResult.data) setLawyers(lawyerResult.data);
+      if (specResult.data) setSpecialists(specResult.data);
+      if (clientResult.data) setCorporateClients(clientResult.data);
+    } catch (error) {
+      console.error("Failed to load about page data:", error);
+    } finally {
+      if (!silent) setLoading(false);
     }
-
-    loadData();
   }, []);
+
+  useEffect(() => {
+    void loadData();
+  }, [loadData]);
+
+  // Live content: a lawyer, specialist or client-list edit saved in the portal
+  // reaches this page without a reload. A silent refetch never flashes the
+  // spinner over rendered content.
+  useEffect(() => {
+    return subscribeToTables(
+      ["profiles", "specialists", "corporate_clients"],
+      () => void loadData(true),
+      { channelKey: "about" },
+    );
+  }, [loadData]);
 
   const navItems: { id: Section; label: string }[] = [
     { id: "profile", label: "Firm Profile" },

@@ -11,6 +11,7 @@ import {
   draftToPayload,
   type ContentKind,
 } from "@/lib/services/contentAdmin";
+import { subscribeToTables } from "@/lib/realtime";
 import {
   MODAL_BUTTON_DANGER_CLASS,
   MODAL_BUTTON_PRIMARY_CLASS,
@@ -95,10 +96,10 @@ export default function ContentManager({
 
   const cfg = CONTENT_CONFIG[kind];
 
-  const load = async (k: ContentKind) => {
-    setLoading(true);
+  const load = async (k: ContentKind, silent = false) => {
+    if (!silent) setLoading(true);
     const { data, error } = await listContent(k);
-    setLoading(false);
+    if (!silent) setLoading(false);
     if (error) {
       onToast?.(error, "error");
       return;
@@ -108,6 +109,17 @@ export default function ContentManager({
 
   useEffect(() => {
     void load(kind);
+  }, [kind]);
+
+  // Live content: an edit made in another admin session shows up without a
+  // refresh. Silent so the table never flashes a spinner over rows that are
+  // already on screen; the open edit form keeps its own draft untouched.
+  useEffect(() => {
+    return subscribeToTables(
+      ["articles", "faqs", "seminar_events", "retainer_packages", "practice_areas"],
+      () => void load(kind, true),
+      { channelKey: "content" },
+    );
   }, [kind]);
 
   const visible = useMemo(() => {

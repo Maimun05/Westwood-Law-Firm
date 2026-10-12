@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, type ReactNode } from "react";
+import { useState, useEffect, useMemo, useCallback, type ReactNode } from "react";
 
 import ProfileEditor from "./portal/ProfileEditor";
 
@@ -60,7 +60,7 @@ import { signIn, signUp, signOut, type AuthUser } from "@/lib/auth";
 
 import { supabase } from "@/lib/supabase";
 
-import { subscribeToTable } from "@/lib/realtime";
+import { subscribeToTable, subscribeToTables } from "@/lib/realtime";
 
 import {
   getMyMatters,
@@ -113,7 +113,7 @@ import {
   ModalHeader,
 } from "@/components/ui/Modal";
 
-import { lookupNames } from "@/components/portal/Person";
+import { lookupNames, invalidatePersonCache } from "@/components/portal/Person";
 
 import {
   getMyDocuments,
@@ -1226,17 +1226,15 @@ function MatterDetail({
     tone: "success" | "error";
   } | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    getDocumentsByMatter(matter.id).then(({ data }) => {
-      if (!cancelled && data) setMatterDocs(data);
+  const refreshDocs = useCallback(() => {
+    void getDocumentsByMatter(matter.id).then(({ data }) => {
+      if (data) setMatterDocs(data);
     });
-
-    return () => {
-      cancelled = true;
-    };
   }, [matter.id]);
+
+  useEffect(() => {
+    refreshDocs();
+  }, [refreshDocs]);
 
   // The Activity Timeline is the matter's own history, not the signed-in
   // user's account audit log (which is where logins/logouts/password resets
@@ -1244,10 +1242,8 @@ function MatterDetail({
   // the Messages panel, so the marker would only duplicate it.
   const [matterTimeline, setMatterTimeline] = useState<MatterEvent[]>([]);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    supabase
+  const refreshTimeline = useCallback(() => {
+    void supabase
 
       .from("matter_events")
 
@@ -1262,13 +1258,13 @@ function MatterDetail({
       .limit(20)
 
       .then(({ data }) => {
-        if (!cancelled && data) setMatterTimeline(data as MatterEvent[]);
+        if (data) setMatterTimeline(data as MatterEvent[]);
       });
-
-    return () => {
-      cancelled = true;
-    };
   }, [matter.id]);
+
+  useEffect(() => {
+    refreshTimeline();
+  }, [refreshTimeline]);
 
   const [bgDoc, setBgDoc] = useState<Document | null>(null);
 
@@ -1455,14 +1451,32 @@ function MatterDetail({
 
   const canManageTeam = currentUser.role === "admin" || matter.lawyer_id === currentUser.id;
 
-  const refreshTeam = () =>
-    getMatterTeam(matter.id).then(({ data }) => {
-      if (data) setTeam(data);
-    });
+  const refreshTeam = useCallback(
+    () =>
+      getMatterTeam(matter.id).then(({ data }) => {
+        if (data) setTeam(data);
+      }),
+    [matter.id],
+  );
 
   useEffect(() => {
     void refreshTeam();
-  }, [matter.id]);
+  }, [refreshTeam]);
+
+  // Live panel: documents, activity and team membership for THIS matter. The
+  // filter matches all three tables on matter_id; RLS remains the boundary,
+  // the filter just keeps other matters' events out of the channel.
+  useEffect(() => {
+    return subscribeToTables(
+      ["documents", "matter_events", "matter_members"],
+      () => {
+        refreshDocs();
+        refreshTimeline();
+        void refreshTeam();
+      },
+      { filter: `matter_id=eq.${matter.id}`, channelKey: matter.id },
+    );
+  }, [matter.id, refreshDocs, refreshTimeline, refreshTeam]);
 
   const addMember = async () => {
     if (!addId) return;
@@ -1933,6 +1947,23 @@ function MattersTable({
     return () => {
       cancelled = true;
     };
+  }, [matters]);
+
+  // Live names: a rename anywhere re-reads the map above, so searching for a
+  // client by name never keeps the old spelling until the next reload.
+  useEffect(() => {
+    const ids = matters.map((m) => m.client_id).filter((id): id is string => !!id);
+
+    if (ids.length === 0) return;
+
+    return subscribeToTable(
+      "profiles",
+      () => {
+        invalidatePersonCache();
+        void lookupNames(ids).then(setClientNames);
+      },
+      { channelKey: "matter-names" },
+    );
   }, [matters]);
 
   const areaName = (id: string | null) => practiceAreas.find((p) => p.id === id)?.name ?? id ?? "";
@@ -2468,11 +2499,11 @@ function ClientPortalView({
   const showToast = (message: string, tone: "success" | "error" = "success") =>
     setToast({ message, tone });
 
-  // Load data from database
-
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
+  // Load data from database. The same function serves the first paint and
+  // every live refetch, so the merge path can never differ between the two.
+  const loadData = useCallback(
+    async (showSpinner = true) => {
+      if (showSpinner) setLoading(true);
 
       try {
         // Load matters
@@ -2536,12 +2567,27 @@ function ClientPortalView({
 
         if (specResult.data) setSpecialists(specResult.data);
       } finally {
-        setLoading(false);
+        if (showSpinner) setLoading(false);
       }
-    }
+    },
+    [currentUser.id, currentUser.role],
+  );
 
-    loadData();
-  }, [currentUser.id, currentUser.role]);
+  useEffect(() => {
+    void loadData();
+  }, [loadData]);
+
+  // Live dashboard: a matter, document, activity, appointment or content
+  // change made anywhere shows up here without a refresh. RLS scopes the
+  // stream to this client's own rows; refetching keeps one merge path, so an
+  // event can never append a duplicate.
+  useEffect(() => {
+    return subscribeToTables(
+      ["matters", "documents", "matter_events", "appointments", "practice_areas", "specialists"],
+      () => void loadData(false),
+      { channelKey: currentUser.id },
+    );
+  }, [loadData, currentUser.id]);
 
   // Live inquiries: a status change or a lawyer assignment made by the firm
   // shows up here without a refresh. Refetching the list keeps one merge path,
@@ -3030,11 +3076,14 @@ function LawyerPortalView({
   const showToast = (message: string, tone: "success" | "error" = "success") =>
     setToast({ message, tone });
 
-  // Load data from database
+  // Client names for the Clients tab and the search index.
+  const [clientNames, setClientNames] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
+  // Load data from database. The same function serves the first paint and
+  // every live refetch, so the merge path can never differ between the two.
+  const loadData = useCallback(
+    async (showSpinner = true) => {
+      if (showSpinner) setLoading(true);
 
       // Load matters assigned to this lawyer
 
@@ -3062,26 +3111,35 @@ function LawyerPortalView({
 
       if (lawyerResult.data) setLawyers(lawyerResult.data);
 
-      setLoading(false);
-    }
+      // Client names, read through the shared Person cache so the Clients tab
+      // and the search index can never disagree.
+      const ids = [...new Set((matters ?? []).map((m) => m.client_id).filter(Boolean))] as string[];
 
-    loadData();
-  }, [currentUser.id, currentUser.role]);
+      if (ids.length) setClientNames(await lookupNames(ids));
 
-  // Client names for the Clients tab and the search index.
-  const [clientNames, setClientNames] = useState<Record<string, string>>({});
+      if (showSpinner) setLoading(false);
+    },
+    [currentUser.id, currentUser.role],
+  );
 
   useEffect(() => {
-    const ids = [...new Set(myMatters.map((m) => m.client_id).filter(Boolean))] as string[];
-    if (!ids.length) return;
-    let alive = true;
-    lookupNames(ids).then((names) => {
-      if (alive) setClientNames(names);
-    });
-    return () => {
-      alive = false;
-    };
-  }, [myMatters]);
+    void loadData();
+  }, [loadData]);
+
+  // Live casework: matters, documents and appointments assigned to this
+  // lawyer update without a refresh, and a staff-visible profile change
+  // (a client's name, a lawyer's picture) re-reads the shared name cache so
+  // no table keeps showing the old name.
+  useEffect(() => {
+    return subscribeToTables(
+      ["matters", "documents", "appointments", "profiles", "practice_areas"],
+      () => {
+        invalidatePersonCache();
+        void loadData(false);
+      },
+      { channelKey: currentUser.id },
+    );
+  }, [loadData, currentUser.id]);
 
   const searchItems = useMemo<PortalSearchItem[]>(() => {
     const items: PortalSearchItem[] = [];
@@ -3507,11 +3565,11 @@ function AdminPortalView({
             : null,
   );
 
-  // Load all admin data from database
-
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
+  // Load all admin data from database. The same function serves the first
+  // paint and every live refetch, so the merge path can never differ.
+  const loadData = useCallback(
+    async (showSpinner = true) => {
+      if (showSpinner) setLoading(true);
 
       // Load all matters
 
@@ -3569,11 +3627,37 @@ function AdminPortalView({
 
       if (practiceAreaResult.data) setPracticeAreas(practiceAreaResult.data);
 
-      setLoading(false);
-    }
+      if (showSpinner) setLoading(false);
+    },
+    [currentUser.id, currentUser.role],
+  );
 
-    loadData();
-  }, [currentUser.id, currentUser.role]);
+  useEffect(() => {
+    void loadData();
+  }, [loadData]);
+
+  // Live control room: every list this view owns (matters, appointments,
+  // documents, users, audit logs, the inquiry count) refreshes when its table
+  // changes anywhere in the firm — RLS still scopes each stream to what an
+  // admin may read.
+  useEffect(() => {
+    return subscribeToTables(
+      [
+        "matters",
+        "documents",
+        "appointments",
+        "audit_logs",
+        "profiles",
+        "inquiries",
+        "practice_areas",
+      ],
+      () => {
+        invalidatePersonCache();
+        void loadData(false);
+      },
+      { channelKey: currentUser.id },
+    );
+  }, [loadData, currentUser.id]);
 
   const unassigned = allMatters.filter((m) => !m.lawyer_id);
 

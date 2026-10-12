@@ -24,7 +24,38 @@ export type RealtimeTable =
   | "inquiry_messages"
   | "appointments"
   | "matter_notes"
-  | "notifications";
+  | "notifications"
+  // Published by 20261020 so every portal surface stays live: matters,
+  // documents, activity, team, profiles (names/pictures), audit logs, the
+  // content tables and the seminar send log.
+  | "matters"
+  | "documents"
+  | "matter_events"
+  | "matter_members"
+  | "profiles"
+  | "audit_logs"
+  | "practice_areas"
+  | "specialists"
+  | "corporate_clients"
+  | "articles"
+  | "faqs"
+  | "seminar_events"
+  | "retainer_packages"
+  | "seminar_email_log"
+  | "inquiry_attachments";
+
+type PostgresChangeParams = {
+  event: "*";
+  schema: "public";
+  table: RealtimeTable;
+  filter?: string;
+};
+
+const paramsFor = (table: RealtimeTable, filter?: string): PostgresChangeParams => {
+  const params: PostgresChangeParams = { event: "*", schema: "public", table };
+  if (filter) params.filter = filter;
+  return params;
+};
 
 /**
  * Subscribe to INSERT/UPDATE/DELETE on one table. Returns an unsubscribe
@@ -44,13 +75,7 @@ export function subscribeToTable(
     channelKey?: string;
   },
 ): () => void {
-  const params: {
-    event: "*";
-    schema: "public";
-    table: RealtimeTable;
-    filter?: string;
-  } = { event: "*", schema: "public", table };
-  if (options?.filter) params.filter = options.filter;
+  const params = paramsFor(table, options?.filter);
 
   const channel = supabase
     .channel(
@@ -60,6 +85,56 @@ export function subscribeToTable(
     .subscribe();
 
   return () => {
+    void supabase.removeChannel(channel);
+  };
+}
+
+/**
+ * One channel, many tables, one callback — for screens that load several
+ * tables at once (a dashboard, a detail panel) and answer every event the
+ * same way: refetch.
+ *
+ * Events are coalesced over a short window so a single user action that writes
+ * several rows (a matter plus its event, team row and notification) triggers
+ * one refetch instead of one per row. The callback always runs after the
+ * window, so the last event of a burst can never be swallowed.
+ *
+ * `filter` is applied to every table in the batch, so only use it when the
+ * column exists on all of them (e.g. `matter_id` on documents, matter_events
+ * and matter_members). RLS is the security boundary either way.
+ */
+export function subscribeToTables(
+  tables: RealtimeTable[],
+  onChange: () => void,
+  options?: {
+    /** PostgREST-style filter shared by every table in the batch. */
+    filter?: string;
+    /** Stable part of the channel name; defaults to "all". */
+    channelKey?: string;
+  },
+): () => void {
+  const channel = supabase.channel(
+    `rt:${tables.join("+")}:${options?.channelKey ?? "all"}:${Math.random()
+      .toString(36)
+      .slice(2, 10)}`,
+  );
+
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const fire = () => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => {
+      timer = null;
+      onChange();
+    }, 150);
+  };
+
+  for (const table of tables) {
+    channel.on("postgres_changes", paramsFor(table, options?.filter), fire);
+  }
+  channel.subscribe();
+
+  return () => {
+    if (timer) clearTimeout(timer);
     void supabase.removeChannel(channel);
   };
 }

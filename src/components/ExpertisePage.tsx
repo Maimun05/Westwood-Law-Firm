@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   getPracticeAreas,
   getLawyers,
@@ -12,6 +12,7 @@ import { onPortraitError } from "@/utils/image";
 import { useAuth } from "@/hooks/useAuth";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { practiceAreaJsonLd } from "@/lib/seo";
+import { subscribeToTables } from "@/lib/realtime";
 
 type Page =
   | "home"
@@ -52,29 +53,39 @@ export default function ExpertisePage({ onNavigate, selectedArea }: ExpertisePag
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch all content on mount
-  useEffect(() => {
-    async function loadContent() {
-      setLoading(true);
-      try {
-        const [paResult, lawyerResult, articleResult] = await Promise.all([
-          getPracticeAreas(),
-          getLawyers(),
-          getPublishedArticles(),
-        ]);
+  // Fetch all content on mount. The same function serves every live refetch.
+  const loadContent = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      const [paResult, lawyerResult, articleResult] = await Promise.all([
+        getPracticeAreas(),
+        getLawyers(),
+        getPublishedArticles(),
+      ]);
 
-        if (paResult.data) setPracticeAreas(paResult.data);
-        if (lawyerResult.data) setLawyers(lawyerResult.data);
-        if (articleResult.data) setArticles(articleResult.data);
-      } catch (error) {
-        console.error("Failed to load expertise content:", error);
-      } finally {
-        setLoading(false);
-      }
+      if (paResult.data) setPracticeAreas(paResult.data);
+      if (lawyerResult.data) setLawyers(lawyerResult.data);
+      if (articleResult.data) setArticles(articleResult.data);
+    } catch (error) {
+      console.error("Failed to load expertise content:", error);
+    } finally {
+      if (!silent) setLoading(false);
     }
-
-    loadContent();
   }, []);
+
+  useEffect(() => {
+    void loadContent();
+  }, [loadContent]);
+
+  // Live content: an edit saved in the portal reaches this page without a
+  // reload. A silent refetch never flashes the spinner over rendered content.
+  useEffect(() => {
+    return subscribeToTables(
+      ["practice_areas", "profiles", "articles"],
+      () => void loadContent(true),
+      { channelKey: "expertise" },
+    );
+  }, [loadContent]);
 
   const detail = activeArea ? practiceAreas.find((p) => p.id === activeArea) : null;
   const areaLawyers = detail

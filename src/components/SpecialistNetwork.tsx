@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   getSpecialists,
   getLawyers,
@@ -10,6 +10,7 @@ import {
 import { PracticeAreaIcon, IconSearch } from "@/components/Icons";
 import { PORTRAIT_PLACEHOLDER, onPortraitError } from "@/utils/image";
 import { usePageMeta } from "@/hooks/usePageMeta";
+import { subscribeToTables } from "@/lib/realtime";
 
 type Page =
   | "home"
@@ -45,29 +46,40 @@ export default function SpecialistNetwork({ onNavigate }: SpecialistNetworkProps
   const [practiceAreas, setPracticeAreas] = useState<PracticeArea[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch all data on mount
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      try {
-        const [specResult, lawyerResult, paResult] = await Promise.all([
-          getSpecialists(),
-          getLawyers(),
-          getPracticeAreas(),
-        ]);
+  // Fetch all data on mount. The same function serves every live refetch.
+  const loadData = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      const [specResult, lawyerResult, paResult] = await Promise.all([
+        getSpecialists(),
+        getLawyers(),
+        getPracticeAreas(),
+      ]);
 
-        if (specResult.data) setSpecialists(specResult.data);
-        if (lawyerResult.data) setLawyers(lawyerResult.data);
-        if (paResult.data) setPracticeAreas(paResult.data);
-      } catch (error) {
-        console.error("Failed to load specialist network data:", error);
-      } finally {
-        setLoading(false);
-      }
+      if (specResult.data) setSpecialists(specResult.data);
+      if (lawyerResult.data) setLawyers(lawyerResult.data);
+      if (paResult.data) setPracticeAreas(paResult.data);
+    } catch (error) {
+      console.error("Failed to load specialist network data:", error);
+    } finally {
+      if (!silent) setLoading(false);
     }
-
-    loadData();
   }, []);
+
+  useEffect(() => {
+    void loadData();
+  }, [loadData]);
+
+  // Live content: a specialist or practice-area edit saved in the portal
+  // reaches this page without a reload. A silent refetch never flashes the
+  // spinner over rendered content.
+  useEffect(() => {
+    return subscribeToTables(
+      ["specialists", "practice_areas", "profiles"],
+      () => void loadData(true),
+      { channelKey: "specialists" },
+    );
+  }, [loadData]);
 
   const filtered = specialists.filter((s) => {
     const matchSearch =

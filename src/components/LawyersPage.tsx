@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   getLawyers,
   getPracticeAreas,
@@ -13,6 +13,7 @@ import { onPortraitError } from "@/utils/image";
 import { useAuth } from "@/hooks/useAuth";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { lawyerJsonLd } from "@/lib/seo";
+import { subscribeToTables } from "@/lib/realtime";
 import InquiryFallback from "@/components/InquiryFallback";
 
 type Page =
@@ -81,29 +82,40 @@ export default function LawyersPage({
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch all data on mount
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      try {
-        const [lawyerResult, paResult, articleResult] = await Promise.all([
-          getLawyers(),
-          getPracticeAreas(),
-          getPublishedArticles(),
-        ]);
+  // Fetch all data on mount. The same function serves every live refetch.
+  const loadData = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      const [lawyerResult, paResult, articleResult] = await Promise.all([
+        getLawyers(),
+        getPracticeAreas(),
+        getPublishedArticles(),
+      ]);
 
-        if (lawyerResult.data) setLawyers(lawyerResult.data);
-        if (paResult.data) setPracticeAreas(paResult.data);
-        if (articleResult.data) setArticles(articleResult.data);
-      } catch (error) {
-        console.error("Failed to load lawyers page data:", error);
-      } finally {
-        setLoading(false);
-      }
+      if (lawyerResult.data) setLawyers(lawyerResult.data);
+      if (paResult.data) setPracticeAreas(paResult.data);
+      if (articleResult.data) setArticles(articleResult.data);
+    } catch (error) {
+      console.error("Failed to load lawyers page data:", error);
+    } finally {
+      if (!silent) setLoading(false);
     }
-
-    loadData();
   }, []);
+
+  useEffect(() => {
+    void loadData();
+  }, [loadData]);
+
+  // Live content: a lawyer's profile edit or a content change saved in the
+  // portal reaches this page without a reload (RLS scopes what a signed-out
+  // visitor may receive). A silent refetch never flashes the spinner.
+  useEffect(() => {
+    return subscribeToTables(
+      ["practice_areas", "profiles", "articles"],
+      () => void loadData(true),
+      { channelKey: "lawyers" },
+    );
+  }, [loadData]);
 
   const filtered = lawyers.filter((l) => {
     const matchSearch =

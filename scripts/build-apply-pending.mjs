@@ -109,6 +109,10 @@ const MIGRATIONS = [
     file: "20261019_notify_event_email_log.sql",
     note: "email claim log so the notify-event function sends each email at most once",
   },
+  {
+    file: "20261020_realtime_remaining_tables.sql",
+    note: "realtime for the rest of the portal: profiles, matters, documents, activity, team, audit, content, seminar log",
+  },
 ];
 
 const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the practice areas created
@@ -134,7 +138,10 @@ const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the p
 -- inquiries_select_staff policy, and calls private helpers from 20261003, so it
 -- runs after all of them. 20261019 creates the email claim log the notify-event
 -- edge function writes to; it depends on nothing but gen_random_uuid(), and
--- running it last keeps it after every table it may log about.`;
+-- running it last keeps it after every table it may log about. 20261020 only
+-- adds tables to the supabase_realtime publication and sets replica identity on
+-- three of them, so it depends on nothing but those tables existing — running
+-- it last keeps it after every table it publishes.`;
 
 const VERIFICATION = `-- ############################################################################
 -- ## VERIFICATION  —  read the result grid, not the "Success" toast
@@ -216,7 +223,14 @@ UNION ALL SELECT 'appointments.matter_id nullable', EXISTS (SELECT 1 FROM inform
 UNION ALL SELECT 'realtime: 4 tables published', (SELECT count(*) FROM pg_publication_tables
                                                  WHERE pubname='supabase_realtime' AND schemaname='public'
                                                    AND tablename IN ('inquiries','inquiry_messages',
-                                                                     'appointments','matter_notes')) = 4;
+                                                                     'appointments','matter_notes')) = 4
+UNION ALL SELECT 'realtime: 15 more portal tables published', (SELECT count(*) FROM pg_publication_tables
+                                                 WHERE pubname='supabase_realtime' AND schemaname='public'
+                                                   AND tablename IN ('profiles','matters','documents','matter_events',
+                                                                     'matter_members','audit_logs','practice_areas',
+                                                                     'specialists','corporate_clients','articles',
+                                                                     'faqs','seminar_events','retainer_packages',
+                                                                     'seminar_email_log','inquiry_attachments')) = 15;
 
 SELECT 'practice_areas' AS table_name, count(*) AS rows FROM public.practice_areas
 UNION ALL SELECT 'articles',            count(*) FROM public.articles
@@ -464,7 +478,13 @@ UNION ALL SELECT 'the email claim log is service-role-only',
             WHEN NOT EXISTS (SELECT 1 FROM pg_constraint
                              WHERE conrelid = 'public.email_events'::regclass
                                AND conname = 'email_events_once') THEN 'FAIL'
-            ELSE 'PASS' END;
+            ELSE 'PASS' END
+UNION ALL SELECT 'filtered-delete tables use replica identity full',
+       CASE WHEN (SELECT count(*) FROM pg_class
+                   WHERE oid IN (to_regclass('public.documents'), to_regclass('public.matter_members'),
+                                 to_regclass('public.notifications'))
+                     AND relreplident = 'f') = 3
+            THEN 'PASS' ELSE 'FAIL' END;
 `;
 
 const bar = (ch) => ch.repeat(76);

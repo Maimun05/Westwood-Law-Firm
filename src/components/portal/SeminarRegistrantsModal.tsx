@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+
+import { subscribeToTables } from "@/lib/realtime";
 
 import {
   MODAL_BUTTON_PRIMARY_CLASS,
@@ -115,22 +117,32 @@ export default function SeminarRegistrantsModal({
     failures: SeminarEmailFailure[];
   } | null>(null);
 
-  useEffect(() => {
-    let alive = true;
-    void (async () => {
-      const [list, history] = await Promise.all([
-        listSeminarRegistrants(seminar.id),
-        listSeminarEmailLog(seminar.id),
-      ]);
-      if (!alive) return;
-      if (list.error) setLoadError(list.error);
-      else setRegistrants(list.data ?? []);
-      setLog(history.data ?? []);
-    })();
-    return () => {
-      alive = false;
-    };
+  const loadAll = useCallback(async () => {
+    const [list, history] = await Promise.all([
+      listSeminarRegistrants(seminar.id),
+      listSeminarEmailLog(seminar.id),
+    ]);
+    if (list.error) setLoadError(list.error);
+    else {
+      setLoadError(null);
+      setRegistrants(list.data ?? []);
+    }
+    setLog(history.data ?? []);
   }, [seminar.id]);
+
+  useEffect(() => {
+    void loadAll();
+  }, [loadAll]);
+
+  // Live registrations: a new sign-up (an inquiries row carrying seminar_id)
+  // and every send appended to the log show up while the dialog is open. The
+  // composed subject/message are local state and are never overwritten.
+  useEffect(() => {
+    return subscribeToTables(["inquiries", "seminar_email_log"], () => void loadAll(), {
+      filter: `seminar_id=eq.${seminar.id}`,
+      channelKey: seminar.id,
+    });
+  }, [loadAll, seminar.id]);
 
   const recipients = registrants ? uniqueEmailCount(registrants) : 0;
   const ready = subject.trim().length > 0 && message.trim().length > 0 && recipients > 0;

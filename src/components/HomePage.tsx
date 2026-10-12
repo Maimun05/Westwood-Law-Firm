@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, type CSSProperties } from "react";
+import { useState, useEffect, useMemo, useCallback, type CSSProperties } from "react";
 import {
   getPracticeAreas,
   getLawyers,
@@ -18,6 +18,7 @@ import RetainerPackageCard from "@/components/RetainerPackageCard";
 import SeminarRegistrationModal from "@/components/SeminarRegistrationModal";
 import { useAuth } from "@/hooks/useAuth";
 import { usePageMeta } from "@/hooks/usePageMeta";
+import { subscribeToTables } from "@/lib/realtime";
 import { useReveal } from "@/hooks/useReveal";
 import { useParallax } from "@/hooks/useParallax";
 import { useSpotlight } from "@/hooks/useSpotlight";
@@ -100,34 +101,45 @@ export default function HomePage({ onNavigate }: HomePageProps) {
   const parallaxRef = useParallax(0.2, !loading);
   const spotlight = useSpotlight<HTMLButtonElement>();
 
-  // Fetch all data on mount
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      try {
-        const [paResult, lawyerResult, articleResult, seminarResult, packageResult] =
-          await Promise.all([
-            getPracticeAreas(),
-            getLawyers(),
-            getPublishedArticles(),
-            getUpcomingSeminars(),
-            getRetainerPackages(),
-          ]);
+  // Fetch all data on mount. The same function serves every live refetch, so
+  // the merge path can never differ between them.
+  const loadData = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      const [paResult, lawyerResult, articleResult, seminarResult, packageResult] =
+        await Promise.all([
+          getPracticeAreas(),
+          getLawyers(),
+          getPublishedArticles(),
+          getUpcomingSeminars(),
+          getRetainerPackages(),
+        ]);
 
-        if (paResult.data) setPracticeAreas(paResult.data);
-        if (lawyerResult.data) setLawyers(lawyerResult.data);
-        if (articleResult.data) setArticles(articleResult.data);
-        if (seminarResult.data) setSeminars(seminarResult.data);
-        if (packageResult.data) setPackages(packageResult.data);
-      } catch (error) {
-        console.error("Failed to load home page data:", error);
-      } finally {
-        setLoading(false);
-      }
+      if (paResult.data) setPracticeAreas(paResult.data);
+      if (lawyerResult.data) setLawyers(lawyerResult.data);
+      if (articleResult.data) setArticles(articleResult.data);
+      if (seminarResult.data) setSeminars(seminarResult.data);
+      if (packageResult.data) setPackages(packageResult.data);
+    } catch (error) {
+      console.error("Failed to load home page data:", error);
+    } finally {
+      if (!silent) setLoading(false);
     }
-
-    loadData();
   }, []);
+
+  useEffect(() => {
+    void loadData();
+  }, [loadData]);
+
+  // Live content: an edit saved in the portal reaches this page without a
+  // reload. A silent refetch never flashes the spinner over rendered content.
+  useEffect(() => {
+    return subscribeToTables(
+      ["practice_areas", "profiles", "articles", "seminar_events", "retainer_packages"],
+      () => void loadData(true),
+      { channelKey: "home" },
+    );
+  }, [loadData]);
 
   if (loading) {
     return (

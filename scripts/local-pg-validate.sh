@@ -1295,6 +1295,56 @@ try_as "an authenticated user cannot write the email log" "$CLIENT" deny \
    VALUES ('inquiry_submitted', '00000000-0000-0000-0000-00000000c1a2', 'sneaky@example.com');"
 
 echo
+echo "== 6k. Realtime for the remaining portal surfaces =="
+# 20261020. Everything the portal renders that was still manual-refresh:
+# profiles (names/pictures), matters, documents, activity, team, audit logs,
+# the content tables and the seminar send log. Realtime only streams a table
+# once it is in the publication; RLS keeps filtering per subscriber.
+PUB2=$($PSQL -tA -c "SELECT count(*) FROM pg_publication_tables
+  WHERE pubname = 'supabase_realtime' AND schemaname = 'public'
+    AND tablename IN ('profiles','matters','documents','matter_events','matter_members',
+                      'audit_logs','practice_areas','specialists','corporate_clients',
+                      'articles','faqs','seminar_events','retainer_packages',
+                      'seminar_email_log','inquiry_attachments');" 2>&1 | tr -d '[:space:]')
+if [ "$PUB2" = "15" ]; then
+  pass "all 15 remaining portal tables are published for realtime"
+else
+  fail "expected 15 remaining realtime tables, found '$PUB2'"
+fi
+
+# A filtered subscription only receives DELETE events when the table has
+# replica identity full (Supabase docs, "Receiving old records"). These three
+# are the tables whose deletes happen in the UI and are subscribed with a
+# filter: a deleted document, a removed team member, a deleted notification.
+grants_ok "the filtered-delete tables use replica identity full" \
+  "SELECT (SELECT count(*) FROM pg_class
+           WHERE oid IN (to_regclass('public.documents'), to_regclass('public.matter_members'),
+                         to_regclass('public.notifications'))
+             AND relreplident = 'f') = 3;" \
+  "t"
+
+# Re-applying the file must stay a no-op: ALTER PUBLICATION ... ADD TABLE
+# errors when the table is already a member, so the guard is what makes the
+# owner's second paste of the combined file safe.
+if $PSQL -q -f "$REPO/supabase/migrations/20261020_realtime_remaining_tables.sql" \
+     > "$WORKDIR/rt20.out" 2>"$WORKDIR/rt20.err"; then
+  PUB3=$($PSQL -tA -c "SELECT count(*) FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND schemaname = 'public'
+      AND tablename IN ('profiles','matters','documents','matter_events','matter_members',
+                        'audit_logs','practice_areas','specialists','corporate_clients',
+                        'articles','faqs','seminar_events','retainer_packages',
+                        'seminar_email_log','inquiry_attachments');" 2>&1 | tr -d '[:space:]')
+  if [ "$PUB3" = "15" ]; then
+    pass "20261020 re-applies cleanly (publication adds are guarded)"
+  else
+    fail "20261020 re-applied but the publication count changed (got '$PUB3')"
+  fi
+else
+  fail "20261020 failed to re-apply — the publication guard is missing"
+  grep -i error "$WORKDIR/rt20.err" | head -3
+fi
+
+echo
 echo "== 7. Content payloads match the real columns =="
 # Runs the admin ContentManager's own draft -> payload path against the real
 # tables. A wrong column name (the form once wrote speaker_name while the

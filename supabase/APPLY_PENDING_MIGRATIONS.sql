@@ -29,6 +29,7 @@
 --   20. 20261017_notify_admins_new_inquiry.sql       (bell notification for every admin when a registered client files an inquiry)
 --   21. 20261018_realtime_inquiries_messaging_consultations.sql (realtime inquiries + encrypted inquiry conversations + consultation requests in appointments)
 --   22. 20261019_notify_event_email_log.sql          (email claim log so the notify-event function sends each email at most once)
+--   23. 20261020_realtime_remaining_tables.sql       (realtime for the rest of the portal: profiles, matters, documents, activity, team, audit, content, seminar log)
 --
 -- ORDER MATTERS: 20261001 links each seeded lawyer to the practice areas created
 -- by 20260919, so 20260919 must run first. 20261003 supersedes functions that
@@ -53,7 +54,10 @@
 -- inquiries_select_staff policy, and calls private helpers from 20261003, so it
 -- runs after all of them. 20261019 creates the email claim log the notify-event
 -- edge function writes to; it depends on nothing but gen_random_uuid(), and
--- running it last keeps it after every table it may log about.
+-- running it last keeps it after every table it may log about. 20261020 only
+-- adds tables to the supabase_realtime publication and sets replica identity on
+-- three of them, so it depends on nothing but those tables existing — running
+-- it last keeps it after every table it publishes.
 --
 -- HOW TO RUN
 --   1. Open https://supabase.com/dashboard  ->  your project  ->  SQL Editor
@@ -69,7 +73,7 @@
 
 
 -- ############################################################################
--- ## 1/22  20260919_seed_content.sql
+-- ## 1/23  20260919_seed_content.sql
 -- ############################################################################
 -- ============================================================================
 -- Westwood Law Firm - Content Seed Data
@@ -481,7 +485,7 @@ COMMIT;
 
 
 -- ############################################################################
--- ## 2/22  20260928_fix_admin_profile_write_access.sql
+-- ## 2/23  20260928_fix_admin_profile_write_access.sql
 -- ############################################################################
 -- ============================================================================
 -- Fix: Restore admin write-access to profiles (without reintroducing recursion)
@@ -516,7 +520,7 @@ COMMENT ON POLICY profiles_admin_write_policy ON public.profiles IS
 
 
 -- ############################################################################
--- ## 3/22  20260929_documents_and_notifications.sql
+-- ## 3/23  20260929_documents_and_notifications.sql
 -- ############################################################################
 -- ============================================================================
 -- Documents upload/download + Notifications
@@ -1020,7 +1024,7 @@ WITH CHECK ((SELECT private.is_admin()));
 
 
 -- ############################################################################
--- ## 4/22  20261001_consolidated_access_control.sql
+-- ## 4/23  20261001_consolidated_access_control.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261001  Consolidated access control, composite names, lawyer directory
@@ -1768,7 +1772,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 5/22  20261002_database_cleanup.sql
+-- ## 5/23  20261002_database_cleanup.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261002  Non-destructive cleanup + routing fixes
@@ -1911,7 +1915,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 6/22  20261003_integrity_hardening.sql
+-- ## 6/23  20261003_integrity_hardening.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261003  Integrity hardening
@@ -2288,7 +2292,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 7/22  20261004_client_messaging.sql
+-- ## 7/23  20261004_client_messaging.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261004  Client messaging on matters
@@ -2417,7 +2421,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 8/22  20261005_security_advisor_fixes.sql
+-- ## 8/23  20261005_security_advisor_fixes.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261005  Security advisor fixes
@@ -3016,7 +3020,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 9/22  20261006_public_inquiry_rpc.sql
+-- ## 9/23  20261006_public_inquiry_rpc.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261006  Public inquiry submission
@@ -3132,7 +3136,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 10/22  20261007_content_table_grants.sql
+-- ## 10/23  20261007_content_table_grants.sql
 -- ############################################################################
 -- ============================================================================
 -- CONTENT TABLE GRANTS — the live "Admin access is required" failure
@@ -3254,7 +3258,7 @@ WITH CHECK ((SELECT private.is_admin()));
 
 
 -- ############################################################################
--- ## 11/22  20261008_inquiry_attachments.sql
+-- ## 11/23  20261008_inquiry_attachments.sql
 -- ############################################################################
 -- ============================================================================
 -- INQUIRY ATTACHMENTS — "Attach File / Photo / Video" on the public form
@@ -3444,7 +3448,7 @@ GRANT EXECUTE ON FUNCTION public.attach_inquiry_files(TEXT, JSONB) TO anon, auth
 
 
 -- ############################################################################
--- ## 12/22  20261009_firm_contact_email.sql
+-- ## 12/23  20261009_firm_contact_email.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261009 — Firm public contact email
@@ -3467,7 +3471,7 @@ WHERE answer LIKE '%atty.boyet@westwoodlaw.ph%';
 
 
 -- ############################################################################
--- ## 13/22  20261010_inquiry_firm_notified.sql
+-- ## 13/23  20261010_inquiry_firm_notified.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261010 — Track whether the firm has been emailed about an inquiry
@@ -3489,7 +3493,7 @@ ALTER TABLE public.inquiries
 
 
 -- ############################################################################
--- ## 14/22  20261011_inquiries_service_role_grant.sql
+-- ## 14/23  20261011_inquiries_service_role_grant.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261011 — service_role access to inquiries (for notify-inquiry)
@@ -3517,7 +3521,7 @@ GRANT SELECT, UPDATE ON public.inquiries TO service_role;
 
 
 -- ############################################################################
--- ## 15/22  20261012_admin_view_only_documents.sql
+-- ## 15/23  20261012_admin_view_only_documents.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261012 — Admins are view-only on documents
@@ -3588,7 +3592,7 @@ USING (
 
 
 -- ############################################################################
--- ## 16/22  20261013_seminar_registrations.sql
+-- ## 16/23  20261013_seminar_registrations.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261013 — Seminar registrations get a real link + email send log
@@ -3766,7 +3770,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 17/22  20261014_audit_log_browser_writes.sql
+-- ## 17/23  20261014_audit_log_browser_writes.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261014  Audit log writes from the browser
@@ -3908,7 +3912,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 18/22  20261015_matter_notes_encryption.sql
+-- ## 18/23  20261015_matter_notes_encryption.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261015  Encrypt matter messages at rest (Tier B)
@@ -4213,7 +4217,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 19/22  20261016_profile_pictures_and_temp_passwords.sql
+-- ## 19/23  20261016_profile_pictures_and_temp_passwords.sql
 -- ############################################################################
 -- ============================================================================
 -- PROFILE PICTURES + FORCED PASSWORD CHANGE
@@ -4329,7 +4333,7 @@ NOTIFY pgrst, 'reload schema';
 
 
 -- ############################################################################
--- ## 20/22  20261017_notify_admins_new_inquiry.sql
+-- ## 20/23  20261017_notify_admins_new_inquiry.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261017  Notify admins when a registered client files an inquiry
@@ -4413,7 +4417,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 21/22  20261018_realtime_inquiries_messaging_consultations.sql
+-- ## 21/23  20261018_realtime_inquiries_messaging_consultations.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261018  Realtime inquiries, inquiry conversations, and consultation
@@ -5164,7 +5168,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 22/22  20261019_notify_event_email_log.sql
+-- ## 22/23  20261019_notify_event_email_log.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261019  Email claim log for the notify-event edge function
@@ -5228,6 +5232,149 @@ BEGIN
   RAISE NOTICE 'one-email-per-recipient constraint (want true) : %', v_uniq;
   RAISE NOTICE 'anon can read email_events (want false)   : %', v_anon;
   RAISE NOTICE 'service_role can insert claims (want true): %', v_svc;
+  RAISE NOTICE '--------------------------------------------------------------';
+END $$;
+
+
+-- ############################################################################
+-- ## 23/23  20261020_realtime_remaining_tables.sql
+-- ############################################################################
+-- ============================================================================
+-- 20261020 — Realtime for every remaining portal surface
+-- ============================================================================
+-- 20260929 published `notifications`; 20261018 published `inquiries`,
+-- `inquiry_messages`, `appointments` and `matter_notes`. Every other table the
+-- portal or the public site renders still required a manual reload before a
+-- change appeared: matters, documents, matter activity, the matter team,
+-- profiles (names and pictures), audit logs, the content tables and the
+-- seminar send log.
+--
+-- This migration publishes the rest so one refetch-on-event subscription per
+-- screen keeps those surfaces live. It adds no tables, columns or policies —
+-- each table's existing SELECT policies remain the security boundary.
+--
+-- Realtime semantics this relies on (Supabase docs, "Postgres Changes"):
+--   * a table only streams when it is in the `supabase_realtime` publication;
+--   * INSERT and UPDATE events are authorized against each subscriber's RLS —
+--     a subscriber can never receive a row their SELECT policy would hide, and
+--     an UPDATE that moves a row out of someone's visibility is dropped for
+--     them (their next refetch is authoritative);
+--   * DELETE events are NOT RLS-filtered (there is no row left to authorize)
+--     and carry only the primary key — the app never renders from `payload`,
+--     it refetches, so a delete event can never leak row contents;
+--   * a *filtered* subscription only receives DELETE events when the table has
+--     REPLICA IDENTITY FULL, so the three tables whose deletes happen in the
+--     UI and are subscribed with a filter get it below (documents,
+--     matter_members, notifications). The rest keep the default identity —
+--     their deletes either never happen or are subscribed unfiltered.
+--
+-- Delivery is best-effort by design: the frontend treats every event as
+-- "something changed, refetch", sharing one merge path with the initial load.
+-- A dropped event is a stale row until the next signal, never a duplicate and
+-- never a broken screen.
+
+-- ----------------------------------------------------------------------------
+-- 1. Replica identity for the tables whose filtered DELETE events matter
+-- ----------------------------------------------------------------------------
+-- documents      — a deleted document must leave every open documents list;
+--                  MatterDetail subscribes with `matter_id=eq.<id>`.
+-- matter_members — removing a lawyer from the team must update the open modal.
+-- notifications  — useNotifications subscribes with `user_id=eq.<id>` and
+--                  drops the row on DELETE (payload.old carries the PK).
+ALTER TABLE IF EXISTS public.documents REPLICA IDENTITY FULL;
+ALTER TABLE IF EXISTS public.matter_members REPLICA IDENTITY FULL;
+ALTER TABLE IF EXISTS public.notifications REPLICA IDENTITY FULL;
+
+-- ----------------------------------------------------------------------------
+-- 2. Publish the remaining tables
+-- ----------------------------------------------------------------------------
+DO $$
+DECLARE
+  t TEXT;
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
+    RAISE NOTICE 'supabase_realtime publication not found — skipping realtime registration';
+    RETURN;
+  END IF;
+
+  FOREACH t IN ARRAY ARRAY[
+    'profiles',             -- names + pictures (own row; all rows for staff)
+    'matters',              -- matter lists and dashboard counters
+    'documents',            -- document lists and per-matter panels
+    'matter_events',        -- client dashboard activity + matter timeline
+    'matter_members',       -- matter team panel
+    'audit_logs',           -- admin audit tab
+    'practice_areas',       -- portal + public content
+    'specialists',          -- partner network (portal + public)
+    'corporate_clients',    -- public about/contact pages
+    'articles',             -- insights (public + content manager)
+    'faqs',                 -- FAQ tab (public + content manager)
+    'seminar_events',       -- seminars (public + content manager)
+    'retainer_packages',    -- retainers (public + content manager)
+    'seminar_email_log',    -- "recent sends" in the registrants dialog
+    'inquiry_attachments'   -- attachments shown on an inquiry in intake
+  ] LOOP
+    IF to_regclass('public.' || t) IS NULL THEN
+      RAISE NOTICE 'public.% does not exist — skipped', t;
+      CONTINUE;
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_publication_tables
+      WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = t
+    ) THEN
+      EXECUTE format('ALTER PUBLICATION supabase_realtime ADD TABLE public.%I', t);
+    END IF;
+  END LOOP;
+END $$;
+
+-- ----------------------------------------------------------------------------
+-- 3. Verify (read-only)
+-- ----------------------------------------------------------------------------
+DO $$
+DECLARE
+  v_pub     INTEGER;
+  v_total   INTEGER;
+  v_full    INTEGER;
+  v_missing TEXT;
+BEGIN
+  SELECT count(*) INTO v_total FROM unnest(ARRAY[
+    'profiles', 'matters', 'documents', 'matter_events', 'matter_members',
+    'audit_logs', 'practice_areas', 'specialists', 'corporate_clients',
+    'articles', 'faqs', 'seminar_events', 'retainer_packages',
+    'seminar_email_log', 'inquiry_attachments'
+  ]) t
+  WHERE to_regclass('public.' || t) IS NOT NULL;
+
+  SELECT count(*) INTO v_pub FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND schemaname = 'public'
+      AND tablename IN (
+        'profiles', 'matters', 'documents', 'matter_events', 'matter_members',
+        'audit_logs', 'practice_areas', 'specialists', 'corporate_clients',
+        'articles', 'faqs', 'seminar_events', 'retainer_packages',
+        'seminar_email_log', 'inquiry_attachments'
+      );
+
+  SELECT count(*) INTO v_full FROM pg_class
+    WHERE oid IN (to_regclass('public.documents'), to_regclass('public.matter_members'),
+                  to_regclass('public.notifications'))
+      AND relreplident = 'f';
+
+  SELECT string_agg(t, ', ') INTO v_missing FROM unnest(ARRAY[
+    'profiles', 'matters', 'documents', 'matter_events', 'matter_members',
+    'audit_logs', 'practice_areas', 'specialists', 'corporate_clients',
+    'articles', 'faqs', 'seminar_events', 'retainer_packages',
+    'seminar_email_log', 'inquiry_attachments'
+  ]) t
+  WHERE to_regclass('public.' || t) IS NOT NULL
+    AND NOT EXISTS (
+      SELECT 1 FROM pg_publication_tables
+      WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = t
+    );
+
+  RAISE NOTICE '--------------------------------------------------------------';
+  RAISE NOTICE 'remaining portal tables published (want all) : % / %', v_pub, v_total;
+  RAISE NOTICE 'filtered-delete tables with identity full     : % / 3', v_full;
+  RAISE NOTICE 'tables still missing from the publication     : %', COALESCE(v_missing, 'none');
   RAISE NOTICE '--------------------------------------------------------------';
 END $$;
 
@@ -5312,7 +5459,14 @@ UNION ALL SELECT 'appointments.matter_id nullable', EXISTS (SELECT 1 FROM inform
 UNION ALL SELECT 'realtime: 4 tables published', (SELECT count(*) FROM pg_publication_tables
                                                  WHERE pubname='supabase_realtime' AND schemaname='public'
                                                    AND tablename IN ('inquiries','inquiry_messages',
-                                                                     'appointments','matter_notes')) = 4;
+                                                                     'appointments','matter_notes')) = 4
+UNION ALL SELECT 'realtime: 15 more portal tables published', (SELECT count(*) FROM pg_publication_tables
+                                                 WHERE pubname='supabase_realtime' AND schemaname='public'
+                                                   AND tablename IN ('profiles','matters','documents','matter_events',
+                                                                     'matter_members','audit_logs','practice_areas',
+                                                                     'specialists','corporate_clients','articles',
+                                                                     'faqs','seminar_events','retainer_packages',
+                                                                     'seminar_email_log','inquiry_attachments')) = 15;
 
 SELECT 'practice_areas' AS table_name, count(*) AS rows FROM public.practice_areas
 UNION ALL SELECT 'articles',            count(*) FROM public.articles
@@ -5560,4 +5714,10 @@ UNION ALL SELECT 'the email claim log is service-role-only',
             WHEN NOT EXISTS (SELECT 1 FROM pg_constraint
                              WHERE conrelid = 'public.email_events'::regclass
                                AND conname = 'email_events_once') THEN 'FAIL'
-            ELSE 'PASS' END;
+            ELSE 'PASS' END
+UNION ALL SELECT 'filtered-delete tables use replica identity full',
+       CASE WHEN (SELECT count(*) FROM pg_class
+                   WHERE oid IN (to_regclass('public.documents'), to_regclass('public.matter_members'),
+                                 to_regclass('public.notifications'))
+                     AND relreplident = 'f') = 3
+            THEN 'PASS' ELSE 'FAIL' END;

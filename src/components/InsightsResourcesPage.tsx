@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   getPublishedArticles,
   getLawyers,
@@ -18,6 +18,7 @@ import RetainerPackageCard from "@/components/RetainerPackageCard";
 import SeminarRegistrationModal from "@/components/SeminarRegistrationModal";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { articleJsonLd } from "@/lib/seo";
+import { subscribeToTables } from "@/lib/realtime";
 
 type Page =
   | "home"
@@ -76,34 +77,45 @@ export default function InsightsResourcesPage({
   const [retainerPackages, setRetainerPackages] = useState<RetainerPackage[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch all data on mount
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      try {
-        const [articleResult, lawyerResult, faqResult, seminarResult, packageResult] =
-          await Promise.all([
-            getPublishedArticles(),
-            getLawyers(),
-            getFAQs(),
-            getUpcomingSeminars(),
-            getRetainerPackages(),
-          ]);
+  // Fetch all data on mount. The same function serves every live refetch.
+  const loadData = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      const [articleResult, lawyerResult, faqResult, seminarResult, packageResult] =
+        await Promise.all([
+          getPublishedArticles(),
+          getLawyers(),
+          getFAQs(),
+          getUpcomingSeminars(),
+          getRetainerPackages(),
+        ]);
 
-        if (articleResult.data) setArticles(articleResult.data);
-        if (lawyerResult.data) setLawyers(lawyerResult.data);
-        if (faqResult.data) setFaqs(faqResult.data);
-        if (seminarResult.data) setSeminarEvents(seminarResult.data);
-        if (packageResult.data) setRetainerPackages(packageResult.data);
-      } catch (error) {
-        console.error("Failed to load insights resources data:", error);
-      } finally {
-        setLoading(false);
-      }
+      if (articleResult.data) setArticles(articleResult.data);
+      if (lawyerResult.data) setLawyers(lawyerResult.data);
+      if (faqResult.data) setFaqs(faqResult.data);
+      if (seminarResult.data) setSeminarEvents(seminarResult.data);
+      if (packageResult.data) setRetainerPackages(packageResult.data);
+    } catch (error) {
+      console.error("Failed to load insights resources data:", error);
+    } finally {
+      if (!silent) setLoading(false);
     }
-
-    loadData();
   }, []);
+
+  useEffect(() => {
+    void loadData();
+  }, [loadData]);
+
+  // Live content: an article, FAQ, seminar or retainer edit saved in the
+  // portal reaches this page without a reload. A silent refetch never flashes
+  // the spinner over rendered content; the open article stays open.
+  useEffect(() => {
+    return subscribeToTables(
+      ["articles", "profiles", "faqs", "seminar_events", "retainer_packages"],
+      () => void loadData(true),
+      { channelKey: "insights" },
+    );
+  }, [loadData]);
 
   const openRegistration = (event: SeminarEvent) => setRegistering(event);
 

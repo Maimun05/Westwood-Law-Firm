@@ -55,3 +55,13 @@ export async function lookupNames(ids: string[]): Promise<Record<string, string>
   }
   return Object.fromEntries(ids.map((i) => [i, cache.get(i) ?? "—"]));
 }
+
+/**
+ * Drop every cached name and re-render the mounted <Person> rows, which
+ * re-request their ids. Called when a live `profiles` event says a name or
+ * picture may have changed, so staff never keep reading a renamed person.
+ */
+export function invalidatePersonCache() {
+  cache.clear();
+  listeners.forEach((l) => l());
+}
