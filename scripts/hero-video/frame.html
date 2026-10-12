@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Westwood hero — frame renderer</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #0b1b35;
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c" width="1280" height="720"></canvas>
+    <script>
+      /*
+       * Deterministic, loop-safe hero motion graphic. The whole frame is a
+       * pure function of t (seconds), so render.mjs can screenshot any time
+       * step without relying on real-time animation. Every time-dependent
+       * term is periodic over T seconds, so frame 0 and frame T are identical
+       * and the clip loops seamlessly.
+       *
+       * Palette matches the site tokens: navy #0b1b35 / gold #c49d3f.
+       */
+      (function () {
+        const W = 1280;
+        const H = 720;
+        const T = 8; // loop duration, seconds
+        const GOLD = "196, 157, 63";
+
+        const canvas = document.getElementById("c");
+        const ctx = canvas.getContext("2d");
+
+        // Brand emblem, used as a faint screen-blended watermark. If it fails
+        // to load the frame still renders (abstract navy/gold only).
+        const emblem = new Image();
+        let emblemReady = false;
+        let ready = false;
+        const markReady = () => {
+          if (!ready) {
+            ready = true;
+            window.__ready = true;
+          }
+        };
+        emblem.onload = () => {
+          emblemReady = true;
+          markReady();
+        };
+        emblem.onerror = markReady;
+        emblem.src = "../../public/westwood-mark.png";
+
+        // Floating gold motes. Motion is sinusoidal (periodic over T) rather
+        // than linear, which keeps the loop seamless without a wrap seam.
+        const motes = [];
+        for (let i = 0; i < 46; i++) {
+          motes.push({
+            x: Math.random() * W,
+            y: Math.random() * H,
+            r: 0.6 + Math.random() * 1.7,
+            a: 0.05 + Math.random() * 0.16,
+            phase: Math.random() * Math.PI * 2,
+          });
+        }
+
+        function render(t) {
+          const p = (2 * Math.PI * t) / T;
+
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.clearRect(0, 0, W, H);
+
+          // 1. Base navy gradient (mirrors the site's .gradient-navy).
+          const base = ctx.createLinearGradient(0, 0, W, H);
+          base.addColorStop(0, "#0b1b35");
+          base.addColorStop(0.55, "#081527");
+          base.addColorStop(1, "#14294a");
+          ctx.fillStyle = base;
+          ctx.fillRect(0, 0, W, H);
+
+          // 2. Cool bloom drifting on a slow Lissajous.
+          const cx2 = W * 0.5 + Math.cos(p) * W * 0.18;
+          const cy2 = H * 0.55 + Math.sin(p) * H * 0.12;
+          const cool = ctx.createRadialGradient(cx2, cy2, 0, cx2, cy2, 640);
+          cool.addColorStop(0, "rgba(20, 41, 74, 0.9)");
+          cool.addColorStop(1, "rgba(20, 41, 74, 0)");
+          ctx.fillStyle = cool;
+          ctx.fillRect(0, 0, W, H);
+
+          // 3. Warm gold bloom, additive for a soft cinematic glow.
+          const cx = W * 0.5 + Math.sin(p) * W * 0.16;
+          const cy = H * 0.42 + Math.cos(p) * H * 0.1;
+          ctx.globalCompositeOperation = "lighter";
+          const warm = ctx.createRadialGradient(cx, cy, 0, cx, cy, 560);
+          warm.addColorStop(0, "rgba(" + GOLD + ", 0.16)");
+          warm.addColorStop(0.42, "rgba(" + GOLD + ", 0.06)");
+          warm.addColorStop(1, "rgba(" + GOLD + ", 0)");
+          ctx.fillStyle = warm;
+          ctx.fillRect(0, 0, W, H);
+          ctx.globalCompositeOperation = "source-over";
+
+          // 4. Emblem watermark — large, faint, barely breathing. (The hairline
+          //    grid the hero already draws in CSS is deliberately not repeated
+          //    here, so the two don't beat against each other.)
+          if (emblemReady) {
+            const size = 640;
+            const ex = W * 0.5 + Math.sin(p) * 10;
+            const ey = H * 0.5 + Math.cos(p) * 8;
+            ctx.save();
+            ctx.globalCompositeOperation = "screen";
+            ctx.globalAlpha = 0.07;
+            ctx.translate(ex, ey);
+            ctx.rotate(Math.sin(p) * 0.02);
+            ctx.drawImage(emblem, -size / 2, -size / 2, size, size);
+            ctx.restore();
+          }
+
+          // 5. Gold motes.
+          for (let i = 0; i < motes.length; i++) {
+            const m = motes[i];
+            const mx = m.x + Math.sin(p + m.phase) * 14;
+            const my = m.y + Math.cos(p + m.phase) * 18;
+            ctx.beginPath();
+            ctx.arc(mx, my, m.r, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(" + GOLD + ", " + m.a + ")";
+            ctx.fill();
+          }
+
+          // 6. Vignette so the hero copy always sits on the darkest area.
+          const vig = ctx.createRadialGradient(W / 2, H / 2, H * 0.25, W / 2, H / 2, H * 0.85);
+          vig.addColorStop(0, "rgba(0, 0, 0, 0)");
+          vig.addColorStop(1, "rgba(3, 8, 18, 0.55)");
+          ctx.fillStyle = vig;
+          ctx.fillRect(0, 0, W, H);
+        }
+
+        render(0);
+        window.__renderAt = render;
+        setTimeout(markReady, 1500); // fallback if the emblem never resolves
+      })();
+    </script>
+  </body>
+</html>
