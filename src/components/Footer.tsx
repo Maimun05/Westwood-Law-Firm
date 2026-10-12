@@ -144,7 +144,6 @@ export default function Footer({ onNavigate }: FooterProps) {
             ) : (
               <InquiryFallback
                 tone="dark"
-                onNavigate={onNavigate}
                 message="Have a legal concern? Email us and our team will get in touch within 1–2 business days."
               />
             )}

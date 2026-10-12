@@ -237,7 +237,6 @@ export default function LawyersPage({
                 lawyer={lawyer}
                 onView={() => openProfile(lawyer.id)}
                 onInquiry={() => onNavigate("inquiry")}
-                onContact={() => onNavigate("contact")}
                 canInquire={canInquire}
                 saved={savedLawyers.includes(lawyer.id)}
                 onToggleSave={() => onToggleSave(lawyer.id)}
@@ -369,7 +368,7 @@ function FindMyLawyer({
               >
                 Start Over
               </button>
-              {canInquire ? (
+              {canInquire && (
                 <>
                   <button onClick={() => onNavigate("consultation")} className="btn-primary">
                     Schedule Consultation
@@ -378,10 +377,6 @@ function FindMyLawyer({
                     Start a Legal Inquiry
                   </button>
                 </>
-              ) : (
-                <button onClick={() => onNavigate("contact")} className="btn-primary">
-                  Contact Us
-                </button>
               )}
             </div>
           </div>
@@ -472,7 +467,6 @@ function LawyerCard({
   lawyer,
   onView,
   onInquiry,
-  onContact,
   canInquire,
   saved,
   onToggleSave,
@@ -481,7 +475,6 @@ function LawyerCard({
   lawyer: Lawyer;
   onView: () => void;
   onInquiry: () => void;
-  onContact: () => void;
   canInquire: boolean;
   saved: boolean;
   onToggleSave: () => void;
@@ -534,13 +527,9 @@ function LawyerCard({
           <button onClick={onView} className="btn-secondary text-sm py-2.5">
             View Profile
           </button>
-          {canInquire ? (
+          {canInquire && (
             <button onClick={onInquiry} className="btn-outline text-sm py-2.5">
               Start Inquiry
-            </button>
-          ) : (
-            <button onClick={onContact} className="btn-outline text-sm py-2.5">
-              Contact Us
             </button>
           )}
         </div>
@@ -618,7 +607,7 @@ function LawyerProfile({
                     </button>
                   </>
                 ) : (
-                  <InquiryFallback onNavigate={onNavigate} />
+                  <InquiryFallback />
                 )}
                 <button
                   onClick={() => onToggleSave(lawyer.id)}

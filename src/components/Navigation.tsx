@@ -80,8 +80,8 @@ export default function Navigation({ currentPage, onNavigate }: NavigationProps)
             ))}
           </div>
 
-          {/* Desktop Actions — inquiries are for registered clients; visitors
-              get the Contact page instead. */}
+          {/* Desktop Actions — inquiries are for registered clients; everyone
+              else reaches the firm through the Contact link in the nav. */}
           <div className="hidden lg:flex items-center gap-2">
             {!loading && (
               <>
@@ -99,14 +99,6 @@ export default function Navigation({ currentPage, onNavigate }: NavigationProps)
                     className="btn-primary text-sm px-5 py-2.5 whitespace-nowrap"
                   >
                     Start a Legal Inquiry
-                  </button>
-                )}
-                {!user && (
-                  <button
-                    onClick={() => handleNav("contact")}
-                    className="btn-primary text-sm px-5 py-2.5 whitespace-nowrap"
-                  >
-                    Contact Us
                   </button>
                 )}
               </>
@@ -175,14 +167,6 @@ export default function Navigation({ currentPage, onNavigate }: NavigationProps)
                       className="btn-primary text-sm px-4 py-3"
                     >
                       Start a Legal Inquiry
-                    </button>
-                  )}
-                  {!user && (
-                    <button
-                      onClick={() => handleNav("contact")}
-                      className="btn-primary text-sm px-4 py-3"
-                    >
-                      Contact Us
                     </button>
                   )}
                 </>

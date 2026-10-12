@@ -845,7 +845,7 @@ export default function InquiryFlow({
           <p className="text-[#c9a84c] text-xs tracking-[0.2em] uppercase font-medium mb-3">
             Get Started
           </p>
-          <InquiryFallback title="Start a Legal Inquiry" onNavigate={onNavigate} />
+          <InquiryFallback title="Start a Legal Inquiry" />
         </div>
       </div>
     );

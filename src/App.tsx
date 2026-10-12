@@ -254,7 +254,8 @@ export default function App() {
       )}
 
       {/* Mobile sticky CTA - only show on public pages. Inquiries are for
-          registered clients; visitors get the Contact page instead. */}
+          registered clients; everyone else reaches the firm via the nav
+          Contact link. */}
       {showMobileCTA && !loading && (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#e8e4dc] px-4 py-3 flex gap-3">
           {user?.role === "client" ? (
@@ -280,20 +281,12 @@ export default function App() {
               Account
             </button>
           ) : (
-            <>
-              <button
-                onClick={() => navigate("contact")}
-                className="flex-1 bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] text-sm font-semibold py-3 rounded transition-colors"
-              >
-                Contact Us
-              </button>
-              <button
-                onClick={() => navigate("auth")}
-                className="bg-[#0d1f3c] text-white text-sm font-semibold px-4 py-3 rounded transition-colors"
-              >
-                Sign In
-              </button>
-            </>
+            <button
+              onClick={() => navigate("auth")}
+              className="flex-1 bg-[#0d1f3c] text-white text-sm font-semibold py-3 rounded transition-colors"
+            >
+              Sign In
+            </button>
           )}
         </div>
       )}

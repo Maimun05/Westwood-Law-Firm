@@ -151,7 +151,7 @@ export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) 
           <p className="text-[#c9a84c] text-xs tracking-widest uppercase font-medium mb-3">
             Get in Touch
           </p>
-          <h1 className="font-serif text-4xl lg:text-5xl font-bold text-white mb-4">Contact Us</h1>
+          <h1 className="font-serif text-4xl lg:text-5xl font-bold text-white mb-4">Contact</h1>
           <p className="text-white/60 text-lg max-w-xl">
             We welcome your inquiries. A member of our team will respond within one to two business
             days.

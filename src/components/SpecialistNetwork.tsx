@@ -215,22 +215,6 @@ export default function SpecialistNetwork({ onNavigate }: SpecialistNetworkProps
                   </div>
                 </div>
               )}
-
-              <div className="bg-[#0d1f3c] rounded-xl p-6">
-                <h4 className="font-serif text-base font-bold text-white mb-2">
-                  Interested in this specialist?
-                </h4>
-                <p className="text-white/60 text-xs mb-5">
-                  Contact Westwood Law Firm to learn more about how this partner can support your
-                  legal matters.
-                </p>
-                <button
-                  onClick={() => onNavigate("contact")}
-                  className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] text-sm font-semibold py-3 rounded transition-colors"
-                >
-                  Contact Us
-                </button>
-              </div>
             </div>
           </div>
         </div>

@@ -8,20 +8,13 @@ import { FIRM_EMAIL, FIRM_EMAIL_HREF } from "@/lib/firm";
 // sign-in prompt here.
 
 type Props = {
-  onNavigate: (page: "contact") => void;
   tone?: "light" | "dark";
   title?: string;
   message?: string;
   className?: string;
 };
 
-export default function InquiryFallback({
-  onNavigate,
-  tone = "light",
-  title,
-  message,
-  className = "",
-}: Props) {
+export default function InquiryFallback({ tone = "light", title, message, className = "" }: Props) {
   const dark = tone === "dark";
 
   return (
@@ -50,18 +43,6 @@ export default function InquiryFallback({
           </>
         )}
       </p>
-      <div className="flex flex-wrap gap-3 mt-5">
-        <button
-          onClick={() => onNavigate("contact")}
-          className={
-            dark
-              ? "btn border border-white/25 text-white hover:border-[#c9a84c] hover:text-[#c9a84c] px-5 py-2.5 text-sm"
-              : "btn-outline text-sm px-5 py-2.5"
-          }
-        >
-          Contact Us
-        </button>
-      </div>
     </div>
   );
 }

@@ -91,8 +91,8 @@ function StatValue({ value }: { value: string }) {
 export default function HomePage({ onNavigate }: HomePageProps) {
   usePageMeta("home");
   const { user } = useAuth();
-  // Consultations are for registered clients; visitors are pointed at the
-  // Contact page instead.
+  // Consultations are for registered clients; visitors reach the firm through
+  // the Contact link in the nav instead.
   const canInquire = user?.role === "client";
   const [practiceAreas, setPracticeAreas] = useState<PracticeArea[]>([]);
   const [lawyers, setLawyers] = useState<Lawyer[]>([]);
@@ -248,13 +248,9 @@ export default function HomePage({ onNavigate }: HomePageProps) {
 
           {/* CTA Group */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up stagger-3">
-            {canInquire ? (
+            {canInquire && (
               <button onClick={() => onNavigate("consultation")} className="btn-primary-lg">
                 Schedule a Consultation
-              </button>
-            ) : (
-              <button onClick={() => onNavigate("contact")} className="btn-primary-lg">
-                Contact Us
               </button>
             )}
             <button
@@ -594,13 +590,9 @@ export default function HomePage({ onNavigate }: HomePageProps) {
             expertise for your concern.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {canInquire ? (
+            {canInquire && (
               <button onClick={() => onNavigate("consultation")} className="btn-primary-lg">
                 Schedule a Consultation
-              </button>
-            ) : (
-              <button onClick={() => onNavigate("contact")} className="btn-primary-lg">
-                Contact Us
               </button>
             )}
             <button

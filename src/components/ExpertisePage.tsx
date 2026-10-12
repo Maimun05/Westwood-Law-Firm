@@ -246,36 +246,22 @@ export default function ExpertisePage({ onNavigate, selectedArea }: ExpertisePag
               </div>
             </div>
 
-            <div className="bg-[#0d1f3c] rounded-xl p-6">
-              <h3 className="font-serif text-base font-bold text-white mb-2">
-                Ready to discuss your matter?
-              </h3>
-              {canInquire ? (
-                <>
-                  <p className="text-white/50 text-sm mb-5">
-                    Schedule a consultation with one of our {detail.name} specialists.
-                  </p>
-                  <button
-                    onClick={() => onNavigate("consultation")}
-                    className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] text-sm font-semibold py-3 rounded transition-colors"
-                  >
-                    Schedule Consultation
-                  </button>
-                </>
-              ) : (
-                <>
-                  <p className="text-white/50 text-sm mb-5">
-                    Contact us to discuss your {detail.name} matter.
-                  </p>
-                  <button
-                    onClick={() => onNavigate("contact")}
-                    className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] text-sm font-semibold py-3 rounded transition-colors"
-                  >
-                    Contact Us
-                  </button>
-                </>
-              )}
-            </div>
+            {canInquire && (
+              <div className="bg-[#0d1f3c] rounded-xl p-6">
+                <h3 className="font-serif text-base font-bold text-white mb-2">
+                  Ready to discuss your matter?
+                </h3>
+                <p className="text-white/50 text-sm mb-5">
+                  Schedule a consultation with one of our {detail.name} specialists.
+                </p>
+                <button
+                  onClick={() => onNavigate("consultation")}
+                  className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] text-sm font-semibold py-3 rounded transition-colors"
+                >
+                  Schedule Consultation
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -349,12 +335,6 @@ export default function ExpertisePage({ onNavigate, selectedArea }: ExpertisePag
               className="bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] font-semibold px-8 py-3 rounded transition-colors text-sm"
             >
               Browse Our Lawyers
-            </button>
-            <button
-              onClick={() => onNavigate("contact")}
-              className="border border-white/20 hover:border-white/40 text-white/70 hover:text-white font-medium px-8 py-3 rounded transition-colors text-sm"
-            >
-              Contact Us
             </button>
           </div>
         </div>
