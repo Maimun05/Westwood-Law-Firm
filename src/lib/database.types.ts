@@ -199,6 +199,7 @@ export interface Database {
           preferred_contact_method: string | null;
           firm_notified_at: string | null;
           seminar_id: string | null;
+          requested_lawyer_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -218,6 +219,7 @@ export interface Database {
           preferred_contact_method?: string | null;
           firm_notified_at?: string | null;
           seminar_id?: string | null;
+          requested_lawyer_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -237,6 +239,7 @@ export interface Database {
           preferred_contact_method?: string | null;
           firm_notified_at?: string | null;
           seminar_id?: string | null;
+          requested_lawyer_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -268,6 +271,39 @@ export interface Database {
           mime_type?: string | null;
           size_bytes?: number | null;
           created_at?: string;
+        };
+      };
+      inquiry_messages: {
+        Row: {
+          id: string;
+          inquiry_id: string;
+          author_id: string;
+          /** Plain text through public.inquiry_messages_thread; ciphertext in the table. */
+          body: string;
+          body_encrypted: boolean;
+          read_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          inquiry_id: string;
+          author_id: string;
+          body: string;
+          body_encrypted?: boolean;
+          read_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          inquiry_id?: string;
+          author_id?: string;
+          body?: string;
+          body_encrypted?: boolean;
+          read_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
         };
       };
       documents: {
@@ -335,7 +371,8 @@ export interface Database {
       appointments: {
         Row: {
           id: string;
-          matter_id: string;
+          /** NULL for a consultation request that predates any matter. */
+          matter_id: string | null;
           client_id: string;
           lawyer_id: string;
           appointment_type: string;
@@ -344,12 +381,16 @@ export interface Database {
           mode: "In-Person" | "Video Call" | "Phone Call";
           status: "Pending" | "Confirmed" | "Completed" | "Cancelled";
           notes: string | null;
+          /** The inquiry the booking filed, when it came from the public site. */
+          inquiry_id: string | null;
+          /** Stamped when date/time move; NULL until the first reschedule. */
+          rescheduled_at: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
-          matter_id: string;
+          matter_id?: string | null;
           client_id: string;
           lawyer_id: string;
           appointment_type: string;
@@ -358,12 +399,14 @@ export interface Database {
           mode?: "In-Person" | "Video Call" | "Phone Call";
           status?: "Pending" | "Confirmed" | "Completed" | "Cancelled";
           notes?: string | null;
+          inquiry_id?: string | null;
+          rescheduled_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
-          matter_id?: string;
+          matter_id?: string | null;
           client_id?: string;
           lawyer_id?: string;
           appointment_type?: string;
@@ -372,6 +415,8 @@ export interface Database {
           mode?: "In-Person" | "Video Call" | "Phone Call";
           status?: "Pending" | "Confirmed" | "Completed" | "Cancelled";
           notes?: string | null;
+          inquiry_id?: string | null;
+          rescheduled_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -1057,6 +1102,19 @@ export interface Database {
         };
         Relationships: [];
       };
+      inquiry_messages_thread: {
+        Row: {
+          id: string;
+          inquiry_id: string;
+          author_id: string;
+          read_at: string | null;
+          created_at: string;
+          updated_at: string;
+          /** Decrypted by the security_invoker view. */
+          body: string;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       attach_inquiry_files: {
@@ -1106,8 +1164,13 @@ export interface Database {
           p_message?: string | null;
           p_subject?: string | null;
           p_seminar_id?: string | null;
+          p_lawyer_id?: string | null;
         };
         Returns: string;
+      };
+      mark_inquiry_messages_read: {
+        Args: { p_inquiry_id: string };
+        Returns: number;
       };
     };
     Enums: {

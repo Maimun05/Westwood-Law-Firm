@@ -1,13 +1,18 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { notifyEvent } from "@/utils/api";
 import { Person } from "./Person";
+import { subscribeToTable } from "@/lib/realtime";
 import type { Database } from "@/lib/database.types";
 
 type ApptStatus = Database["public"]["Enums"]["appointment_status"];
 type ApptMode = Database["public"]["Enums"]["appointment_mode"];
 type Appt = {
   id: string;
-  matter_id: string;
+  /** NULL for a consultation request that has no matter yet (20261018). */
+  matter_id: string | null;
+  /** The inquiry the consultation was filed with, when there is one. */
+  inquiry_id: string | null;
   client_id: string;
   lawyer_id: string;
   appointment_type: string;
@@ -16,6 +21,7 @@ type Appt = {
   mode: ApptMode;
   status: ApptStatus;
   notes: string | null;
+  rescheduled_at: string | null;
 };
 type MatterLite = {
   id: string;
@@ -64,8 +70,12 @@ export default function AppointmentsPanel({
     notes: "",
   });
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  // Inline reschedule editor (lawyer/admin). The trigger stamps
+  // rescheduled_at and notifies both parties when date/time change.
+  const [resched, setResched] = useState<{ id: string; date: string; time: string } | null>(null);
   const bookable = matters.filter((m) => m.lawyer_id && m.client_id === userId);
-  const matterNo = (id: string) => matters.find((m) => m.id === id)?.matter_number ?? "—";
+  const matterNo = (id: string | null) =>
+    id ? (matters.find((m) => m.id === id)?.matter_number ?? "—") : "—";
 
   const load = async () => {
     const { data, error } = await supabase
@@ -78,7 +88,17 @@ export default function AppointmentsPanel({
   };
   useEffect(() => {
     void load();
-  }, []);
+    // Live calendar: a request, confirmation, cancellation or reschedule
+    // shows up without a refresh. The filter matches this role's rows, and
+    // Supabase applies the table's SELECT policy to the stream on top of it.
+    const filter =
+      role === "client"
+        ? `client_id=eq.${userId}`
+        : role === "lawyer"
+          ? `lawyer_id=eq.${userId}`
+          : undefined;
+    return subscribeToTable("appointments", () => void load(), { filter, channelKey: userId });
+  }, [role, userId]);
 
   const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
 
@@ -123,6 +143,28 @@ export default function AppointmentsPanel({
   const setStatus = async (id: string, status: ApptStatus) => {
     const { error } = await supabase.from("appointments").update({ status }).eq("id", id);
     setMsg(error ? { ok: false, text: error.message } : null);
+    if (!error) void notifyEvent("appointment_status", id);
+    await load();
+  };
+
+  const saveReschedule = async () => {
+    if (!resched) return;
+    const { error } = await supabase
+      .from("appointments")
+      .update({ date: resched.date, time: resched.time })
+      .eq("id", resched.id);
+    if (error) {
+      setMsg({
+        ok: false,
+        text: /duplicate|unique/i.test(error.message)
+          ? "That time is already taken. Please pick another slot."
+          : error.message,
+      });
+      return;
+    }
+    setMsg({ ok: true, text: "Rescheduled. Both parties were notified." });
+    void notifyEvent("appointment_status", resched.id);
+    setResched(null);
     await load();
   };
 
@@ -243,57 +285,117 @@ export default function AppointmentsPanel({
               </tr>
             )}
             {rows.map((a) => (
-              <tr key={a.id}>
-                <td className="px-5 py-4 text-sm font-mono text-[#0d1f3c]">
-                  {matterNo(a.matter_id)}
-                </td>
-                <td className="px-5 py-4 text-sm text-[#2c3347]">
-                  <Person id={role === "client" ? a.lawyer_id : a.client_id} />
-                </td>
-                <td className="px-5 py-4 text-sm text-[#2c3347]">{a.appointment_type}</td>
-                <td className="px-5 py-4 text-sm text-[#2c3347]">
-                  {new Date(a.date + "T00:00").toLocaleDateString("en-PH", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}{" "}
-                  · {a.time}
-                </td>
-                <td className="px-5 py-4 text-sm text-[#2c3347]">{a.mode}</td>
-                <td className="px-5 py-4">
-                  <span
-                    className={`text-xs font-semibold px-2.5 py-1 rounded-full ${tone[a.status] ?? ""}`}
-                  >
-                    {a.status}
-                  </span>
-                </td>
-                <td className="px-5 py-4 whitespace-nowrap space-x-2">
-                  {role !== "client" && a.status === "Pending" && (
-                    <button
-                      onClick={() => void setStatus(a.id, "Confirmed")}
-                      className="text-xs font-semibold text-green-700"
+              <Fragment key={a.id}>
+                <tr>
+                  <td className="px-5 py-4 text-sm font-mono text-[#0d1f3c]">
+                    {a.matter_id ? (
+                      matterNo(a.matter_id)
+                    ) : (
+                      <span className="font-sans text-[#8a9ab5]">Consultation</span>
+                    )}
+                  </td>
+                  <td className="px-5 py-4 text-sm text-[#2c3347]">
+                    <Person id={role === "client" ? a.lawyer_id : a.client_id} />
+                  </td>
+                  <td className="px-5 py-4 text-sm text-[#2c3347]">{a.appointment_type}</td>
+                  <td className="px-5 py-4 text-sm text-[#2c3347]">
+                    {new Date(a.date + "T00:00").toLocaleDateString("en-PH", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}{" "}
+                    · {a.time}
+                    {a.rescheduled_at && (
+                      <span className="text-[10px] text-[#a8863a]"> · rescheduled</span>
+                    )}
+                  </td>
+                  <td className="px-5 py-4 text-sm text-[#2c3347]">{a.mode}</td>
+                  <td className="px-5 py-4">
+                    <span
+                      className={`text-xs font-semibold px-2.5 py-1 rounded-full ${tone[a.status] ?? ""}`}
                     >
-                      Confirm
-                    </button>
-                  )}
-                  {role !== "client" && a.status === "Confirmed" && (
-                    <button
-                      onClick={() => void setStatus(a.id, "Completed")}
-                      className="text-xs font-semibold text-blue-700"
-                    >
-                      Mark done
-                    </button>
-                  )}
-                  {["Pending", "Confirmed"].includes(a.status) && (
-                    <button
-                      onClick={() => void setStatus(a.id, "Cancelled")}
-                      className="text-xs font-semibold text-red-600"
-                    >
-                      Cancel
-                    </button>
-                  )}
-                </td>
-              </tr>
+                      {a.status}
+                    </span>
+                  </td>
+                  <td className="px-5 py-4 whitespace-nowrap space-x-2">
+                    {role !== "client" && a.status === "Pending" && (
+                      <button
+                        onClick={() => void setStatus(a.id, "Confirmed")}
+                        className="text-xs font-semibold text-green-700"
+                      >
+                        Confirm
+                      </button>
+                    )}
+                    {role !== "client" && a.status === "Confirmed" && (
+                      <button
+                        onClick={() => void setStatus(a.id, "Completed")}
+                        className="text-xs font-semibold text-blue-700"
+                      >
+                        Mark done
+                      </button>
+                    )}
+                    {role !== "client" && ["Pending", "Confirmed"].includes(a.status) && (
+                      <button
+                        onClick={() =>
+                          setResched(
+                            resched?.id === a.id ? null : { id: a.id, date: a.date, time: a.time },
+                          )
+                        }
+                        className="text-xs font-semibold text-[#a8863a]"
+                      >
+                        Reschedule
+                      </button>
+                    )}
+                    {["Pending", "Confirmed"].includes(a.status) && (
+                      <button
+                        onClick={() => void setStatus(a.id, "Cancelled")}
+                        className="text-xs font-semibold text-red-600"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </td>
+                </tr>
+                {resched?.id === a.id && (
+                  <tr>
+                    <td colSpan={7} className="px-5 py-3 bg-[#f7f5f0]">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <input
+                          type="date"
+                          min={tomorrow}
+                          className="bg-white border border-[#e8e4dc] rounded-lg px-3 py-2 text-sm text-[#0d1f3c]"
+                          value={resched.date}
+                          onChange={(e) => setResched({ ...resched, date: e.target.value })}
+                        />
+                        <select
+                          className="bg-white border border-[#e8e4dc] rounded-lg px-3 py-2 text-sm text-[#0d1f3c]"
+                          value={resched.time}
+                          onChange={(e) => setResched({ ...resched, time: e.target.value })}
+                        >
+                          {SLOTS.map((s) => (
+                            <option key={s}>{s}</option>
+                          ))}
+                        </select>
+                        <button
+                          onClick={() => void saveReschedule()}
+                          className="bg-[#0d1f3c] text-white text-xs font-semibold px-4 py-2 rounded"
+                        >
+                          Save new time
+                        </button>
+                        <button
+                          onClick={() => setResched(null)}
+                          className="text-xs font-semibold text-[#8a9ab5]"
+                        >
+                          Cancel
+                        </button>
+                        <span className="text-xs text-[#8a9ab5]">
+                          Both parties are notified automatically.
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
             ))}
           </tbody>
         </table>

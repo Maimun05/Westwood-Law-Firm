@@ -142,6 +142,16 @@ BEGIN
   RETURN v;
 END $$;
 
+-- Every real Supabase project ships the supabase_realtime publication; the
+-- harness must too, or 20261018's guarded ALTER PUBLICATION block is skipped
+-- locally and the realtime assertions prove nothing.
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
+    CREATE PUBLICATION supabase_realtime;
+  END IF;
+END $$;
+
 -- Supabase grants anon/authenticated/service_role blanket table privileges in
 -- public and lets RLS be the only gate. Without this the harness reports
 -- "permission denied for table X" for every insert and the RLS assertions are
@@ -266,6 +276,7 @@ public_execute_security_definer|submit_inquiry
 public_execute_security_definer|attach_inquiry_files
 multiple_permissive_policies|audit_logs / SELECT
 multiple_permissive_policies|documents / UPDATE
+multiple_permissive_policies|inquiries / SELECT
 multiple_permissive_policies|inquiries / UPDATE
 multiple_permissive_policies|matter_notes / INSERT
 multiple_permissive_policies|matters / UPDATE
@@ -713,11 +724,14 @@ grants_ok "inquiries.seminar_id exists and is indexed" \
 
 # Keeping BOTH signatures would make a 7-argument call ambiguous — every
 # argument has a default — and PostgREST answers ambiguity with PGRST203, so
-# the live contact form would break the moment the old signature stayed behind.
-grants_ok "only the 8-arg submit_inquiry survives, and anon can still call it" \
+# the live contact form would break the moment an old signature stayed behind.
+# 20261013 swapped the 7-arg for an 8-arg; 20261018 swapped that for the 9-arg
+# (p_lawyer_id), so the surviving signature is now the 9-arg one.
+grants_ok "only the 9-arg submit_inquiry survives, and anon can still call it" \
   "SELECT to_regprocedure('public.submit_inquiry(text,text,text,text,text,text,text)') IS NULL
-      AND to_regprocedure('public.submit_inquiry(text,text,text,text,text,text,text,text)') IS NOT NULL
-      AND has_function_privilege('anon', 'public.submit_inquiry(text,text,text,text,text,text,text,text)', 'EXECUTE');" \
+      AND to_regprocedure('public.submit_inquiry(text,text,text,text,text,text,text,text)') IS NULL
+      AND to_regprocedure('public.submit_inquiry(text,text,text,text,text,text,text,text,uuid)') IS NOT NULL
+      AND has_function_privilege('anon', 'public.submit_inquiry(text,text,text,text,text,text,text,text,uuid)', 'EXECUTE');" \
   "t"
 
 # The frontend deployed today still calls the 7-argument form. It has to keep
@@ -775,6 +789,20 @@ elif $PSQL -f "$REPO/supabase/migrations/20261013_seminar_registrations.sql" >/d
 else
   fail "20261013 could not be re-applied on its own"
   grep -i error "$WORKDIR/sem.err" | head -3
+fi
+
+# The re-run above resurrects the 8-arg submit_inquiry that 20261018 dropped
+# (20261013 recreates it verbatim). That is an artifact of re-running an OLD
+# file by itself, not the shipped state — the paste file applies 20261013 and
+# then 20261018. Re-apply 20261018 here so every later assertion (and the
+# attachment fixture) sees the real end state instead of a 8-arg/9-arg pair
+# that would make a 7-argument call ambiguous.
+if $PSQL -f "$REPO/supabase/migrations/20261018_realtime_inquiries_messaging_consultations.sql" \
+     >/dev/null 2>"$WORKDIR/restore18.err"; then
+  pass "20261018 re-applies over a re-run 20261013 and restores the 9-arg RPC"
+else
+  fail "20261018 could not be re-applied after the 20261013 re-run"
+  grep -i error "$WORKDIR/restore18.err" | head -5
 fi
 
 # The send log: granted to nobody but the service role, and RLS-gated on top.
@@ -983,6 +1011,288 @@ if [ "$NOTIF" = "0" ]; then
 else
   fail "a signed-out visitor's inquiry does NOT notify the admin (got '$NOTIF')"
 fi
+
+echo
+echo "== 6g. Realtime publication + assignment-scoped inquiries =="
+# 20261018. Inquiries become realtime and a lawyer may only see the inquiries
+# assigned to them — the old is_lawyer_or_admin() staff policy let every lawyer
+# read every inquiry in the firm.
+PUB=$($PSQL -tA -c "SELECT count(*) FROM pg_publication_tables
+  WHERE pubname = 'supabase_realtime' AND schemaname = 'public'
+    AND tablename IN ('inquiries','inquiry_messages','appointments','matter_notes');" 2>&1 | tr -d '[:space:]')
+if [ "$PUB" = "4" ]; then
+  pass "inquiries, inquiry_messages, appointments and matter_notes are published for realtime"
+else
+  fail "expected 4 realtime tables, found '$PUB'"
+fi
+
+grants_ok "submit_inquiry is the 9-arg version and the 8-arg one is gone" \
+  "SELECT to_regprocedure('public.submit_inquiry(text,text,text,text,text,text,text,text,uuid)') IS NOT NULL
+      AND to_regprocedure('public.submit_inquiry(text,text,text,text,text,text,text,text)') IS NULL;" \
+  "t"
+
+# Policies evaluate as the caller, so every private helper a policy names must
+# carry an explicit grant. is_admin()/get_user_role() have had theirs since
+# 20261003; 20261018's helpers need theirs too or the appointments and
+# inquiry_messages policies fail with "permission denied for function" — which
+# reads like an RLS denial and hides the real cause.
+grants_ok "the 20261018 policy helpers are executable by authenticated" \
+  "SELECT has_function_privilege('authenticated', 'private.is_active_lawyer(uuid)', 'EXECUTE')
+      AND has_function_privilege('authenticated', 'private.user_is_inquiry_participant(uuid)', 'EXECUTE')
+      AND has_function_privilege('authenticated', 'private.user_can_access_inquiry(uuid)', 'EXECUTE');" \
+  "t"
+
+# A registered client picks a lawyer: the RPC stores the structured id AND
+# assigns straight away so the lawyer's portal and bell light up.
+$PSQL -q >/dev/null 2>&1 <<SQL
+SET request.jwt.claim.sub = '$CLIENT'; SET ROLE authenticated;
+SELECT public.submit_inquiry(
+  p_name := 'Realtime Rita', p_email := 'client@wlf.test',
+  p_message := 'I need help with a labor dispute.',
+  p_practice_area := 'labor', p_lawyer_id := '$LAWYER');
+SQL
+
+ASSIGNED=$($PSQL -tA -c "SELECT (requested_lawyer_id = '$LAWYER' AND assigned_to = '$LAWYER'
+                                 AND client_id = '$CLIENT')::TEXT
+  FROM public.inquiries WHERE name = 'Realtime Rita';" 2>&1 | tr -d '[:space:]')
+if [ "$ASSIGNED" = "true" ]; then
+  pass "a requested lawyer is stored as requested_lawyer_id and assigned to the inquiry"
+else
+  fail "requested_lawyer_id / assigned_to were not set as expected (got '$ASSIGNED')"
+fi
+
+INQ_ID=$($PSQL -tA -c "SELECT id FROM public.inquiries WHERE name = 'Realtime Rita';" 2>&1 | tr -d '[:space:]')
+
+NOTIF=$($PSQL -tA -c "SELECT count(*) FROM public.notifications
+  WHERE user_id = '$LAWYER' AND link = 'inquiries'
+    AND title = 'New inquiry assigned to you';" 2>&1 | tr -d '[:space:]')
+if [ "$NOTIF" = "1" ]; then
+  pass "the assigned lawyer is notified about the new inquiry"
+else
+  fail "the assigned lawyer is notified about the new inquiry (got '$NOTIF')"
+fi
+
+SEEN=$($PSQL -tA -c "SET request.jwt.claim.sub = '$LAWYER'; SET ROLE authenticated;
+  SELECT count(*) FROM public.inquiries WHERE id = '$INQ_ID';" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "$SEEN" = "1" ]; then
+  pass "the assigned lawyer sees their assigned inquiry"
+else
+  fail "the assigned lawyer cannot see their assigned inquiry (got '$SEEN')"
+fi
+
+for who in "$LAWYER2:another lawyer" "$STRANGER:an unrelated client"; do
+  uid="${who%%:*}"; label="${who##*:}"
+  GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$uid'; SET ROLE authenticated;
+    SELECT count(*) FROM public.inquiries WHERE id = '$INQ_ID';" 2>&1 | tail -1 | tr -d '[:space:]')
+  if [ "$GOT" = "0" ]; then
+    pass "$label does NOT see an inquiry assigned to someone else"
+  else
+    fail "$label sees an inquiry assigned to someone else (got '$GOT')"
+  fi
+done
+
+try_as "the assigned lawyer can advance the inquiry status" "$LAWYER" allow \
+  "UPDATE public.inquiries SET status = 'Contacted' WHERE id = '$INQ_ID';"
+
+try_as "the assigned lawyer CANNOT convert the inquiry" "$LAWYER" deny \
+  "UPDATE public.inquiries SET status = 'Converted' WHERE id = '$INQ_ID';"
+
+try_as "the assigned lawyer CANNOT edit the inquiry message" "$LAWYER" deny \
+  "UPDATE public.inquiries SET message = 'Rewritten history.' WHERE id = '$INQ_ID';"
+
+try_as "the assigned lawyer CANNOT reassign the inquiry" "$LAWYER" deny \
+  "UPDATE public.inquiries SET assigned_to = '$LAWYER2' WHERE id = '$INQ_ID';"
+
+deny_mutation "a client CANNOT edit their own inquiry" "$CLIENT" \
+  "UPDATE public.inquiries SET message = 'Client rewrite.' WHERE id = '$INQ_ID';" \
+  "SELECT message FROM public.inquiries WHERE id = '$INQ_ID';" "Ineedhelpwithalabordispute."
+
+echo
+echo "== 6h. Inquiry conversations (encrypted, participant-only) =="
+# 20261018's inquiry_messages: plain text in, ciphertext at rest, decrypted
+# read view, participant-only writes, read receipts via RPC, immutable rows.
+try_as "the client can message their own inquiry" "$CLIENT" allow \
+  "INSERT INTO public.inquiry_messages (inquiry_id, author_id, body) VALUES ('$INQ_ID','$CLIENT','Hello, I have a question.');"
+
+try_as "the assigned lawyer can reply" "$LAWYER" allow \
+  "INSERT INTO public.inquiry_messages (inquiry_id, author_id, body) VALUES ('$INQ_ID','$LAWYER','Hello, how can we help?');"
+
+try_as "an unrelated client CANNOT message the inquiry" "$STRANGER" deny \
+  "INSERT INTO public.inquiry_messages (inquiry_id, author_id, body) VALUES ('$INQ_ID','$STRANGER','Butting in.');"
+
+try_as "another lawyer CANNOT message the inquiry" "$LAWYER2" deny \
+  "INSERT INTO public.inquiry_messages (inquiry_id, author_id, body) VALUES ('$INQ_ID','$LAWYER2','Butting in.');"
+
+try_as "nobody can forge the author of a message" "$CLIENT" deny \
+  "INSERT INTO public.inquiry_messages (inquiry_id, author_id, body) VALUES ('$INQ_ID','$LAWYER','Forged author.');"
+
+PLAIN=$($PSQL -tA -c "SELECT count(*) FROM public.inquiry_messages
+  WHERE inquiry_id = '$INQ_ID' AND body = 'Hello, I have a question.';" 2>&1 | tr -d '[:space:]')
+ENC=$($PSQL -tA -c "SELECT count(*) FROM public.inquiry_messages
+  WHERE inquiry_id = '$INQ_ID' AND body_encrypted;" 2>&1 | tr -d '[:space:]')
+ALLMSGS=$($PSQL -tA -c "SELECT count(*) FROM public.inquiry_messages WHERE inquiry_id = '$INQ_ID';" 2>&1 | tr -d '[:space:]')
+if [ "$PLAIN" = "0" ] && [ "$ENC" = "$ALLMSGS" ] && [ "$ALLMSGS" != "0" ]; then
+  pass "no inquiry message is stored as plain text ($ENC/$ALLMSGS encrypted)"
+else
+  fail "inquiry message encryption (plain=$PLAIN enc=$ENC all=$ALLMSGS)"
+fi
+
+DEC=$($PSQL -tA -c "SET request.jwt.claim.sub = '$LAWYER'; SET ROLE authenticated;
+  SELECT count(*) FROM public.inquiry_messages_thread
+  WHERE inquiry_id = '$INQ_ID' AND body = 'Hello, I have a question.';" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "$DEC" = "1" ]; then
+  pass "the lawyer reads the client's message decrypted through the view"
+else
+  fail "the lawyer cannot read the decrypted message (got '$DEC')"
+fi
+
+GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$STRANGER'; SET ROLE authenticated;
+  SELECT count(*) FROM public.inquiry_messages_thread WHERE inquiry_id = '$INQ_ID';" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "$GOT" = "0" ]; then
+  pass "a stranger sees no rows through the inquiry thread view"
+else
+  fail "a stranger sees rows through the inquiry thread view (got '$GOT')"
+fi
+
+NOTIF=$($PSQL -tA -c "SELECT count(*) FROM public.notifications
+  WHERE user_id = '$LAWYER' AND title = 'New message about an inquiry'
+    AND message LIKE 'Hello, I have a question.%';" 2>&1 | tr -d '[:space:]')
+if [ "$NOTIF" = "1" ]; then
+  pass "a client's message notifies the assigned lawyer"
+else
+  fail "a client's message notifies the assigned lawyer (got '$NOTIF')"
+fi
+
+NOTIF=$($PSQL -tA -c "SELECT count(*) FROM public.notifications
+  WHERE user_id = '$CLIENT' AND title = 'New message from the firm'
+    AND message LIKE 'Hello, how can we help?%';" 2>&1 | tr -d '[:space:]')
+if [ "$NOTIF" = "1" ]; then
+  pass "the lawyer's reply notifies the client"
+else
+  fail "the lawyer's reply notifies the client (got '$NOTIF')"
+fi
+
+# Read receipts: the lawyer opening the thread stamps the client's message, and
+# only the other party's rows are touched.
+READ=$($PSQL -tA -c "SET request.jwt.claim.sub = '$LAWYER'; SET ROLE authenticated;
+  SELECT public.mark_inquiry_messages_read('$INQ_ID');" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "$READ" = "1" ]; then
+  pass "opening the conversation marks the other party's message read"
+else
+  fail "mark_inquiry_messages_read returned '$READ' (expected 1)"
+fi
+
+SEEN=$($PSQL -tA -c "SELECT (read_at IS NOT NULL)::TEXT FROM public.inquiry_messages
+  WHERE inquiry_id = '$INQ_ID' AND author_id = '$CLIENT';" 2>&1 | tr -d '[:space:]')
+MINE=$($PSQL -tA -c "SELECT (read_at IS NULL)::TEXT FROM public.inquiry_messages
+  WHERE inquiry_id = '$INQ_ID' AND author_id = '$LAWYER';" 2>&1 | tr -d '[:space:]')
+if [ "$SEEN" = "true" ] && [ "$MINE" = "true" ]; then
+  pass "the receipt lands on the other party's message, not the reader's own"
+else
+  fail "read receipt landed wrong (client seen=$SEEN, lawyer own-null=$MINE)"
+fi
+
+can_exec "a stranger CANNOT mark someone else's conversation read" authenticated "$STRANGER" deny "public.mark_inquiry_messages_read('$INQ_ID')"
+can_exec "a client CANNOT read the inquiry-messages key" authenticated "$CLIENT" deny "private.inquiry_message_key()"
+
+deny_mutation "inquiry messages are immutable (no edit)" "$LAWYER" \
+  "UPDATE public.inquiry_messages SET body = 'Rewritten.' WHERE inquiry_id = '$INQ_ID';" \
+  "SELECT count(*) FROM public.inquiry_messages WHERE inquiry_id = '$INQ_ID' AND body = 'Rewritten.';" "0"
+
+echo
+echo "== 6i. Consultation requests in the appointment calendar =="
+# 20261018: a client books a consultation with a chosen lawyer and no matter.
+try_as "a client can request a consultation without a matter" "$CLIENT" allow \
+  "INSERT INTO public.appointments (matter_id, client_id, lawyer_id, appointment_type, date, time, mode, status)
+   VALUES (NULL, '$CLIENT', '$LAWYER', 'Consultation', CURRENT_DATE + 3, '10:00', 'Video Call', 'Pending');"
+
+try_as "the same lawyer+slot CANNOT be double-booked" "$STRANGER" deny \
+  "INSERT INTO public.appointments (matter_id, client_id, lawyer_id, appointment_type, date, time, mode, status)
+   VALUES (NULL, '$STRANGER', '$LAWYER', 'Consultation', CURRENT_DATE + 3, '10:00', 'Video Call', 'Pending');"
+
+try_as "a consultation CANNOT be booked in the past" "$CLIENT" deny \
+  "INSERT INTO public.appointments (matter_id, client_id, lawyer_id, appointment_type, date, time, mode, status)
+   VALUES (NULL, '$CLIENT', '$LAWYER', 'Consultation', CURRENT_DATE - 1, '10:00', 'Video Call', 'Pending');"
+
+try_as "a consultation CANNOT use a malformed time" "$CLIENT" deny \
+  "INSERT INTO public.appointments (matter_id, client_id, lawyer_id, appointment_type, date, time, mode, status)
+   VALUES (NULL, '$CLIENT', '$LAWYER', 'Consultation', CURRENT_DATE + 4, '25:99', 'Video Call', 'Pending');"
+
+# The guard must not regress the format the existing AppointmentsPanel already
+# books with ('9:00 AM' slots). Only HH:MM was allowed in the first draft of
+# 20261018 and every existing booking path died with 22023.
+try_as "the 12-hour 'H:MM AM' slot format still books" "$STRANGER" allow \
+  "INSERT INTO public.appointments (matter_id, client_id, lawyer_id, appointment_type, date, time, mode, status)
+   VALUES (NULL, '$STRANGER', '$LAWYER', 'Consultation', CURRENT_DATE + 7, '9:00 AM', 'In-Person', 'Pending');"
+
+try_as "a client CANNOT book under someone else's name" "$STRANGER" deny \
+  "INSERT INTO public.appointments (matter_id, client_id, lawyer_id, appointment_type, date, time, mode, status)
+   VALUES (NULL, '$CLIENT', '$LAWYER', 'Consultation', CURRENT_DATE + 5, '10:00', 'Video Call', 'Pending');"
+
+APPT_ID=$($PSQL -tA -c "SELECT id FROM public.appointments
+  WHERE client_id = '$CLIENT' AND appointment_type = 'Consultation';" 2>&1 | tr -d '[:space:]')
+
+try_as "the lawyer can reschedule the consultation" "$LAWYER" allow \
+  "UPDATE public.appointments SET date = CURRENT_DATE + 6 WHERE id = '$APPT_ID';"
+
+RESCHED=$($PSQL -tA -c "SELECT (rescheduled_at IS NOT NULL)::TEXT FROM public.appointments WHERE id = '$APPT_ID';" 2>&1 | tr -d '[:space:]')
+if [ "$RESCHED" = "true" ]; then
+  pass "a reschedule is stamped with rescheduled_at"
+else
+  fail "rescheduled_at was not stamped (got '$RESCHED')"
+fi
+
+NOTIF=$($PSQL -tA -c "SELECT count(*) FROM public.notifications
+  WHERE user_id = '$CLIENT' AND title = 'Appointment rescheduled';" 2>&1 | tr -d '[:space:]')
+if [ "$NOTIF" = "1" ]; then
+  pass "the client is notified about the reschedule"
+else
+  fail "the client is notified about the reschedule (got '$NOTIF')"
+fi
+
+deny_mutation "a client CANNOT reschedule their own consultation" "$CLIENT" \
+  "UPDATE public.appointments SET date = CURRENT_DATE + 9 WHERE id = '$APPT_ID';" \
+  "SELECT date::TEXT FROM public.appointments WHERE id = '$APPT_ID';" "$($PSQL -tA -c "SELECT (CURRENT_DATE + 6)::TEXT;" | tr -d '[:space:]')"
+
+grants_ok "service_role can resolve recipients for the email function" \
+  "SELECT has_table_privilege('service_role', 'public.profiles', 'SELECT')
+      AND has_table_privilege('service_role', 'public.appointments', 'SELECT')
+      AND has_table_privilege('service_role', 'public.inquiries', 'SELECT');" \
+  "t"
+
+echo
+echo "== 6j. Email claim log for notify-event =="
+# 20261019. The edge function claims each (event, entity, recipient) before
+# sending, so a retry or a double-click cannot send the same email twice.
+# Nobody but the service role may touch the table.
+grants_ok "email_events is service-role-only and keyed per recipient" \
+  "SELECT to_regclass('public.email_events') IS NOT NULL
+      AND (SELECT relrowsecurity FROM pg_class WHERE oid = to_regclass('public.email_events'))
+      AND NOT has_table_privilege('anon', 'public.email_events', 'SELECT')
+      AND NOT has_table_privilege('authenticated', 'public.email_events', 'INSERT')
+      AND has_table_privilege('service_role', 'public.email_events', 'INSERT')
+      AND EXISTS (SELECT 1 FROM pg_constraint
+                  WHERE conrelid = 'public.email_events'::regclass
+                    AND conname = 'email_events_once');" \
+  "t"
+
+# Prove the claim actually dedups: the second insert of the same triple is
+# rejected with 23505, which is exactly what makes the edge function skip the
+# second send instead of mailing the recipient again.
+$PSQL -q -c "INSERT INTO public.email_events (event, entity_id, recipient)
+             VALUES ('inquiry_submitted', '00000000-0000-0000-0000-00000000c1a1', 'dedup@example.com');" \
+  >/dev/null 2>"$WORKDIR/claim.err" || fail "harness: could not insert the first email claim"
+DUP=$($PSQL -tA -c "INSERT INTO public.email_events (event, entity_id, recipient)
+                    VALUES ('inquiry_submitted', '00000000-0000-0000-0000-00000000c1a1', 'dedup@example.com');" 2>&1)
+if echo "$DUP" | grep -q "23505\|duplicate key"; then
+  pass "a duplicate email claim is rejected (one email per recipient)"
+else
+  fail "a duplicate email claim was accepted"
+fi
+
+try_as "an authenticated user cannot write the email log" "$CLIENT" deny \
+  "INSERT INTO public.email_events (event, entity_id, recipient)
+   VALUES ('inquiry_submitted', '00000000-0000-0000-0000-00000000c1a2', 'sneaky@example.com');"
 
 echo
 echo "== 7. Content payloads match the real columns =="

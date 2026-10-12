@@ -12,6 +12,10 @@ import BreakGlassModal from "./portal/BreakGlassModal";
 
 import MatterTimeline from "./portal/MatterTimeline";
 
+import InquiryInbox from "./portal/InquiryInbox";
+
+import InquiryThread from "./portal/InquiryThread";
+
 import MattersTimeline from "./portal/MattersTimeline";
 
 import PortalShell, { type PortalSearchItem } from "./portal/PortalShell";
@@ -55,6 +59,8 @@ import { usePageMeta } from "@/hooks/usePageMeta";
 import { signIn, signUp, signOut, type AuthUser } from "@/lib/auth";
 
 import { supabase } from "@/lib/supabase";
+
+import { subscribeToTable } from "@/lib/realtime";
 
 import {
   getMyMatters,
@@ -173,6 +179,7 @@ const CLIENT_TABS = [
 const LAWYER_TABS = [
   { key: "dashboard", label: "Dashboard" },
   { key: "matters", label: "My Matters", group: "Casework" },
+  { key: "inquiries", label: "Inquiries", group: "Casework" },
   { key: "clients", label: "Clients", group: "Casework" },
   { key: "appointments", label: "Appointments", group: "Casework" },
   { key: "documents", label: "Documents", group: "Casework" },
@@ -1103,15 +1110,17 @@ function NotificationsModal({
                     ? "📋"
                     : n.link === "appointments"
                       ? "📅"
-                      : n.link === "intake"
-                        ? "📨"
-                        : n.type === "success"
-                          ? "✅"
-                          : n.type === "warning"
-                            ? "⚠️"
-                            : n.type === "error"
-                              ? "⛔"
-                              : "🔔"}
+                      : n.link === "inquiries"
+                        ? "✉️"
+                        : n.link === "intake"
+                          ? "📨"
+                          : n.type === "success"
+                            ? "✅"
+                            : n.type === "warning"
+                              ? "⚠️"
+                              : n.type === "error"
+                                ? "⛔"
+                                : "🔔"}
               </span>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-3">
@@ -2430,6 +2439,9 @@ function ClientPortalView({
 
   const [myInquiries, setMyInquiries] = useState<MyInquiry[]>([]);
 
+  // Which inquiry's conversation is expanded in the My Inquiries tab.
+  const [openInquiry, setOpenInquiry] = useState<string | null>(null);
+
   const [myMatterEvents, setMyMatterEvents] = useState<MatterEvent[]>([]);
 
   const [lawyers, setLawyers] = useState<Lawyer[]>([]);
@@ -2530,6 +2542,21 @@ function ClientPortalView({
 
     loadData();
   }, [currentUser.id, currentUser.role]);
+
+  // Live inquiries: a status change or a lawyer assignment made by the firm
+  // shows up here without a refresh. Refetching the list keeps one merge path,
+  // so an event can never append a duplicate of a row already on screen.
+  useEffect(() => {
+    return subscribeToTable(
+      "inquiries",
+      () => {
+        void getMyInquiries(currentUser.id).then(({ data }) => {
+          if (data) setMyInquiries(data);
+        });
+      },
+      { filter: `client_id=eq.${currentUser.id}`, channelKey: currentUser.id },
+    );
+  }, [currentUser.id]);
 
   const searchItems = useMemo<PortalSearchItem[]>(() => {
     const items: PortalSearchItem[] = [];
@@ -2757,32 +2784,59 @@ function ClientPortalView({
               </div>
             ) : (
               <div className="space-y-3">
-                {myInquiries.map((q) => (
-                  <div key={q.id} className="bg-white rounded-xl border border-[#e8e4dc] p-5">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono text-sm font-semibold text-[#0d1f3c]">
-                        {q.inquiry_number}
-                      </span>
-                      <Badge text={q.status} />
+                {myInquiries.map((q) => {
+                  const assignedName = q.assigned_to
+                    ? lawyers.find((l) => l.id === q.assigned_to)?.full_name
+                    : null;
+                  const open = openInquiry === q.id;
+                  return (
+                    <div key={q.id} className="bg-white rounded-xl border border-[#e8e4dc] p-5">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-mono text-sm font-semibold text-[#0d1f3c]">
+                              {q.inquiry_number}
+                            </span>
+                            <Badge text={q.status} />
+                          </div>
+                          <p className="text-sm font-semibold text-[#0d1f3c] mt-2">
+                            {q.subject || "Legal inquiry"}
+                          </p>
+                          <p className="text-xs text-[#8a9ab5] mt-0.5">
+                            {q.practice_area || "General"} ·{" "}
+                            {new Date(q.created_at).toLocaleDateString("en-PH", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            })}
+                            {assignedName ? ` · Assigned to ${assignedName}` : ""}
+                          </p>
+                          {q.message && (
+                            <p className="text-sm text-[#2c3347] mt-3 whitespace-pre-line line-clamp-3">
+                              {q.message}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => setOpenInquiry(open ? null : q.id)}
+                          className="bg-[#0d1f3c] text-white text-xs font-semibold px-3 py-2 rounded whitespace-nowrap"
+                        >
+                          {open ? "Hide messages" : "Messages"}
+                        </button>
+                      </div>
+                      {open && (
+                        <div className="mt-4">
+                          <InquiryThread
+                            inquiryId={q.id}
+                            userId={currentUser.id}
+                            role="client"
+                            counterpartLabel={assignedName ?? undefined}
+                          />
+                        </div>
+                      )}
                     </div>
-                    <p className="text-sm font-semibold text-[#0d1f3c] mt-2">
-                      {q.subject || "Legal inquiry"}
-                    </p>
-                    <p className="text-xs text-[#8a9ab5] mt-0.5">
-                      {q.practice_area || "General"} ·{" "}
-                      {new Date(q.created_at).toLocaleDateString("en-PH", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </p>
-                    {q.message && (
-                      <p className="text-sm text-[#2c3347] mt-3 whitespace-pre-line line-clamp-3">
-                        {q.message}
-                      </p>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -2914,7 +2968,9 @@ function ClientPortalView({
           onDelete={notifs.remove}
           onOpenLink={(link) => {
             setShowNotifs(false);
-            if (["matters", "appointments", "documents"].includes(link)) setTab(link);
+            // "inquiries" lands on this portal's own inquiries tab: the
+            // lawyer's queue or the client's My Inquiries.
+            if (["matters", "appointments", "documents", "inquiries"].includes(link)) setTab(link);
           }}
           onClose={() => setShowNotifs(false)}
         />
@@ -3195,6 +3251,8 @@ function LawyerPortalView({
           </div>
         )}
 
+        {tab === "inquiries" && <InquiryInbox userId={currentUser.id} onToast={showToast} />}
+
         {tab === "clients" && (
           <div className="space-y-4">
             <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Clients</h2>
@@ -3334,7 +3392,9 @@ function LawyerPortalView({
           onDelete={notifs.remove}
           onOpenLink={(link) => {
             setShowNotifs(false);
-            if (["matters", "appointments", "documents"].includes(link)) setTab(link);
+            // "inquiries" lands on this portal's own inquiries tab: the
+            // lawyer's queue or the client's My Inquiries.
+            if (["matters", "appointments", "documents", "inquiries"].includes(link)) setTab(link);
           }}
           onClose={() => setShowNotifs(false)}
         />
@@ -4683,7 +4743,11 @@ function AdminPortalView({
           onDelete={notifs.remove}
           onOpenLink={(link) => {
             setShowNotifs(false);
-            if (["matters", "appointments", "documents", "intake"].includes(link)) setTab(link);
+            // The admin has no inquiries tab; inquiry notifications land on
+            // Client Intake, which is the front desk's queue for them.
+            if (link === "inquiries") setTab("intake");
+            else if (["matters", "appointments", "documents", "intake"].includes(link))
+              setTab(link);
           }}
           onClose={() => setShowNotifs(false)}
         />

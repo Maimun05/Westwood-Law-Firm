@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { subscribeToTable } from "@/lib/realtime";
 import { MODAL_INPUT_CLASS } from "@/components/ui/Modal";
 
 type Note = {
@@ -65,6 +66,13 @@ export default function MatterTimeline({
   };
   useEffect(() => {
     void load();
+    // Live messages: a note added by either side appears without a refresh.
+    // The stream is filtered to this matter and Supabase applies the table's
+    // SELECT policy on top, so nothing from another matter can arrive.
+    return subscribeToTable("matter_notes", () => void load(), {
+      filter: `matter_id=eq.${matterId}`,
+      channelKey: matterId,
+    });
   }, [matterId]);
 
   // A conversation reads top to bottom, so keep the newest message in view.

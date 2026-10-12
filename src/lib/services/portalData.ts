@@ -98,6 +98,7 @@ export type MyInquiry = Pick<
   | "status"
   | "preferred_contact_method"
   | "assigned_to"
+  | "requested_lawyer_id"
   | "created_at"
 >;
 
@@ -106,7 +107,7 @@ export async function getMyInquiries(userId: string) {
     const { data, error } = await supabase
       .from("inquiries")
       .select(
-        "id, inquiry_number, subject, practice_area, message, status, preferred_contact_method, assigned_to, created_at",
+        "id, inquiry_number, subject, practice_area, message, status, preferred_contact_method, assigned_to, requested_lawyer_id, created_at",
       )
       .eq("client_id", userId)
       .order("created_at", { ascending: false });
@@ -115,6 +116,109 @@ export async function getMyInquiries(userId: string) {
     return { data: (data as MyInquiry[]) ?? [], error: null };
   } catch (error: any) {
     return { data: null, error: error.message };
+  }
+}
+
+// ── Lawyer inquiry queue ──────────────────────────────────────────────────────
+//
+// Inquiries assigned to this lawyer. RLS already restricts an inquiry SELECT
+// to its assigned lawyer (plus admins and the client), so the `.eq` is a
+// belt-and-braces filter on top of the policy, not the security boundary.
+// The old staff policy let every lawyer read every inquiry in the firm;
+// 20261018 replaced it.
+
+export type LawyerInquiry = Pick<
+  Inquiry,
+  | "id"
+  | "inquiry_number"
+  | "name"
+  | "email"
+  | "practice_area"
+  | "subject"
+  | "message"
+  | "status"
+  | "assigned_to"
+  | "requested_lawyer_id"
+  | "created_at"
+>;
+
+export async function getLawyerInquiries(userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from("inquiries")
+      .select(
+        "id, inquiry_number, name, email, practice_area, subject, message, status, assigned_to, requested_lawyer_id, created_at",
+      )
+      .eq("assigned_to", userId)
+      .order("created_at", { ascending: false })
+      .limit(100);
+
+    if (error) throw error;
+    return { data: (data as LawyerInquiry[]) ?? [], error: null };
+  } catch (error: any) {
+    return { data: null, error: error.message as string };
+  }
+}
+
+// A lawyer may only advance the status; the database guard trigger
+// (private.guard_inquiry_update) refuses everything else, including the
+// front-desk statuses. This list just keeps the dropdown honest.
+export const LAWYER_INQUIRY_STATUSES = ["Under Review", "Contacted", "Closed"] as const;
+
+// ── Inquiry conversations ─────────────────────────────────────────────────────
+//
+// The client <-> assigned-lawyer thread for one inquiry. Reads go through
+// inquiry_messages_thread — the decrypting SECURITY INVOKER view over the
+// encrypted table (20261018) — so RLS decides what each side can see. Writes
+// are append-only; read receipts are stamped through the guarded RPC.
+
+export type InquiryMessage = Database["public"]["Views"]["inquiry_messages_thread"]["Row"];
+
+export async function getInquiryMessages(inquiryId: string) {
+  try {
+    const { data, error } = await supabase
+      .from("inquiry_messages_thread")
+      .select("id, inquiry_id, author_id, read_at, created_at, body")
+      .eq("inquiry_id", inquiryId)
+      .order("created_at", { ascending: true })
+      .limit(200);
+
+    if (error) throw error;
+    return { data: (data as InquiryMessage[]) ?? [], error: null };
+  } catch (error: any) {
+    return { data: null, error: error.message as string };
+  }
+}
+
+export async function sendInquiryMessage(inquiryId: string, authorId: string, body: string) {
+  try {
+    // The body goes in as plain text; the BEFORE INSERT trigger encrypts it
+    // and flips body_encrypted. The policy only admits a real participant
+    // writing under their own id, so author_id cannot be forged. The id is
+    // read back under the same policies so the caller can hand it to the
+    // email function (one email per message, never one per retry).
+    const { data, error } = await supabase
+      .from("inquiry_messages")
+      .insert({ inquiry_id: inquiryId, author_id: authorId, body })
+      .select("id")
+      .single();
+
+    if (error) throw error;
+    return { id: (data as { id: string } | null)?.id ?? null, error: null };
+  } catch (error: any) {
+    return { id: null, error: error.message as string };
+  }
+}
+
+export async function markInquiryMessagesRead(inquiryId: string) {
+  try {
+    const { error } = await supabase.rpc("mark_inquiry_messages_read", {
+      p_inquiry_id: inquiryId,
+    });
+    if (error) throw error;
+    return { error: null };
+  } catch (error: any) {
+    return { error: error.message as string };
   }
 }
 

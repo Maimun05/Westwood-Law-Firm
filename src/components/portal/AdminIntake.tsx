@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getLawyers, type Lawyer } from "@/lib/content";
 import ListFilters, { applyFilters } from "@/components/portal/ListFilters";
+import { subscribeToTable } from "@/lib/realtime";
+import { notifyEvent } from "@/utils/api";
 import type { Database } from "@/lib/database.types";
 
 type Inquiry = {
@@ -14,6 +16,8 @@ type Inquiry = {
   message: string;
   status: string;
   preferred_lawyer: string | null;
+  assigned_to: string | null;
+  requested_lawyer_id: string | null;
   created_at: string;
 };
 type Attachment = {
@@ -104,6 +108,10 @@ export default function AdminIntake({ onConverted }: { onConverted?: () => void 
   useEffect(() => {
     void load();
     void getLawyers().then((r) => setLawyers(r.data ?? []));
+    // Live intake: a new inquiry, an assignment or a lawyer's status change
+    // shows up without a refresh. Admin RLS admits every inquiry, so the
+    // subscription needs no filter.
+    return subscribeToTable("inquiries", () => void load());
   }, []);
 
   const setStatus = async (id: string, status: InquiryStatus) => {
@@ -135,6 +143,37 @@ export default function AdminIntake({ onConverted }: { onConverted?: () => void 
     setLawyerId("");
     await load();
     onConverted?.();
+  };
+
+  // Assign without converting: the lawyer's queue and bell light up (the
+  // inquiries_notify_assigned trigger), and the lawyer gets the email. The
+  // inquiry stays in the queue until it is converted or closed.
+  const assign = async (i: Inquiry) => {
+    if (!lawyerId) {
+      setMsg({ ok: false, text: "Choose the lawyer to assign." });
+      return;
+    }
+    const changed = i.assigned_to !== lawyerId;
+    const { error } = await supabase
+      .from("inquiries")
+      .update({ assigned_to: lawyerId })
+      .eq("id", i.id);
+    if (error) {
+      setMsg({ ok: false, text: error.message });
+      return;
+    }
+    setMsg({
+      ok: true,
+      text: `Assigned to ${
+        lawyers.find((l) => l.id === lawyerId)?.full_name ?? "the lawyer"
+      }. They can see it in their portal now.`,
+    });
+    setOpen(null);
+    setLawyerId("");
+    await load();
+    // Email the lawyer — but only when the assignment actually changed, so
+    // re-clicking Assign for the same lawyer cannot re-send it.
+    if (changed) void notifyEvent("inquiry_assigned", i.id);
   };
 
   const visible = applyFilters(
@@ -203,6 +242,15 @@ export default function AdminIntake({ onConverted }: { onConverted?: () => void 
                 {i.inquiry_number} · {i.practice_area} ·{" "}
                 {new Date(i.created_at).toLocaleDateString("en-PH")}
                 {i.preferred_lawyer ? ` · prefers ${i.preferred_lawyer}` : ""}
+                {i.assigned_to
+                  ? ` · assigned to ${
+                      lawyers.find((l) => l.id === i.assigned_to)?.full_name ?? "a lawyer"
+                    }`
+                  : i.requested_lawyer_id
+                    ? ` · requested ${
+                        lawyers.find((l) => l.id === i.requested_lawyer_id)?.full_name ?? "a lawyer"
+                      }`
+                    : ""}
               </p>
               <p className="text-sm text-[#2c3347] mt-2 font-medium">{i.subject}</p>
               <p className="text-sm text-[#2c3347] mt-1 whitespace-pre-wrap">{i.message}</p>
@@ -292,6 +340,12 @@ export default function AdminIntake({ onConverted }: { onConverted?: () => void 
                 className="bg-[#c9a84c] text-[#0d1f3c] text-xs font-semibold px-4 py-2 rounded"
               >
                 Create matter
+              </button>
+              <button
+                onClick={() => void assign(i)}
+                className="border-2 border-[#0d1f3c] text-[#0d1f3c] text-xs font-semibold px-4 py-2 rounded"
+              >
+                Assign lawyer only
               </button>
               <span className="text-xs text-[#8a9ab5]">
                 The client must already have an account with this email.

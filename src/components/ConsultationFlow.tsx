@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { getLawyers, getPracticeAreas, type Lawyer, type PracticeArea } from "@/lib/content";
 import { signIn } from "@/lib/auth";
-import { submitConsultation } from "@/utils/api";
+import { submitConsultation, notifyEvent } from "@/utils/api";
+import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { PracticeAreaIcon, IconArrowRight, IconCheck } from "@/components/Icons";
@@ -231,6 +232,10 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
   const [confirmed, setConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  // Set when the inquiry is recorded but the calendar entry could not be —
+  // shown on the success screen so the client is never told a slot is held
+  // when it is not.
+  const [bookingNote, setBookingNote] = useState<string | null>(null);
   const [refNumber, setRefNumber] = useState(generateRef);
   const [lawyers, setLawyers] = useState<Lawyer[]>([]);
   const [practiceAreas, setPracticeAreas] = useState<PracticeArea[]>([]);
@@ -284,9 +289,17 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
   // Writes the booking to public.inquiries so it lands in the admin's inquiry
   // queue, where it can be converted into a matter. Previously this only set a
   // UI flag and the reference number below was never recorded anywhere.
+  //
+  // For a signed-in client who picked a lawyer and a slot, this also creates a
+  // real appointment row linked to that inquiry (matter_id NULL, 20261018):
+  // the lawyer's calendar shows the request, the database's partial unique
+  // index makes double-booking impossible, and the reschedule/approve flow
+  // works on it. A signed-out visitor's request stays an inquiry that reaches
+  // the firm by email — there is no account to hang an appointment on.
   const handleConfirm = async () => {
     setSubmitting(true);
     setSubmitError("");
+    setBookingNote(null);
 
     const result = await submitConsultation({
       name: client.name,
@@ -295,15 +308,15 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
       practiceArea: selectedPA?.name ?? practiceArea,
       assistanceType: assistance,
       lawyerName: selectedLawyer?.full_name,
+      lawyerId: selectedLawyer?.id,
       method,
       date,
       time,
       notes: client.notes,
     });
 
-    setSubmitting(false);
-
     if (!result.success) {
+      setSubmitting(false);
       setSubmitError(
         "We could not record your consultation request. Please try again, or email the firm directly.",
       );
@@ -313,6 +326,57 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
     // Show the reference the firm's records actually use.
     if (result.referenceNumber) setRefNumber(result.referenceNumber);
     setConfirmed(true);
+
+    if (user && selectedLawyer && date && time && result.referenceNumber) {
+      try {
+        // The RPC returns the reference number; the id is read back under the
+        // client's own RLS (the inquiry is theirs), never guessed.
+        const { data: inquiry } = await supabase
+          .from("inquiries")
+          .select("id")
+          .eq("inquiry_number", result.referenceNumber)
+          .maybeSingle();
+
+        if (inquiry?.id) {
+          const { data: appt, error: apptError } = await supabase
+            .from("appointments")
+            .insert({
+              matter_id: null,
+              inquiry_id: inquiry.id,
+              client_id: user.id,
+              lawyer_id: selectedLawyer.id,
+              appointment_type: "Consultation",
+              date,
+              time,
+              mode: method as "In-Person" | "Video Call" | "Phone Call",
+              status: "Pending",
+              notes: client.notes?.trim() || null,
+            })
+            .select("id")
+            .single();
+
+          if (apptError) {
+            // The inquiry is recorded either way; say plainly that the slot
+            // is not held rather than showing a confirmation that overstates.
+            setBookingNote(
+              /duplicate|unique/i.test(apptError.message)
+                ? "That time slot was just taken, so it is not held in the calendar yet — the firm will contact you to agree another time."
+                : "Your request was recorded, but the calendar entry could not be created — the firm will confirm the schedule with you by email.",
+            );
+          } else if (appt?.id) {
+            // Fire and forget: email the firm and the lawyer from trusted
+            // records (the function re-checks with this user's own session).
+            void notifyEvent("consultation_requested", appt.id);
+          }
+        }
+      } catch {
+        setBookingNote(
+          "Your request was recorded — the firm will confirm the schedule with you by email.",
+        );
+      }
+    }
+
+    setSubmitting(false);
   };
 
   if (confirmed) {
@@ -370,6 +434,11 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
                   </div>
                 ))}
               </div>
+              {bookingNote && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+                  <p className="text-xs text-amber-700 leading-relaxed">{bookingNote}</p>
+                </div>
+              )}
               <p className="text-xs text-[#8a9ab5] leading-relaxed mb-6 text-center">
                 A confirmation will be sent to{" "}
                 <strong className="text-[#0d1f3c]">{client.email}</strong>

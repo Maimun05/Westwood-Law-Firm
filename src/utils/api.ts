@@ -18,6 +18,12 @@ export type InquiryPayload = {
   practiceArea?: string;
   /** Registration flow only: the seminar this inquiry is for. */
   seminarId?: string;
+  /**
+   * The lawyer the visitor chose, as a real profile id — never a name.
+   * public.submit_inquiry() validates it is an active lawyer and stores it on
+   * requested_lawyer_id (assigning it too, for registered clients).
+   */
+  lawyerId?: string;
 };
 
 // Signed-out visitors' inquiries are emailed to the firm and hidden from
@@ -34,6 +40,31 @@ export async function notifyFirmOfInquiry(referenceNumber: string) {
     });
   } catch (error) {
     console.error("Firm notification failed:", error);
+  }
+}
+
+// ── Email notifications (notify-event edge function) ─────────────────────────
+//
+// Transactional email goes through one edge function that resolves recipients
+// from the database with the service role — the browser only names the event
+// and the record id. The function first re-checks with the caller's own JWT
+// that they may see the record, so a forged id cannot mail a stranger.
+// Fire and forget, like notifyFirmOfInquiry: the action has already succeeded
+// and must not fail because the mail provider hiccupped.
+
+export type NotifyEvent =
+  | "inquiry_submitted"
+  | "inquiry_assigned"
+  | "inquiry_message"
+  | "consultation_requested"
+  | "appointment_status";
+
+export async function notifyEvent(event: NotifyEvent, id: string) {
+  if (!id) return;
+  try {
+    await supabase.functions.invoke("notify-event", { body: { event, id } });
+  } catch (error) {
+    console.error("Email notification failed:", error);
   }
 }
 
@@ -61,6 +92,9 @@ export async function submitInquiry(data: InquiryPayload, options?: { notifyFirm
       // that is not in seminar_events, so a stale page cannot file a
       // registration against a delisted seminar.
       p_seminar_id: data.seminarId || null,
+      // The chosen lawyer's database id. The RPC re-validates it against
+      // profiles (active lawyer only) — the browser is never trusted here.
+      p_lawyer_id: data.lawyerId || null,
     });
 
     if (error) throw error;
@@ -157,6 +191,8 @@ export type ConsultationPayload = {
   practiceArea: string;
   assistanceType: string;
   lawyerName?: string;
+  /** The chosen lawyer's profile id, when one was chosen. */
+  lawyerId?: string;
   method: string;
   date: string;
   time: string;
@@ -184,6 +220,10 @@ export async function submitConsultation(data: ConsultationPayload) {
     method: data.method,
     message: details,
     practiceArea: data.practiceArea,
+    // Stored as a real profile id on requested_lawyer_id; for a signed-in
+    // client the RPC also assigns the inquiry, so the lawyer's queue and
+    // bell light up immediately.
+    lawyerId: data.lawyerId,
   });
 }
 

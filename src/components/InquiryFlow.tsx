@@ -5,10 +5,13 @@ import { getPracticeAreas, getLawyers, type PracticeArea, type Lawyer } from "@/
 import {
   submitInquiry,
   notifyFirmOfInquiry,
+  notifyEvent,
   uploadInquiryAttachment,
   attachInquiryFiles,
   type InquiryFileMeta,
 } from "@/utils/api";
+
+import { supabase } from "@/lib/supabase";
 
 import { formatFileSize } from "@/lib/services/documents";
 
@@ -242,6 +245,14 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
 
   const selectedLawyer = form.lawyerId ? lawyers.find((l) => l.id === form.lawyerId) : null;
 
+  // Only lawyers who practise the chosen area. Before an area is picked the
+  // full directory is offered; once it is, the list narrows so a client cannot
+  // request a lawyer who does not handle their matter. The RPC re-validates
+  // the id on the server, so this is guidance, not the gate.
+  const eligibleLawyers = form.practiceArea
+    ? lawyers.filter((l) => l.practice_areas?.some((area) => area.id === form.practiceArea))
+    : lawyers;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -275,6 +286,11 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
           }`,
 
           practiceArea: pa?.name ?? form.practiceArea,
+
+          // The chosen lawyer as a real profile id — the server stores it on
+          // requested_lawyer_id and (for a registered client) assigns the
+          // inquiry, so the lawyer's queue and bell light up immediately.
+          lawyerId: form.lawyerId || undefined,
         },
         { notifyFirm: false },
       );
@@ -352,6 +368,20 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
         // it is safe even if the attachment step threw.
 
         void notifyFirmOfInquiry(ref);
+
+        // notify-inquiry above only emails SIGNED-OUT visitors' inquiries.
+        // A registered client's inquiry gets its emails from notify-event:
+        // a confirmation to the client, a copy to the firm and the requested
+        // lawyer. The id is read back under the client's own RLS — a
+        // signed-out visitor gets nothing back and nothing is sent.
+        void supabase
+          .from("inquiries")
+          .select("id")
+          .eq("inquiry_number", ref)
+          .maybeSingle()
+          .then(({ data }) => {
+            if (data?.id) void notifyEvent("inquiry_submitted", data.id);
+          });
       }
 
       setStep("success");
@@ -580,7 +610,24 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
                   </label>
                   <select
                     value={form.practiceArea}
-                    onChange={(e) => setForm({ ...form, practiceArea: e.target.value })}
+                    onChange={(e) => {
+                      const practiceArea = e.target.value;
+                      setForm((prev) => {
+                        // A lawyer from the previous area is no longer
+                        // eligible once the area changes.
+                        const stillEligible =
+                          !prev.lawyerId ||
+                          !practiceArea ||
+                          (lawyers.find((l) => l.id === prev.lawyerId)?.practice_areas ?? []).some(
+                            (area) => area.id === practiceArea,
+                          );
+                        return {
+                          ...prev,
+                          practiceArea,
+                          lawyerId: stillEligible ? prev.lawyerId : "",
+                        };
+                      });
+                    }}
                     className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-3 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c]"
                   >
                     <option value="">Not sure / General</option>
@@ -603,12 +650,18 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
                       className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-3 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c]"
                     >
                       <option value="">Select a lawyer (optional)</option>
-                      {lawyers.map((l) => (
+                      {eligibleLawyers.map((l) => (
                         <option key={l.id} value={l.id}>
                           {l.full_name} — {l.position}
                         </option>
                       ))}
                     </select>
+                    {form.practiceArea && eligibleLawyers.length === 0 && (
+                      <p className="text-xs text-[#8a9ab5] mt-1.5">
+                        No lawyer lists that practice area yet — leave this blank and the firm will
+                        assign the right lawyer.
+                      </p>
+                    )}
                   </div>
                 )}
 

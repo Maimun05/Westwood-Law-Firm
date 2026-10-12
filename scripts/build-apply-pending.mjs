@@ -101,6 +101,14 @@ const MIGRATIONS = [
     file: "20261017_notify_admins_new_inquiry.sql",
     note: "bell notification for every admin when a registered client files an inquiry",
   },
+  {
+    file: "20261018_realtime_inquiries_messaging_consultations.sql",
+    note: "realtime inquiries + encrypted inquiry conversations + consultation requests in appointments",
+  },
+  {
+    file: "20261019_notify_event_email_log.sql",
+    note: "email claim log so the notify-event function sends each email at most once",
+  },
 ];
 
 const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the practice areas created
@@ -121,7 +129,12 @@ const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the p
 -- profiles.must_change_password; it calls private.is_admin(), which 20261003
 -- installs, so it runs last. 20261017 installs an inquiries trigger that calls
 -- private.create_notification(), which 20260929 creates, so it runs after that
--- and last of all.`;
+-- and last of all. 20261018 replaces submit_inquiry (20261013) and the
+-- appointment notify trigger (20260929), supersedes schema-production's
+-- inquiries_select_staff policy, and calls private helpers from 20261003, so it
+-- runs after all of them. 20261019 creates the email claim log the notify-event
+-- edge function writes to; it depends on nothing but gen_random_uuid(), and
+-- running it last keeps it after every table it may log about.`;
 
 const VERIFICATION = `-- ############################################################################
 -- ## VERIFICATION  —  read the result grid, not the "Success" toast
@@ -162,8 +175,8 @@ UNION ALL SELECT 'inquiries.seminar_id column',  EXISTS (SELECT 1 FROM informati
                                                  WHERE table_schema='public' AND table_name='inquiries'
                                                    AND column_name='seminar_id')
 UNION ALL SELECT 'inquiries_seminar_id_idx',     to_regclass('public.inquiries_seminar_id_idx')      IS NOT NULL
-UNION ALL SELECT 'submit_inquiry() 8-arg',       to_regprocedure('public.submit_inquiry(text,text,text,text,text,text,text,text)') IS NOT NULL
-UNION ALL SELECT 'old 7-arg submit_inquiry gone', to_regprocedure('public.submit_inquiry(text,text,text,text,text,text,text)') IS NULL
+UNION ALL SELECT 'submit_inquiry() 9-arg',       to_regprocedure('public.submit_inquiry(text,text,text,text,text,text,text,text,uuid)') IS NOT NULL
+UNION ALL SELECT 'old 8-arg submit_inquiry gone', to_regprocedure('public.submit_inquiry(text,text,text,text,text,text,text,text)') IS NULL
 UNION ALL SELECT 'audit_logs insert policy',     EXISTS (SELECT 1 FROM pg_policies
                                                  WHERE schemaname='public' AND tablename='audit_logs'
                                                    AND policyname='audit_logs_insert_policy')
@@ -187,7 +200,23 @@ UNION ALL SELECT 'profiles.must_change_password column', EXISTS (SELECT 1 FROM i
 UNION ALL SELECT 'avatars bucket (public)',      EXISTS (SELECT 1 FROM storage.buckets
                                                  WHERE id = 'avatars' AND public = TRUE)
 UNION ALL SELECT 'inquiries_notify_admins trigger', EXISTS (SELECT 1 FROM pg_trigger
-                                                 WHERE tgname = 'inquiries_notify_admins');
+                                                 WHERE tgname = 'inquiries_notify_admins')
+UNION ALL SELECT 'inquiries.requested_lawyer_id column', EXISTS (SELECT 1 FROM information_schema.columns
+                                                 WHERE table_schema='public' AND table_name='inquiries'
+                                                   AND column_name='requested_lawyer_id')
+UNION ALL SELECT 'inquiry_messages table',       to_regclass('public.inquiry_messages')               IS NOT NULL
+UNION ALL SELECT 'inquiry_messages_thread view', to_regclass('public.inquiry_messages_thread')        IS NOT NULL
+UNION ALL SELECT 'mark_inquiry_messages_read()', to_regprocedure('public.mark_inquiry_messages_read(uuid)') IS NOT NULL
+UNION ALL SELECT 'appointments.inquiry_id column', EXISTS (SELECT 1 FROM information_schema.columns
+                                                 WHERE table_schema='public' AND table_name='appointments'
+                                                   AND column_name='inquiry_id')
+UNION ALL SELECT 'appointments.matter_id nullable', EXISTS (SELECT 1 FROM information_schema.columns
+                                                 WHERE table_schema='public' AND table_name='appointments'
+                                                   AND column_name='matter_id' AND is_nullable='YES')
+UNION ALL SELECT 'realtime: 4 tables published', (SELECT count(*) FROM pg_publication_tables
+                                                 WHERE pubname='supabase_realtime' AND schemaname='public'
+                                                   AND tablename IN ('inquiries','inquiry_messages',
+                                                                     'appointments','matter_notes')) = 4;
 
 SELECT 'practice_areas' AS table_name, count(*) AS rows FROM public.practice_areas
 UNION ALL SELECT 'articles',            count(*) FROM public.articles
@@ -348,8 +377,8 @@ UNION ALL SELECT 'the documents bucket refuses admin uploads',
                            AND with_check LIKE '%is_admin%')
             THEN 'PASS' ELSE 'FAIL' END
 UNION ALL SELECT 'anon can still submit inquiries',
-       CASE WHEN to_regprocedure('public.submit_inquiry(text,text,text,text,text,text,text,text)') IS NULL THEN 'FAIL'
-            WHEN has_function_privilege('anon', 'public.submit_inquiry(text,text,text,text,text,text,text,text)', 'EXECUTE')
+       CASE WHEN to_regprocedure('public.submit_inquiry(text,text,text,text,text,text,text,text,uuid)') IS NULL THEN 'FAIL'
+            WHEN has_function_privilege('anon', 'public.submit_inquiry(text,text,text,text,text,text,text,text,uuid)', 'EXECUTE')
             THEN 'PASS' ELSE 'FAIL' END
 UNION ALL SELECT 'seminar_email_log is admin-read-only',
        CASE WHEN to_regclass('public.seminar_email_log') IS NULL THEN 'FAIL'
@@ -399,6 +428,42 @@ UNION ALL SELECT 'the avatar upload policy is owner-scoped',
 UNION ALL SELECT 'admins are notified about client inquiries',
        CASE WHEN to_regprocedure('private.notify_admins_new_inquiry()') IS NULL THEN 'FAIL'
             WHEN NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'inquiries_notify_admins') THEN 'FAIL'
+            ELSE 'PASS' END
+UNION ALL SELECT 'lawyers only see inquiries assigned to them',
+       CASE WHEN NOT EXISTS (SELECT 1 FROM pg_policies
+                             WHERE schemaname = 'public' AND tablename = 'inquiries'
+                               AND policyname = 'inquiries_select_assigned_lawyer') THEN 'FAIL'
+            WHEN EXISTS (SELECT 1 FROM pg_policies
+                         WHERE schemaname = 'public' AND tablename = 'inquiries'
+                           AND policyname = 'inquiries_select_staff') THEN 'FAIL'
+            ELSE 'PASS' END
+UNION ALL SELECT 'inquiry messages cannot be edited or deleted',
+       CASE WHEN EXISTS (SELECT 1 FROM pg_policies
+                         WHERE schemaname = 'public' AND tablename = 'inquiry_messages'
+                           AND cmd IN ('UPDATE','DELETE')) THEN 'FAIL'
+            ELSE 'PASS' END
+UNION ALL SELECT 'the inquiry thread view is security_invoker',
+       CASE WHEN EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+                         WHERE n.nspname = 'public' AND c.relname = 'inquiry_messages_thread'
+                           AND EXISTS (SELECT 1 FROM unnest(COALESCE(c.reloptions, '{}'::text[])) o
+                                       WHERE o = 'security_invoker=true'))
+            THEN 'PASS' ELSE 'FAIL' END
+UNION ALL SELECT 'a client cannot read the inquiry-messages key',
+       CASE WHEN to_regprocedure('private.inquiry_message_key()') IS NULL THEN 'FAIL'
+            WHEN has_function_privilege('authenticated', 'private.inquiry_message_key()', 'EXECUTE')
+            THEN 'FAIL' ELSE 'PASS' END
+UNION ALL SELECT 'no inquiry message is stored as plain text',
+       CASE WHEN EXISTS (SELECT 1 FROM public.inquiry_messages WHERE NOT body_encrypted)
+            THEN 'FAIL' ELSE 'PASS' END
+UNION ALL SELECT 'the email claim log is service-role-only',
+       CASE WHEN to_regclass('public.email_events') IS NULL THEN 'FAIL'
+            WHEN NOT (SELECT relrowsecurity FROM pg_class WHERE oid = to_regclass('public.email_events')) THEN 'FAIL'
+            WHEN has_table_privilege('anon', 'public.email_events', 'SELECT') THEN 'FAIL'
+            WHEN has_table_privilege('authenticated', 'public.email_events', 'INSERT') THEN 'FAIL'
+            WHEN NOT has_table_privilege('service_role', 'public.email_events', 'INSERT') THEN 'FAIL'
+            WHEN NOT EXISTS (SELECT 1 FROM pg_constraint
+                             WHERE conrelid = 'public.email_events'::regclass
+                               AND conname = 'email_events_once') THEN 'FAIL'
             ELSE 'PASS' END;
 `;
 
