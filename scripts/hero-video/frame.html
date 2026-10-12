@@ -57,12 +57,12 @@
         // Floating gold motes. Motion is sinusoidal (periodic over T) rather
         // than linear, which keeps the loop seamless without a wrap seam.
         const motes = [];
-        for (let i = 0; i < 46; i++) {
+        for (let i = 0; i < 56; i++) {
           motes.push({
             x: Math.random() * W,
             y: Math.random() * H,
             r: 0.6 + Math.random() * 1.7,
-            a: 0.05 + Math.random() * 0.16,
+            a: 0.06 + Math.random() * 0.18,
             phase: Math.random() * Math.PI * 2,
           });
         }
@@ -82,23 +82,33 @@
           ctx.fillRect(0, 0, W, H);
 
           // 2. Cool bloom drifting on a slow Lissajous.
-          const cx2 = W * 0.5 + Math.cos(p) * W * 0.18;
-          const cy2 = H * 0.55 + Math.sin(p) * H * 0.12;
-          const cool = ctx.createRadialGradient(cx2, cy2, 0, cx2, cy2, 640);
+          const cx2 = W * 0.5 + Math.cos(p) * W * 0.22;
+          const cy2 = H * 0.55 + Math.sin(p) * H * 0.15;
+          const cool = ctx.createRadialGradient(cx2, cy2, 0, cx2, cy2, 660);
           cool.addColorStop(0, "rgba(20, 41, 74, 0.9)");
           cool.addColorStop(1, "rgba(20, 41, 74, 0)");
           ctx.fillStyle = cool;
           ctx.fillRect(0, 0, W, H);
 
           // 3. Warm gold bloom, additive for a soft cinematic glow.
-          const cx = W * 0.5 + Math.sin(p) * W * 0.16;
-          const cy = H * 0.42 + Math.cos(p) * H * 0.1;
+          const cx = W * 0.5 + Math.sin(p) * W * 0.22;
+          const cy = H * 0.42 + Math.cos(p) * H * 0.14;
           ctx.globalCompositeOperation = "lighter";
-          const warm = ctx.createRadialGradient(cx, cy, 0, cx, cy, 560);
-          warm.addColorStop(0, "rgba(" + GOLD + ", 0.16)");
-          warm.addColorStop(0.42, "rgba(" + GOLD + ", 0.06)");
+          const warm = ctx.createRadialGradient(cx, cy, 0, cx, cy, 580);
+          warm.addColorStop(0, "rgba(" + GOLD + ", 0.2)");
+          warm.addColorStop(0.42, "rgba(" + GOLD + ", 0.08)");
           warm.addColorStop(1, "rgba(" + GOLD + ", 0)");
           ctx.fillStyle = warm;
+          ctx.fillRect(0, 0, W, H);
+
+          // 3b. Slow gold light sweep travelling left to right. Periodic, and
+          //     fully off-screen at both ends, so the loop seam is invisible.
+          const sweep = -0.35 * W + (t / T) * 1.7 * W;
+          const sw = ctx.createLinearGradient(sweep - W * 0.28, 0, sweep + W * 0.28, 0);
+          sw.addColorStop(0, "rgba(" + GOLD + ", 0)");
+          sw.addColorStop(0.5, "rgba(" + GOLD + ", 0.05)");
+          sw.addColorStop(1, "rgba(" + GOLD + ", 0)");
+          ctx.fillStyle = sw;
           ctx.fillRect(0, 0, W, H);
           ctx.globalCompositeOperation = "source-over";
 
@@ -106,12 +116,12 @@
           //    grid the hero already draws in CSS is deliberately not repeated
           //    here, so the two don't beat against each other.)
           if (emblemReady) {
-            const size = 640;
-            const ex = W * 0.5 + Math.sin(p) * 10;
-            const ey = H * 0.5 + Math.cos(p) * 8;
+            const size = 640 * (1 + Math.sin(p) * 0.02);
+            const ex = W * 0.5 + Math.sin(p) * 12;
+            const ey = H * 0.5 + Math.cos(p) * 10;
             ctx.save();
             ctx.globalCompositeOperation = "screen";
-            ctx.globalAlpha = 0.07;
+            ctx.globalAlpha = 0.09;
             ctx.translate(ex, ey);
             ctx.rotate(Math.sin(p) * 0.02);
             ctx.drawImage(emblem, -size / 2, -size / 2, size, size);
@@ -121,8 +131,8 @@
           // 5. Gold motes.
           for (let i = 0; i < motes.length; i++) {
             const m = motes[i];
-            const mx = m.x + Math.sin(p + m.phase) * 14;
-            const my = m.y + Math.cos(p + m.phase) * 18;
+            const mx = m.x + Math.sin(p + m.phase) * 20;
+            const my = m.y + Math.cos(p + m.phase) * 26;
             ctx.beginPath();
             ctx.arc(mx, my, m.r, 0, Math.PI * 2);
             ctx.fillStyle = "rgba(" + GOLD + ", " + m.a + ")";
