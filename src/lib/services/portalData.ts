@@ -5,6 +5,7 @@
 // ============================================================================
 
 import { supabase } from "@/lib/supabase";
+import { normalizeRole, seesAllAuditLogs } from "@/lib/roles";
 import type { Database } from "@/lib/database.types";
 
 type Matter = Database["public"]["Tables"]["matters"]["Row"];
@@ -288,7 +289,10 @@ export async function getMyAuditLogs(userId: string, userRole: string) {
       .order("created_at", { ascending: false })
       .limit(100);
 
-    if (userRole !== "admin") {
+    // The managing partner and the system admin read the whole trail
+    // (audit_logs_select_admin_policy / audit_logs_select_system_admin);
+    // everyone else sees their own rows only.
+    if (!seesAllAuditLogs(normalizeRole(userRole))) {
       query = query.eq("user_id", userId);
     }
 

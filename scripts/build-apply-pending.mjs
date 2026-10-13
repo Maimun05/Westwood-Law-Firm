@@ -121,6 +121,14 @@ const MIGRATIONS = [
     file: "20261022_contact_details.sql",
     note: "seeded FAQ answer: new public email + phone, replacing every old variant",
   },
+  {
+    file: "20261023_role_expansion.sql",
+    note: "six-role model: admin -> managing_partner + system_admin; legal_assistant + paralegal; enum swap",
+  },
+  {
+    file: "20261024_tasks_and_reviews.sql",
+    note: "tasks, task_reviews, task_events: assignment + four-eyes review workflow",
+  },
 ];
 
 const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the practice areas created
@@ -153,7 +161,14 @@ const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the p
 -- Law Library (court_decisions); it calls private.is_admin() (installed by
 -- 20261003) and public.update_updated_at() (pinned by 20261005), and it seeds
 -- its own rows, so it depends on nothing else and runs last. 20261022 rewrites
--- the FAQ answer that 20260919 seeds, so it runs after that seed.`;
+-- the FAQ answer that 20260919 seeds, so it runs after that seed.
+-- 20261023 swaps the user_role enum (admin -> managing_partner + system_admin,
+-- plus legal_assistant and paralegal) and MUST run after every file whose
+-- policies or helpers name a role — it re-creates those helpers and policies
+-- against the new enum. It cannot run earlier: the swap drops the old type,
+-- which every earlier role literal depends on. 20261024 builds tasks and
+-- reviews on the six-role helpers 20261023 installs (is_matter_team,
+-- is_matter_lawyer_team, is_admin), so it runs last.`;
 
 const VERIFICATION = `-- ############################################################################
 -- ## VERIFICATION  —  read the result grid, not the "Success" toast
@@ -252,7 +267,17 @@ UNION ALL SELECT 'court_decisions admin policy', EXISTS (SELECT 1 FROM pg_polici
                                                    AND policyname='court_decisions_admin_all')
 UNION ALL SELECT 'realtime: court_decisions published', EXISTS (SELECT 1 FROM pg_publication_tables
                                                  WHERE pubname='supabase_realtime' AND schemaname='public'
-                                                   AND tablename='court_decisions');
+                                                   AND tablename='court_decisions')
+UNION ALL SELECT 'role enum: six values, no legacy admin', (SELECT count(*) FROM pg_enum e JOIN pg_type t ON t.oid = e.enumtypid
+                                                 WHERE t.typname = 'user_role') = 6
+                                                 AND NOT EXISTS (SELECT 1 FROM pg_enum e JOIN pg_type t ON t.oid = e.enumtypid
+                                                 WHERE t.typname = 'user_role' AND e.enumlabel = 'admin')
+UNION ALL SELECT 'tasks table',                  to_regclass('public.tasks')                         IS NOT NULL
+UNION ALL SELECT 'task_reviews table',           to_regclass('public.task_reviews')                  IS NOT NULL
+UNION ALL SELECT 'task_events table',            to_regclass('public.task_events')                   IS NOT NULL
+UNION ALL SELECT 'realtime: task tables published', (SELECT count(*) FROM pg_publication_tables
+                                                 WHERE pubname='supabase_realtime' AND schemaname='public'
+                                                   AND tablename IN ('tasks','task_reviews','task_events')) = 3;
 
 SELECT 'practice_areas' AS table_name, count(*) AS rows FROM public.practice_areas
 UNION ALL SELECT 'articles',            count(*) FROM public.articles
@@ -405,7 +430,7 @@ UNION ALL SELECT 'no policy re-evaluates auth.uid() per row',
 UNION ALL SELECT 'admins are view-only: can_upload_document refuses them',
        CASE WHEN (SELECT prosrc FROM pg_proc
                    WHERE oid = to_regprocedure('private.can_upload_document(uuid,public.access_level)'))
-                 ~ 'admin''\\s+THEN FALSE'
+                 ~ 'managing_partner''\\s+THEN FALSE'
             THEN 'PASS' ELSE 'FAIL' END
 UNION ALL SELECT 'the documents bucket refuses admin uploads',
        CASE WHEN EXISTS (SELECT 1 FROM pg_policies
@@ -540,7 +565,24 @@ UNION ALL SELECT 'no seeded FAQ names a retired contact detail',
                             OR answer LIKE '%(02) 722 9244%'
                             OR answer LIKE '%westwoodlawfirm1@gmail.com%'
                             OR answer LIKE '%atty.boyet@westwoodlaw.ph%')
-            THEN 'FAIL' ELSE 'PASS' END;
+            THEN 'FAIL' ELSE 'PASS' END
+UNION ALL SELECT 'tasks and reviews are RLS-protected and anon-proof',
+       CASE WHEN EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+                         WHERE n.nspname = 'public'
+                           AND c.relname IN ('tasks','task_reviews','task_events')
+                           AND (NOT c.relrowsecurity
+                             OR has_table_privilege('anon', c.oid, 'SELECT')))
+            THEN 'FAIL' ELSE 'PASS' END
+UNION ALL SELECT 'a review-gated task completes only through an approved review',
+       CASE WHEN to_regprocedure('private.guard_task_write()') IS NULL THEN 'FAIL'
+            WHEN (SELECT prosrc FROM pg_proc WHERE oid = to_regprocedure('private.guard_task_write()'))
+                 LIKE '%requires review%'
+            THEN 'PASS' ELSE 'FAIL' END
+UNION ALL SELECT 'a task cannot be reviewed by its assignee',
+       CASE WHEN to_regprocedure('private.guard_task_review()') IS NULL THEN 'FAIL'
+            WHEN (SELECT prosrc FROM pg_proc WHERE oid = to_regprocedure('private.guard_task_review()'))
+                 LIKE '%cannot be reviewed by its assignee%'
+            THEN 'PASS' ELSE 'FAIL' END;
 `;
 
 const bar = (ch) => ch.repeat(76);

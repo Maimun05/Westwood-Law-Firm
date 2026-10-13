@@ -61,7 +61,7 @@ CREATE POLICY "Admins can view all audit logs"
   ON public.audit_logs
   FOR SELECT
   USING (
-    (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+    (SELECT role::TEXT FROM public.profiles WHERE id = auth.uid()) = 'admin'
   );
 
 -- Policy: System can insert audit logs (for authenticated users)

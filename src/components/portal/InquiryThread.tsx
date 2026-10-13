@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { MODAL_INPUT_CLASS } from "@/components/ui/Modal";
 import { subscribeToTable } from "@/lib/realtime";
 import { notifyEvent } from "@/utils/api";
+import { isFirmAdmin, type UserRole } from "@/lib/roles";
 import {
   getInquiryMessages,
   markInquiryMessagesRead,
@@ -29,7 +30,7 @@ export default function InquiryThread({
 }: {
   inquiryId: string;
   userId: string;
-  role: "client" | "lawyer" | "admin";
+  role: UserRole;
   /** Shown in the header, e.g. the client's name for a lawyer. */
   counterpartLabel?: string;
 }) {
@@ -60,12 +61,12 @@ export default function InquiryThread({
   }, [inquiryId, load]);
 
   // Read receipts: stamp the other side's messages once they are on screen.
-  // Only participants may call the RPC (admins can read for oversight but are
-  // not participants), it never stamps a message the caller wrote, and it is
-  // a no-op when nothing is unread — so this cannot loop.
+  // Only participants may call the RPC (the managing partner can read for
+  // oversight but is not a participant), it never stamps a message the caller
+  // wrote, and it is a no-op when nothing is unread — so this cannot loop.
   const hasUnreadIncoming = messages.some((m) => m.author_id !== userId && !m.read_at);
   useEffect(() => {
-    if (loading || role === "admin" || !hasUnreadIncoming) return;
+    if (loading || isFirmAdmin(role) || !hasUnreadIncoming) return;
     void markInquiryMessagesRead(inquiryId).then(({ error }) => {
       if (!error) void load();
     });
@@ -101,15 +102,14 @@ export default function InquiryThread({
   const who = (id: string) => {
     if (id === userId) return "You";
     if (role === "client") return "The firm";
-    return counterpartLabel || (role === "admin" ? "Client" : "Client");
+    return counterpartLabel || "Client";
   };
 
-  const placeholder =
-    role === "lawyer"
-      ? "Reply to the client…"
-      : role === "client"
-        ? "Write a message about this inquiry…"
-        : "";
+  const placeholder = isFirmAdmin(role)
+    ? ""
+    : role === "client"
+      ? "Write a message about this inquiry…"
+      : "Reply to the client…";
 
   return (
     <div className="bg-[#f7f5f0] rounded-xl border border-[#e8e4dc] p-4">
@@ -152,7 +152,7 @@ export default function InquiryThread({
         })}
       </div>
 
-      {role === "admin" ? (
+      {isFirmAdmin(role) ? (
         <p className="text-[11px] text-[#8a9ab5]">
           Admins can review this conversation but not post to it.
         </p>

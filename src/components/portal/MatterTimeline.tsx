@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { subscribeToTable } from "@/lib/realtime";
+import { canWriteInternalNotes, isFirmAdmin, type UserRole } from "@/lib/roles";
 import { MODAL_INPUT_CLASS } from "@/components/ui/Modal";
 
 type Note = {
@@ -36,7 +37,7 @@ export default function MatterTimeline({
   /** The matter's client, so their messages can be labelled as such. */
 }: {
   matterId: string;
-  role: "client" | "lawyer" | "admin";
+  role: UserRole;
   userId: string;
   names: Record<string, string>;
   clientId?: string | null;
@@ -44,7 +45,7 @@ export default function MatterTimeline({
   const [notes, setNotes] = useState<Note[]>([]);
   const [body, setBody] = useState("");
   const [visibility, setVisibility] = useState<"internal" | "client">(
-    role === "lawyer" ? "internal" : "client",
+    canWriteInternalNotes(role) ? "internal" : "client",
   );
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -119,7 +120,7 @@ export default function MatterTimeline({
       body: body.trim(),
       // A client may only ever write a client-visible note. The database
       // rejects anything else, so do not offer the choice.
-      visibility: role === "lawyer" ? visibility : "client",
+      visibility: canWriteInternalNotes(role) ? visibility : "client",
     });
     setBusy(false);
     if (error) {
@@ -143,7 +144,7 @@ export default function MatterTimeline({
   const placeholder =
     role === "client"
       ? "Write a message to your lawyer…"
-      : role === "admin"
+      : isFirmAdmin(role)
         ? "Add an update the client can see…"
         : "Add a note…";
 
@@ -186,7 +187,7 @@ export default function MatterTimeline({
           className={`${MODAL_INPUT_CLASS} resize-none`}
         />
         <div className="flex items-center gap-2">
-          {role === "lawyer" && (
+          {canWriteInternalNotes(role) && (
             <select
               value={visibility}
               onChange={(e) => setVisibility(e.target.value as "internal" | "client")}

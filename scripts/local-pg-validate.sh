@@ -281,7 +281,8 @@ multiple_permissive_policies|inquiries / UPDATE
 multiple_permissive_policies|matter_notes / INSERT
 multiple_permissive_policies|matters / UPDATE
 multiple_permissive_policies|profile_practice_areas / ALL
-multiple_permissive_policies|profiles / UPDATE"
+multiple_permissive_policies|profiles / UPDATE
+multiple_permissive_policies|tasks / UPDATE"
 
 ADVISOR="$WORKDIR/advisor.txt"
 $PSQL -tA -F '|' -f "$REPO/supabase/tests/security-advisor-replica.sql" > "$ADVISOR" 2>"$WORKDIR/advisor.err"
@@ -322,15 +323,24 @@ ALTER TABLE public.matter_notes DISABLE TRIGGER USER;
 
 INSERT INTO auth.users (id, email) VALUES
   ('00000000-0000-0000-0000-0000000000a1', 'admin@wlf.test'),
+  ('00000000-0000-0000-0000-0000000000a2', 'sysadmin@wlf.test'),
+  ('00000000-0000-0000-0000-0000000000a3', 'intake@wlf.test'),
   ('00000000-0000-0000-0000-0000000000b1', 'lawyer@wlf.test'),
   ('00000000-0000-0000-0000-0000000000b2', 'lawyer2@wlf.test'),
+  ('00000000-0000-0000-0000-0000000000b3', 'paralegal@wlf.test'),
   ('00000000-0000-0000-0000-0000000000c1', 'client@wlf.test'),
   ('00000000-0000-0000-0000-0000000000c2', 'stranger@wlf.test');
 
+-- a1 is the managing_partner: the old 'admin' enum value is GONE after
+-- 20261023, so an 'admin' literal here would abort the seeding (which is
+-- itself the first proof that the swap happened).
 INSERT INTO public.profiles (id, email, role, full_name, first_name, last_name, is_active) VALUES
-  ('00000000-0000-0000-0000-0000000000a1', 'admin@wlf.test',   'admin',   'Ada Admin',   'Ada',   'Admin',   TRUE),
+  ('00000000-0000-0000-0000-0000000000a1', 'admin@wlf.test',   'managing_partner','Ada Admin',   'Ada',   'Admin',   TRUE),
+  ('00000000-0000-0000-0000-0000000000a2', 'sysadmin@wlf.test','system_admin',    'Sys Admin',   'Sys',   'Admin',   TRUE),
+  ('00000000-0000-0000-0000-0000000000a3', 'intake@wlf.test',  'legal_assistant', 'Ina Intake',  'Ina',   'Intake',  TRUE),
   ('00000000-0000-0000-0000-0000000000b1', 'lawyer@wlf.test',  'lawyer',  'Lito Lawyer', 'Lito',  'Lawyer',  TRUE),
   ('00000000-0000-0000-0000-0000000000b2', 'lawyer2@wlf.test', 'lawyer',  'Lena Lawyer', 'Lena',  'Lawyer',  TRUE),
+  ('00000000-0000-0000-0000-0000000000b3', 'paralegal@wlf.test','paralegal','Pia Paralegal','Pia', 'Paralegal',TRUE),
   ('00000000-0000-0000-0000-0000000000c1', 'client@wlf.test',  'client',  'Cora Client', 'Cora',  'Client',  TRUE),
   ('00000000-0000-0000-0000-0000000000c2', 'stranger@wlf.test','client',  'Sam Stranger','Sam',   'Stranger',TRUE)
 ON CONFLICT (id) DO UPDATE SET
@@ -344,15 +354,18 @@ VALUES
   ('00000000-0000-0000-0000-0000000000e2', 'M-002', 'Stranger matter','Fixture matter owned by someone else.', '00000000-0000-0000-0000-0000000000c2', '00000000-0000-0000-0000-0000000000b1', 'labor', 'Active', 'Medium')
 ON CONFLICT (id) DO NOTHING;
 
+-- b3 (paralegal) on the team proves the 20261023 team rule: matter_members
+-- accepts lawyers AND paralegals; everyone else is still refused.
 INSERT INTO public.matter_members (matter_id, lawyer_id) VALUES
-  ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000b2')
+  ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000b2'),
+  ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000b3')
 ON CONFLICT DO NOTHING;
 
 ALTER TABLE public.profiles ENABLE TRIGGER USER;
 ALTER TABLE public.matter_notes ENABLE TRIGGER USER;
 SQL
 [ $? -eq 0 ] || { echo "  FAIL  fixtures"; tail -20 "$WORKDIR/fix.err"; exit 1; }
-echo "  2 matters (one owned by the client, one not), 2 lawyers, 1 team member"
+echo "  2 matters (one owned by the client, one not), 3 lawyers, 1 paralegal + 1 lawyer on the team"
 
 # try_as <label> <user-uuid> <expect: allow|deny> <sql> [role]
 #
@@ -408,7 +421,10 @@ CLIENT=00000000-0000-0000-0000-0000000000c1
 STRANGER=00000000-0000-0000-0000-0000000000c2
 LAWYER=00000000-0000-0000-0000-0000000000b1
 LAWYER2=00000000-0000-0000-0000-0000000000b2
+PARALEGAL=00000000-0000-0000-0000-0000000000b3
 ADMIN=00000000-0000-0000-0000-0000000000a1
+SYSADMIN=00000000-0000-0000-0000-0000000000a2
+INTAKE=00000000-0000-0000-0000-0000000000a3
 M_CLIENT=00000000-0000-0000-0000-0000000000e1
 M_OTHER=00000000-0000-0000-0000-0000000000e2
 
@@ -519,12 +535,12 @@ GOT=$($PSQL -tA -c "SELECT role FROM public.profiles WHERE id = '$STRANGER';" | 
 if [ "$GOT" = "lawyer" ]; then pass "admin CAN change another user's role"; else fail "admin CAN change another user's role (role is '$GOT')"; fi
 
 deny_mutation "a client CANNOT change anyone's role" "$CLIENT" \
-  "UPDATE public.profiles SET role = 'admin' WHERE id = '$STRANGER';" \
+  "UPDATE public.profiles SET role = 'managing_partner' WHERE id = '$STRANGER';" \
   "SELECT role FROM public.profiles WHERE id = '$STRANGER';" "lawyer"
 
-deny_mutation "the last active admin CANNOT be demoted" "$ADMIN" \
+deny_mutation "the last managing partner CANNOT be demoted" "$ADMIN" \
   "UPDATE public.profiles SET role = 'lawyer' WHERE id = '$ADMIN';" \
-  "SELECT role FROM public.profiles WHERE id = '$ADMIN';" "admin"
+  "SELECT role FROM public.profiles WHERE id = '$ADMIN';" "managing_partner"
 
 $PSQL -c "SET request.jwt.claim.sub = '$ADMIN'; SET ROLE authenticated;
   UPDATE public.profiles SET is_active = FALSE, updated_at = NOW() WHERE id = '$STRANGER';" >/dev/null 2>&1
@@ -1012,6 +1028,24 @@ else
   fail "a signed-out visitor's inquiry does NOT notify the admin (got '$NOTIF')"
 fi
 
+# 20261023: intake (legal_assistant) shares the bell with the managing partner —
+# they work the queue, so a registered client's inquiry must reach them too.
+NOTIF=$($PSQL -tA -c "SELECT count(*) FROM public.notifications
+  WHERE user_id = '$INTAKE' AND link = 'intake' AND message LIKE '%WI-2099-901%';" 2>&1 | tr -d '[:space:]')
+if [ "$NOTIF" = "1" ]; then
+  pass "a registered client's inquiry also notifies intake"
+else
+  fail "a registered client's inquiry also notifies intake (got '$NOTIF')"
+fi
+
+NOTIF=$($PSQL -tA -c "SELECT count(*) FROM public.notifications
+  WHERE user_id = '$INTAKE' AND message LIKE '%WI-2099-902%';" 2>&1 | tr -d '[:space:]')
+if [ "$NOTIF" = "0" ]; then
+  pass "a signed-out visitor's inquiry does NOT notify intake"
+else
+  fail "a signed-out visitor's inquiry does NOT notify intake (got '$NOTIF')"
+fi
+
 echo
 echo "== 6g. Realtime publication + assignment-scoped inquiries =="
 # 20261018. Inquiries become realtime and a lawyer may only see the inquiries
@@ -1090,6 +1124,16 @@ for who in "$LAWYER2:another lawyer" "$STRANGER:an unrelated client"; do
     fail "$label sees an inquiry assigned to someone else (got '$GOT')"
   fi
 done
+
+# 20261023: intake reads the whole queue — that is their job. The assignment
+# scoping above stays for lawyers.
+GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$INTAKE'; SET ROLE authenticated;
+  SELECT count(*) FROM public.inquiries WHERE id = '$INQ_ID';" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "$GOT" = "1" ]; then
+  pass "intake sees every inquiry (queue-wide read)"
+else
+  fail "intake cannot see the inquiry queue (got '$GOT')"
+fi
 
 try_as "the assigned lawyer can advance the inquiry status" "$LAWYER" allow \
   "UPDATE public.inquiries SET status = 'Contacted' WHERE id = '$INQ_ID';"
@@ -1343,6 +1387,301 @@ else
   fail "20261020 failed to re-apply — the publication guard is missing"
   grep -i error "$WORKDIR/rt20.err" | head -3
 fi
+
+echo
+echo "== 6l. Six-role expansion =="
+# 20261023. The single 'admin' role split into managing_partner (every old
+# admin power) and system_admin (accounts + audit only, no legal work);
+# legal_assistant (intake) and paralegal (matter teams, never Confidential)
+# joined the working roles.
+
+grants_ok "the role enum has exactly six values and no legacy 'admin'" \
+  "SELECT (SELECT count(*) FROM pg_enum e JOIN pg_type t ON t.oid = e.enumtypid
+           WHERE t.typname = 'user_role') = 6
+      AND NOT EXISTS (SELECT 1 FROM pg_enum e JOIN pg_type t ON t.oid = e.enumtypid
+           WHERE t.typname = 'user_role' AND e.enumlabel = 'admin');" \
+  "t"
+
+# The old value must be gone for real — an old client writing 'admin' has to
+# fail loudly, not silently succeed.
+OUT=$($PSQL -c "SELECT 'admin'::public.user_role;" 2>&1)
+if echo "$OUT" | grep -q 'invalid input value for enum'; then
+  pass "casting to the legacy 'admin' role is rejected"
+else
+  fail "the legacy 'admin' role still exists (got '$OUT')"
+fi
+
+grants_ok "the new role helpers are executable by authenticated" \
+  "SELECT has_function_privilege('authenticated', 'private.is_matter_team(uuid)', 'EXECUTE')
+      AND has_function_privilege('authenticated', 'private.is_system_admin()', 'EXECUTE')
+      AND has_function_privilege('authenticated', 'private.is_staff_account_admin()', 'EXECUTE')
+      AND has_function_privilege('authenticated', 'private.is_intake()', 'EXECUTE');" \
+  "t"
+
+# Managing partner keeps every old-admin power. Profile updates and content
+# writes are asserted in the sections above and below; matter insert,
+# inquiry conversion and break-glass are asserted here.
+GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$ADMIN'; SET ROLE authenticated;
+  SELECT count(*) FROM public.matters;" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "$GOT" = "2" ]; then pass "managing partner sees every matter"; else fail "managing partner sees every matter (got '$GOT')"; fi
+
+try_as "managing partner can still create a matter" "$ADMIN" allow \
+  "INSERT INTO public.matters (matter_number, title, description, client_id, practice_area, status, priority)
+   VALUES ('M-ROLE-CHECK','Role check matter','Harness fixture.','$CLIENT','labor','New Inquiry','Low');"
+
+CONV=$($PSQL -tA -c "SET request.jwt.claim.sub = '$ADMIN'; SET ROLE authenticated;
+  SELECT public.convert_inquiry_to_matter('$INQ_ID', '$LAWYER', 'Converted by MP');" 2>&1 | tail -1 | tr -d '[:space:]')
+if echo "$CONV" | grep -qE '^[0-9a-f]{8}-'; then
+  pass "managing partner can still convert an inquiry"
+else
+  fail "managing partner cannot convert an inquiry (got '$CONV')"
+fi
+
+DOCID=$($PSQL -tA -c "SELECT id FROM public.documents WHERE name = 'lawyer-check.pdf';" 2>&1 | tr -d '[:space:]')
+BG=$($PSQL -tA -c "SET request.jwt.claim.sub = '$ADMIN'; SET ROLE authenticated;
+  SELECT public.break_glass_open_document('$DOCID', 'Harness break-glass reason text.');" 2>&1 | tail -1 | tr -d '[:space:]')
+if echo "$BG" | grep -q 'lawyer-check.pdf'; then
+  pass "managing partner can still break-glass a Confidential document"
+else
+  fail "managing partner cannot break-glass (got '$BG')"
+fi
+GOT=$($PSQL -tA -c "SELECT count(*) FROM public.confidential_access_grants
+  WHERE admin_id = '$ADMIN';" 2>&1 | tr -d '[:space:]')
+if [ "$GOT" = "1" ]; then pass "the break-glass grant is recorded"; else fail "the break-glass grant is missing (got '$GOT')"; fi
+
+# system_admin: manages accounts and reads the audit trail, sees no legal work.
+$PSQL -q -c "SET request.jwt.claim.sub = '$SYSADMIN'; SET ROLE authenticated;
+  UPDATE public.profiles SET role = 'paralegal', updated_at = NOW() WHERE id = '$STRANGER';" >/dev/null 2>&1
+GOT=$($PSQL -tA -c "SELECT role FROM public.profiles WHERE id = '$STRANGER';" | tr -d '[:space:]')
+if [ "$GOT" = "paralegal" ]; then pass "system admin CAN change another user's role"; else fail "system admin CAN change another user's role (role is '$GOT')"; fi
+$PSQL -q -c "UPDATE public.profiles SET role = 'client' WHERE id = '$STRANGER';" >/dev/null 2>&1
+
+GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$SYSADMIN'; SET ROLE authenticated;
+  SELECT count(*) FROM public.matters;" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "$GOT" = "0" ]; then pass "system admin sees no matters"; else fail "system admin sees no matters (got '$GOT')"; fi
+
+GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$SYSADMIN'; SET ROLE authenticated;
+  SELECT count(*) FROM public.audit_logs;" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "${GOT:-0}" -gt 0 ] 2>/dev/null; then pass "system admin can read the audit trail ($GOT rows)"; else fail "system admin cannot read the audit trail (got '$GOT')"; fi
+
+# legal_assistant: the queue is their workspace; legal work is not.
+GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$INTAKE'; SET ROLE authenticated;
+  SELECT count(*) FROM public.inquiries;" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "${GOT:-0}" -gt 0 ] 2>/dev/null; then pass "intake sees the inquiry queue ($GOT inquiries)"; else fail "intake cannot see the queue (got '$GOT')"; fi
+
+GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$INTAKE'; SET ROLE authenticated;
+  SELECT count(*) FROM public.matters;" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "$GOT" = "0" ]; then pass "intake sees no matters"; else fail "intake sees no matters (got '$GOT')"; fi
+
+try_as "intake CANNOT create a matter" "$INTAKE" deny \
+  "INSERT INTO public.matters (matter_number, title, description, client_id, practice_area, status, priority)
+   VALUES ('M-INTAKE-CHECK','Intake check','x','$CLIENT','labor','New Inquiry','Low');"
+
+# paralegal: on the team, reads the matter, internal notes and non-Confidential
+# documents; cannot move status, reassign, or touch Confidential.
+GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$PARALEGAL'; SET ROLE authenticated;
+  SELECT count(*) FROM public.matters WHERE id = '$M_CLIENT';" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "$GOT" = "1" ]; then pass "paralegal on the team sees the matter"; else fail "paralegal cannot see their matter (got '$GOT')"; fi
+
+deny_mutation "paralegal CANNOT change the matter status" "$PARALEGAL" \
+  "UPDATE public.matters SET status = 'Closed' WHERE id = '$M_CLIENT';" \
+  "SELECT status FROM public.matters WHERE id = '$M_CLIENT';" "Active"
+
+vis_as paralegal "$PARALEGAL" "$TOTAL" "paralegal sees every note on their matter"
+
+EXPECTED_DOCS=$($PSQL -tA -c "SELECT count(*) FROM public.documents
+  WHERE matter_id = '$M_CLIENT' AND access_level <> 'Confidential';" 2>&1 | tr -d '[:space:]')
+GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$PARALEGAL'; SET ROLE authenticated;
+  SELECT count(*) FROM public.documents WHERE matter_id = '$M_CLIENT' AND access_level <> 'Confidential';" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "$GOT" = "$EXPECTED_DOCS" ]; then
+  pass "paralegal sees every non-Confidential document ($GOT)"
+else
+  fail "paralegal document visibility is wrong (got '$GOT', expected '$EXPECTED_DOCS')"
+fi
+
+GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$PARALEGAL'; SET ROLE authenticated;
+  SELECT count(*) FROM public.documents WHERE matter_id = '$M_CLIENT' AND access_level = 'Confidential';" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "$GOT" = "0" ]; then
+  pass "paralegal does NOT see Confidential documents"
+else
+  fail "paralegal sees Confidential documents (got '$GOT')"
+fi
+
+try_as "paralegal can file a Staff Shared document on their matter" "$PARALEGAL" allow \
+  "INSERT INTO public.documents (matter_id, name, file_path, file_type, file_size, access_level, uploaded_by)
+   VALUES ('$M_CLIENT','para-check.pdf','$M_CLIENT/para-check.pdf','application/pdf',1024,'Staff Shared','$PARALEGAL');"
+
+try_as "paralegal CANNOT file a Confidential document" "$PARALEGAL" deny \
+  "INSERT INTO public.documents (matter_id, name, file_path, file_type, file_size, access_level, uploaded_by)
+   VALUES ('$M_CLIENT','para-conf.pdf','$M_CLIENT/para-conf.pdf','application/pdf',1024,'Confidential','$PARALEGAL');"
+
+try_as "intake CANNOT be added to a matter team" "$LAWYER" deny \
+  "INSERT INTO public.matter_members (matter_id, lawyer_id) VALUES ('$M_CLIENT','$INTAKE');"
+
+# Clean up what this section created (as superuser: matters have no DELETE
+# policy for a reason).
+$PSQL -q -c "DELETE FROM public.matters WHERE matter_number = 'M-ROLE-CHECK';
+             DELETE FROM public.matters WHERE id = '$CONV';
+             DELETE FROM public.confidential_access_grants WHERE admin_id = '$ADMIN';" >/dev/null 2>&1
+
+echo
+echo "== 6m. Tasks and reviews =="
+# 20261024. Matter lawyers create tasks; the assignee moves them; a task with
+# requires_review completes only through an approved review, and a task can
+# never be reviewed by its own assignee (four-eyes).
+
+PUBT=$($PSQL -tA -c "SELECT count(*) FROM pg_publication_tables
+  WHERE pubname = 'supabase_realtime' AND schemaname = 'public'
+    AND tablename IN ('tasks','task_reviews','task_events');" 2>&1 | tr -d '[:space:]')
+if [ "$PUBT" = "3" ]; then
+  pass "tasks, task_reviews and task_events are published for realtime"
+else
+  fail "expected 3 realtime task tables, found '$PUBT'"
+fi
+
+try_as "the matter lawyer creates a review-gated task" "$LAWYER" allow \
+  "INSERT INTO public.tasks (matter_id, title, description, assigned_to, requires_review, priority, due_date)
+   VALUES ('$M_CLIENT','Draft motion','Harness task.','$PARALEGAL',TRUE,'High',CURRENT_DATE + 7);"
+
+try_as "intake CANNOT create a task" "$INTAKE" deny \
+  "INSERT INTO public.tasks (matter_id, title, assigned_to) VALUES ('$M_CLIENT','Intake task attempt','$PARALEGAL');"
+
+try_as "system admin CANNOT create a task" "$SYSADMIN" deny \
+  "INSERT INTO public.tasks (matter_id, title, assigned_to) VALUES ('$M_CLIENT','Sysadmin task attempt','$PARALEGAL');"
+
+try_as "a task CANNOT be assigned to a client" "$LAWYER" deny \
+  "INSERT INTO public.tasks (matter_id, title, assigned_to) VALUES ('$M_CLIENT','Bad assignment','$CLIENT');"
+
+GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$PARALEGAL'; SET ROLE authenticated;
+  SELECT count(*) FROM public.tasks;" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "$GOT" = "1" ]; then pass "the assignee sees their task"; else fail "the assignee cannot see their task (got '$GOT')"; fi
+
+GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$LAWYER2'; SET ROLE authenticated;
+  SELECT count(*) FROM public.tasks;" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "$GOT" = "1" ]; then pass "the rest of the matter team sees the task"; else fail "the matter team cannot see the task (got '$GOT')"; fi
+
+for who in "$CLIENT:clients" "$SYSADMIN:the system admin" "$INTAKE:uninvolved intake"; do
+  uid="${who%%:*}"; label="${who##*:}"
+  GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$uid'; SET ROLE authenticated;
+    SELECT count(*) FROM public.tasks;" 2>&1 | tail -1 | tr -d '[:space:]')
+  if [ "$GOT" = "0" ]; then
+    pass "$label do NOT see tasks"
+  else
+    fail "$label see tasks (got '$GOT')"
+  fi
+done
+
+try_as "the assignee moves the task to In Progress" "$PARALEGAL" allow \
+  "UPDATE public.tasks SET status = 'In Progress' WHERE title = 'Draft motion';"
+try_as "the assignee moves the task to In Review" "$PARALEGAL" allow \
+  "UPDATE public.tasks SET status = 'In Review' WHERE title = 'Draft motion';"
+
+try_as "a review-gated task CANNOT be completed directly" "$PARALEGAL" deny \
+  "UPDATE public.tasks SET status = 'Completed' WHERE title = 'Draft motion';"
+
+try_as "the assignee CANNOT review their own task" "$PARALEGAL" deny \
+  "INSERT INTO public.task_reviews (task_id, decision, comment)
+   SELECT id, 'Approved', 'self-review attempt' FROM public.tasks WHERE title = 'Draft motion';"
+
+# The pure four-eyes case: the policy would allow it (the reviewer created the
+# task), so only the guard can refuse it.
+try_as "a lawyer CANNOT review a task assigned to themselves" "$LAWYER" deny \
+  "INSERT INTO public.tasks (matter_id, title, assigned_to, requires_review)
+   VALUES ('$M_CLIENT','Self task','$LAWYER',TRUE);
+   UPDATE public.tasks SET status = 'In Progress' WHERE title = 'Self task';
+   UPDATE public.tasks SET status = 'In Review' WHERE title = 'Self task';
+   INSERT INTO public.task_reviews (task_id, decision)
+   SELECT id, 'Approved' FROM public.tasks WHERE title = 'Self task';"
+
+try_as "the matter lawyer approves the task" "$LAWYER" allow \
+  "INSERT INTO public.task_reviews (task_id, decision, comment)
+   SELECT id, 'Approved', 'Good work' FROM public.tasks WHERE title = 'Draft motion';"
+
+GOT=$($PSQL -tA -c "SELECT status::text FROM public.tasks WHERE title = 'Draft motion';" | tr -d '[:space:]')
+if [ "$GOT" = "Completed" ]; then pass "an approved review completes the task"; else fail "an approved review did not complete the task (status '$GOT')"; fi
+
+NOTIF=$($PSQL -tA -c "SELECT count(*) FROM public.notifications
+  WHERE user_id = '$PARALEGAL' AND title = 'Task approved';" 2>&1 | tr -d '[:space:]')
+if [ "$NOTIF" = "1" ]; then pass "the assignee is told the task was approved"; else fail "approval notification missing (got '$NOTIF')"; fi
+
+GOT=$($PSQL -tA -c "SELECT count(*) FROM public.task_events e JOIN public.tasks t ON t.id = e.task_id
+  WHERE t.title = 'Draft motion';" 2>&1 | tr -d '[:space:]')
+if [ "$GOT" = "5" ]; then pass "the task timeline records the workflow (5 events)"; else fail "task timeline has '$GOT' events, expected 5"; fi
+
+# Changes Requested round trip.
+try_as "the lawyer creates a second review-gated task" "$LAWYER" allow \
+  "INSERT INTO public.tasks (matter_id, title, assigned_to, requires_review)
+   VALUES ('$M_CLIENT','Prepare discovery','$PARALEGAL',TRUE);"
+try_as "the assignee starts it" "$PARALEGAL" allow \
+  "UPDATE public.tasks SET status = 'In Progress' WHERE title = 'Prepare discovery';"
+try_as "the assignee submits it for review" "$PARALEGAL" allow \
+  "UPDATE public.tasks SET status = 'In Review' WHERE title = 'Prepare discovery';"
+try_as "the lawyer requests changes" "$LAWYER" allow \
+  "INSERT INTO public.task_reviews (task_id, decision, comment)
+   SELECT id, 'Changes Requested', 'Fix the caption' FROM public.tasks WHERE title = 'Prepare discovery';"
+
+GOT=$($PSQL -tA -c "SELECT status::text FROM public.tasks WHERE title = 'Prepare discovery';")
+if [ "$GOT" = "In Progress" ]; then pass "changes requested sends the task back to In Progress"; else fail "changes requested left status '$GOT'"; fi
+
+deny_mutation "the assignee CANNOT reassign a task" "$PARALEGAL" \
+  "UPDATE public.tasks SET assigned_to = '$LAWYER' WHERE title = 'Prepare discovery';" \
+  "SELECT assigned_to FROM public.tasks WHERE title = 'Prepare discovery';" "$PARALEGAL"
+
+try_as "the lawyer reassigns the task to intake" "$LAWYER" allow \
+  "UPDATE public.tasks SET assigned_to = '$INTAKE' WHERE title = 'Prepare discovery';"
+
+GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$INTAKE'; SET ROLE authenticated;
+  SELECT count(*) FROM public.tasks;" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "$GOT" = "1" ]; then pass "the new assignee sees the reassigned task"; else fail "the new assignee cannot see the task (got '$GOT')"; fi
+
+try_as "the reassigned intake assignee moves it to In Review" "$INTAKE" allow \
+  "UPDATE public.tasks SET status = 'In Review' WHERE title = 'Prepare discovery';"
+try_as "the lawyer approves the resubmitted task" "$LAWYER" allow \
+  "INSERT INTO public.task_reviews (task_id, decision, comment)
+   SELECT id, 'Approved', 'Now correct' FROM public.tasks WHERE title = 'Prepare discovery';"
+
+GOT=$($PSQL -tA -c "SELECT status::text FROM public.tasks WHERE title = 'Prepare discovery';" | tr -d '[:space:]')
+if [ "$GOT" = "Completed" ]; then pass "the resubmitted task completes"; else fail "resubmission left status '$GOT'"; fi
+
+# A task that does not require review completes directly.
+try_as "the lawyer creates a simple task" "$LAWYER" allow \
+  "INSERT INTO public.tasks (matter_id, title, assigned_to)
+   VALUES ('$M_CLIENT','File exhibit copies','$PARALEGAL');"
+try_as "the assignee completes a simple task directly" "$PARALEGAL" allow \
+  "UPDATE public.tasks SET status = 'In Progress' WHERE title = 'File exhibit copies';
+   UPDATE public.tasks SET status = 'Completed' WHERE title = 'File exhibit copies';"
+
+# Cancelling is a manager move.
+try_as "the lawyer creates a cancellable task" "$LAWYER" allow \
+  "INSERT INTO public.tasks (matter_id, title, assigned_to)
+   VALUES ('$M_CLIENT','Archive correspondence','$PARALEGAL');"
+deny_mutation "the assignee CANNOT cancel a task" "$PARALEGAL" \
+  "UPDATE public.tasks SET status = 'Cancelled' WHERE title = 'Archive correspondence';" \
+  "SELECT status::text FROM public.tasks WHERE title = 'Archive correspondence';" "Open"
+try_as "the lawyer cancels the task" "$LAWYER" allow \
+  "UPDATE public.tasks SET status = 'Cancelled' WHERE title = 'Archive correspondence';"
+
+# The managing partner works tasks on any matter and can review.
+try_as "the managing partner creates a task" "$ADMIN" allow \
+  "INSERT INTO public.tasks (matter_id, title, assigned_to, requires_review)
+   VALUES ('$M_CLIENT','Client update memo','$PARALEGAL',TRUE);"
+try_as "the assignee submits it for review" "$PARALEGAL" allow \
+  "UPDATE public.tasks SET status = 'In Progress' WHERE title = 'Client update memo';
+   UPDATE public.tasks SET status = 'In Review' WHERE title = 'Client update memo';"
+try_as "the managing partner approves it" "$ADMIN" allow \
+  "INSERT INTO public.task_reviews (task_id, decision, comment)
+   SELECT id, 'Approved', 'Send it' FROM public.tasks WHERE title = 'Client update memo';"
+
+GOT=$($PSQL -tA -c "SELECT status::text FROM public.tasks WHERE title = 'Client update memo';" | tr -d '[:space:]')
+if [ "$GOT" = "Completed" ]; then pass "the managing partner's approval completes the task"; else fail "MP approval left status '$GOT'"; fi
+
+# Reviews and timelines follow their task's visibility — and never reach clients.
+GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$CLIENT'; SET ROLE authenticated;
+  SELECT count(*) FROM public.task_reviews;" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "$GOT" = "0" ]; then pass "clients cannot read task reviews"; else fail "clients can read task reviews (got '$GOT')"; fi
+GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$CLIENT'; SET ROLE authenticated;
+  SELECT count(*) FROM public.task_events;" 2>&1 | tail -1 | tr -d '[:space:]')
+if [ "$GOT" = "0" ]; then pass "clients cannot read the task timeline"; else fail "clients can read the task timeline (got '$GOT')"; fi
 
 echo
 echo "== 7. Content payloads match the real columns =="

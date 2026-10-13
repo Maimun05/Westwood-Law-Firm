@@ -45,7 +45,18 @@ const sel = "bg-[#f7f5f0] border border-[#e8e4dc] rounded px-2 py-1.5 text-xs";
 // a matter (atomic in the database: creates the matter, links the client, marks it
 // Converted). Signed-out visitors' inquiries are deliberately not listed here — they are
 // emailed to the firm by the notify-inquiry edge function instead (client_id IS NULL).
-export default function AdminIntake({ onConverted }: { onConverted?: () => void }) {
+//
+// readOnly is the intake (legal assistant) view of the same queue: the database
+// grants intake SELECT on every inquiry but reserves status changes, assignment
+// and conversion for the managing partner and lawyers, so the controls that
+// would fail are not rendered.
+export default function AdminIntake({
+  onConverted,
+  readOnly = false,
+}: {
+  onConverted?: () => void;
+  readOnly?: boolean;
+}) {
   const [rows, setRows] = useState<Inquiry[]>([]);
   const [lawyers, setLawyers] = useState<Lawyer[]>([]);
   const [open, setOpen] = useState<string | null>(null);
@@ -193,6 +204,13 @@ export default function AdminIntake({ onConverted }: { onConverted?: () => void 
         Only inquiries filed by registered clients appear here. Inquiries from signed-out visitors
         are emailed to the firm instead.
       </p>
+      {readOnly && (
+        <p className="text-xs text-[#8a9ab5]">
+          Read-only: you can review every inquiry and its attachments. Assigning a lawyer, moving
+          statuses and converting an inquiry into a matter are handled by the managing partner and
+          the lawyers.
+        </p>
+      )}
 
       <div className="bg-white rounded-xl border border-[#e8e4dc] p-5">
         <ListFilters
@@ -287,7 +305,11 @@ export default function AdminIntake({ onConverted }: { onConverted?: () => void 
               )}
             </div>
             <div className="flex items-center gap-2">
-              {i.status === "Converted" ? (
+              {readOnly ? (
+                <span className="text-xs font-semibold text-[#0d1f3c] bg-[#f7f5f0] border border-[#e8e4dc] px-3 py-1.5 rounded">
+                  {i.status}
+                </span>
+              ) : i.status === "Converted" ? (
                 <span className="text-xs font-semibold text-green-700 bg-green-50 px-3 py-1.5 rounded">
                   Converted
                 </span>

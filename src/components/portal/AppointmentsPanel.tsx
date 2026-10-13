@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { notifyEvent } from "@/utils/api";
 import { Person } from "./Person";
 import { subscribeToTable } from "@/lib/realtime";
+import type { UserRole } from "@/lib/roles";
 import type { Database } from "@/lib/database.types";
 
 type ApptStatus = Database["public"]["Enums"]["appointment_status"];
@@ -41,14 +42,15 @@ const tone: Record<string, string> = {
 };
 const field = "bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-3 py-2 text-sm text-[#0d1f3c]";
 
-// One appointments screen for all three roles. The database decides what each may do:
-// clients request (Pending) and may cancel; lawyers and admins confirm/complete/cancel.
+// One appointments screen for the client, lawyer and managing-partner portals.
+// The database decides what each may do: clients request (Pending) and may
+// cancel; lawyers and the managing partner confirm/complete/cancel.
 export default function AppointmentsPanel({
   role,
   userId,
   matters,
 }: {
-  role: "client" | "lawyer" | "admin";
+  role: UserRole;
   userId: string;
   matters: MatterLite[];
 }) {

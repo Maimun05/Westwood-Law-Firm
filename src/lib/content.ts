@@ -5,6 +5,7 @@
 // Single source of truth for all public-facing content
 
 import { supabase } from "./supabase";
+import type { UserRole } from "./roles";
 import {
   fallbackArticles,
   fallbackCorporateClients,
@@ -50,7 +51,7 @@ export interface Lawyer {
   address: string | null;
   city: string | null;
   date_of_birth: string | null;
-  role: "client" | "lawyer" | "admin";
+  role: UserRole;
   is_active: boolean;
   position: string | null;
   bio: string | null;

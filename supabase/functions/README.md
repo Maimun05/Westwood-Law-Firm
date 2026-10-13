@@ -41,7 +41,7 @@ supabase functions list
 
 **Security**:
 
-- Validates requesting user is an admin
+- Validates the requesting user is a managing partner or system administrator
 - Uses service-role key server-side only
 - Never returns passwords
 - Creates both Auth user and profile
@@ -92,8 +92,8 @@ supabase functions list
 
 **Security**:
 
-- Validates requesting user is an admin
-- Refuses to delete the requesting admin's own account
+- Validates the requesting user is a managing partner or system administrator
+- Refuses to delete the caller's own account
 - Uses service-role key server-side only
 
 **Endpoint**: `https://YOUR_PROJECT_REF.supabase.co/functions/v1/admin-delete-user`

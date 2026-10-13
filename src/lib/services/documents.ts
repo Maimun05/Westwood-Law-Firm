@@ -13,6 +13,7 @@
 
 import { supabase } from "@/lib/supabase";
 import { logAuditEvent } from "@/lib/services/audit";
+import type { UserRole } from "@/lib/roles";
 import type { Database } from "@/lib/database.types";
 
 export type DocumentRow = Database["public"]["Tables"]["documents"]["Row"];
@@ -41,12 +42,17 @@ export const ALLOWED_EXTENSIONS = Object.keys(MIME_BY_EXTENSION);
 export const FILE_INPUT_ACCEPT = ALLOWED_EXTENSIONS.map((e) => `.${e}`).join(",");
 
 /** Access levels a given role may choose when uploading (mirrors can_upload_document in SQL). */
-export function uploadableAccessLevels(role: "client" | "lawyer" | "admin"): DocAccessLevel[] {
+export function uploadableAccessLevels(role: UserRole): DocAccessLevel[] {
   if (role === "client") return ["Client & Assigned Lawyer"];
   if (role === "lawyer")
     return ["Client & Assigned Lawyer", "Staff Shared", "Lawyer Only", "Confidential"];
-  // Admins are view-only on documents (20261012): the database refuses every
-  // admin upload, so the UI must not offer one.
+  if (role === "paralegal")
+    // Paralegals file on their team's matters but never author Confidential
+    // content (20261023); the database refuses it, so it is not offered.
+    return ["Client & Assigned Lawyer", "Staff Shared", "Lawyer Only"];
+  // The managing partner is view-only on documents (20261012) and the system
+  // admin has no matter access at all: the database refuses every upload, so
+  // the UI must not offer one.
   return [];
 }
 

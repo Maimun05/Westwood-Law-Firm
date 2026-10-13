@@ -36,10 +36,10 @@ CREATE POLICY practice_areas_admin_all
 ON public.practice_areas FOR ALL
 TO authenticated
 USING (
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'::user_role
+  (SELECT role::TEXT FROM public.profiles WHERE id = auth.uid()) = 'admin'
 )
 WITH CHECK (
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'::user_role
+  (SELECT role::TEXT FROM public.profiles WHERE id = auth.uid()) = 'admin'
 );
 
 -- ============================================================================
@@ -86,11 +86,11 @@ ON public.articles FOR ALL
 TO authenticated
 USING (
   author_id = auth.uid() 
-  OR (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'::user_role
+  OR (SELECT role::TEXT FROM public.profiles WHERE id = auth.uid()) = 'admin'
 )
 WITH CHECK (
   author_id = auth.uid() 
-  OR (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'::user_role
+  OR (SELECT role::TEXT FROM public.profiles WHERE id = auth.uid()) = 'admin'
 );
 
 -- ============================================================================
@@ -128,10 +128,10 @@ CREATE POLICY specialists_admin_all
 ON public.specialists FOR ALL
 TO authenticated
 USING (
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'::user_role
+  (SELECT role::TEXT FROM public.profiles WHERE id = auth.uid()) = 'admin'
 )
 WITH CHECK (
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'::user_role
+  (SELECT role::TEXT FROM public.profiles WHERE id = auth.uid()) = 'admin'
 );
 
 -- ============================================================================
@@ -162,10 +162,10 @@ CREATE POLICY corporate_clients_admin_all
 ON public.corporate_clients FOR ALL
 TO authenticated
 USING (
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'::user_role
+  (SELECT role::TEXT FROM public.profiles WHERE id = auth.uid()) = 'admin'
 )
 WITH CHECK (
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'::user_role
+  (SELECT role::TEXT FROM public.profiles WHERE id = auth.uid()) = 'admin'
 );
 
 -- ============================================================================
@@ -198,10 +198,10 @@ CREATE POLICY faqs_admin_all
 ON public.faqs FOR ALL
 TO authenticated
 USING (
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'::user_role
+  (SELECT role::TEXT FROM public.profiles WHERE id = auth.uid()) = 'admin'
 )
 WITH CHECK (
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'::user_role
+  (SELECT role::TEXT FROM public.profiles WHERE id = auth.uid()) = 'admin'
 );
 
 -- ============================================================================
@@ -237,10 +237,10 @@ CREATE POLICY seminar_events_admin_all
 ON public.seminar_events FOR ALL
 TO authenticated
 USING (
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'::user_role
+  (SELECT role::TEXT FROM public.profiles WHERE id = auth.uid()) = 'admin'
 )
 WITH CHECK (
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'::user_role
+  (SELECT role::TEXT FROM public.profiles WHERE id = auth.uid()) = 'admin'
 );
 
 -- ============================================================================
@@ -274,10 +274,10 @@ CREATE POLICY retainer_packages_admin_all
 ON public.retainer_packages FOR ALL
 TO authenticated
 USING (
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'::user_role
+  (SELECT role::TEXT FROM public.profiles WHERE id = auth.uid()) = 'admin'
 )
 WITH CHECK (
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'::user_role
+  (SELECT role::TEXT FROM public.profiles WHERE id = auth.uid()) = 'admin'
 );
 
 -- ============================================================================
@@ -314,10 +314,10 @@ CREATE POLICY profile_practice_areas_admin_all
 ON public.profile_practice_areas FOR ALL
 TO authenticated
 USING (
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'::user_role
+  (SELECT role::TEXT FROM public.profiles WHERE id = auth.uid()) = 'admin'
 )
 WITH CHECK (
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'::user_role
+  (SELECT role::TEXT FROM public.profiles WHERE id = auth.uid()) = 'admin'
 );
 
 -- ============================================================================
@@ -342,7 +342,20 @@ CREATE INDEX IF NOT EXISTS idx_articles_published ON public.articles(is_publishe
 CREATE INDEX IF NOT EXISTS idx_articles_author ON public.articles(author_id);
 CREATE INDEX IF NOT EXISTS idx_specialists_active ON public.specialists(is_active);
 CREATE INDEX IF NOT EXISTS idx_seminar_events_date ON public.seminar_events(date DESC);
-CREATE INDEX IF NOT EXISTS idx_profiles_role ON public.profiles(role) WHERE role IN ('lawyer', 'admin');
+-- A partial index on the role enum cannot be written re-run-safe: the
+-- predicate's enum literals are parsed (and folded) even under IF NOT EXISTS,
+-- and a role::TEXT cast is not IMMUTABLE so it cannot be an index predicate.
+-- schema-production.sql already creates idx_profiles_role as a plain index
+-- under this name, so this statement is a no-op in every real database — but
+-- it still has to PARSE. Guard it so the predicate is only parsed while it is
+-- valid (before 20261023 removes the 'admin' label).
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_class
+                 WHERE relname = 'idx_profiles_role'
+                   AND relnamespace = 'public'::regnamespace) THEN
+    CREATE INDEX idx_profiles_role ON public.profiles(role) WHERE role IN ('lawyer', 'admin');
+  END IF;
+END $$;
 
 -- ============================================================================
 -- TRIGGERS FOR UPDATED_AT

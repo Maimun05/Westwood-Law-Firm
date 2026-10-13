@@ -24,7 +24,13 @@ export interface Database {
           address: string | null;
           city: string | null;
           date_of_birth: string | null;
-          role: "client" | "lawyer" | "admin";
+          role:
+            | "client"
+            | "lawyer"
+            | "legal_assistant"
+            | "paralegal"
+            | "managing_partner"
+            | "system_admin";
           is_active: boolean;
           must_change_password: boolean;
           preferred_contact_method: string | null;
@@ -55,7 +61,13 @@ export interface Database {
           address?: string | null;
           city?: string | null;
           date_of_birth?: string | null;
-          role?: "client" | "lawyer" | "admin";
+          role?:
+            | "client"
+            | "lawyer"
+            | "legal_assistant"
+            | "paralegal"
+            | "managing_partner"
+            | "system_admin";
           is_active?: boolean;
           must_change_password?: boolean;
           preferred_contact_method?: string | null;
@@ -86,7 +98,13 @@ export interface Database {
           address?: string | null;
           city?: string | null;
           date_of_birth?: string | null;
-          role?: "client" | "lawyer" | "admin";
+          role?:
+            | "client"
+            | "lawyer"
+            | "legal_assistant"
+            | "paralegal"
+            | "managing_partner"
+            | "system_admin";
           is_active?: boolean;
           must_change_password?: boolean;
           preferred_contact_method?: string | null;
@@ -1118,6 +1136,160 @@ export interface Database {
         };
         Relationships: [];
       };
+      tasks: {
+        Row: {
+          id: string;
+          matter_id: string;
+          title: string;
+          description: string | null;
+          assigned_to: string;
+          assigned_by: string | null;
+          status: "Open" | "In Progress" | "Blocked" | "In Review" | "Completed" | "Cancelled";
+          priority: "Low" | "Medium" | "High";
+          due_date: string | null;
+          requires_review: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          matter_id: string;
+          title: string;
+          description?: string | null;
+          assigned_to: string;
+          assigned_by?: string | null;
+          status?: "Open" | "In Progress" | "Blocked" | "In Review" | "Completed" | "Cancelled";
+          priority?: "Low" | "Medium" | "High";
+          due_date?: string | null;
+          requires_review?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          matter_id?: string;
+          title?: string;
+          description?: string | null;
+          assigned_to?: string;
+          assigned_by?: string | null;
+          status?: "Open" | "In Progress" | "Blocked" | "In Review" | "Completed" | "Cancelled";
+          priority?: "Low" | "Medium" | "High";
+          due_date?: string | null;
+          requires_review?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "tasks_matter_id_fkey";
+            columns: ["matter_id"];
+            isOneToOne: false;
+            referencedRelation: "matters";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tasks_assigned_to_fkey";
+            columns: ["assigned_to"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tasks_assigned_by_fkey";
+            columns: ["assigned_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      task_reviews: {
+        Row: {
+          id: string;
+          task_id: string;
+          reviewer_id: string;
+          decision: "Approved" | "Changes Requested";
+          comment: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          task_id: string;
+          reviewer_id: string;
+          decision: "Approved" | "Changes Requested";
+          comment?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          task_id?: string;
+          reviewer_id?: string;
+          decision?: "Approved" | "Changes Requested";
+          comment?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "task_reviews_task_id_fkey";
+            columns: ["task_id"];
+            isOneToOne: false;
+            referencedRelation: "tasks";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "task_reviews_reviewer_id_fkey";
+            columns: ["reviewer_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      task_events: {
+        Row: {
+          id: string;
+          task_id: string;
+          event_type: string;
+          title: string;
+          detail: string | null;
+          actor_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          task_id: string;
+          event_type: string;
+          title: string;
+          detail?: string | null;
+          actor_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          task_id?: string;
+          event_type?: string;
+          title?: string;
+          detail?: string | null;
+          actor_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "task_events_task_id_fkey";
+            columns: ["task_id"];
+            isOneToOne: false;
+            referencedRelation: "tasks";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "task_events_actor_id_fkey";
+            columns: ["actor_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     }>;
     Views: {
       public_lawyers: {
@@ -1228,7 +1400,15 @@ export interface Database {
       };
     };
     Enums: {
-      user_role: "client" | "lawyer" | "admin";
+      user_role:
+        | "client"
+        | "lawyer"
+        | "legal_assistant"
+        | "paralegal"
+        | "managing_partner"
+        | "system_admin";
+      task_status: "Open" | "In Progress" | "Blocked" | "In Review" | "Completed" | "Cancelled";
+      review_decision: "Approved" | "Changes Requested";
       matter_status:
         | "New Inquiry"
         | "Under Review"

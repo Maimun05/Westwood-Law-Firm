@@ -6,6 +6,7 @@
 // ============================================================================
 
 import { supabase } from "@/lib/supabase";
+import type { UserRole } from "@/lib/roles";
 
 export interface CreateUserData {
   email: string;
@@ -17,7 +18,7 @@ export interface CreateUserData {
    */
   password?: string;
   fullName: string;
-  role: "client" | "lawyer" | "admin";
+  role: UserRole;
   phone?: string;
   address?: string;
   city?: string;
@@ -31,7 +32,7 @@ export interface AdminCreateUserResponse {
     id: string;
     email: string;
     fullName: string;
-    role: "client" | "lawyer" | "admin";
+    role: UserRole;
     position: string | null;
     created: boolean;
   };
@@ -82,7 +83,7 @@ export interface UpdateUserData {
   phone?: string;
   address?: string;
   city?: string;
-  role?: "client" | "lawyer" | "admin";
+  role?: UserRole;
   position?: string;
 }
 
@@ -353,7 +354,7 @@ export async function adminGetAllUsers() {
 /**
  * Change a user's role (admin only)
  */
-export async function adminChangeUserRole(userId: string, newRole: "client" | "lawyer" | "admin") {
+export async function adminChangeUserRole(userId: string, newRole: UserRole) {
   try {
     const { data, error } = await supabase
       .from("profiles")

@@ -1,12 +1,15 @@
 // ============================================================================
 // admin-create-user — create staff accounts with emailed credentials
 // ============================================================================
-// Two actions, both admin-only (the caller's JWT is resolved and its profile
-// must be role = 'admin' before anything else happens):
+// Two actions, both restricted to the two firm-management roles — the caller's
+// JWT is resolved and its profile must be role = 'managing_partner' or
+// 'system_admin' before anything else happens (locked decision 2026-10-12:
+// both roles manage staff accounts):
 //
 //   action: "create"  Create an account.
-//     - role = client  The admin supplies the password; nothing is emailed.
-//     - role = lawyer/admin
+//     - role = client  The manager supplies the password; nothing is emailed.
+//     - any staff role (lawyer, paralegal, legal_assistant, managing_partner,
+//       system_admin)
 //                      The password is generated here with a CSPRNG, the
 //                      profile is flagged `must_change_password`, and the
 //                      credentials are emailed to the new user. The portal
@@ -59,8 +62,26 @@ const esc = (v: unknown) =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 
-type Role = "client" | "lawyer" | "admin";
-const ROLES: Role[] = ["client", "lawyer", "admin"];
+type Role =
+  | "client"
+  | "lawyer"
+  | "paralegal"
+  | "legal_assistant"
+  | "managing_partner"
+  | "system_admin";
+const ROLES: Role[] = [
+  "client",
+  "lawyer",
+  "paralegal",
+  "legal_assistant",
+  "managing_partner",
+  "system_admin",
+];
+
+// The caller must hold one of these roles. The migration renames the legacy
+// 'admin' role to 'managing_partner', so 'admin' is not accepted — by the
+// time this function is deployed the old value no longer exists.
+const CALLER_ROLES = new Set(["managing_partner", "system_admin"]);
 
 interface CreateRequest {
   action?: "create" | "resend";
@@ -220,8 +241,11 @@ serve(async (req) => {
       .select("role")
       .eq("id", user.id)
       .single();
-    if (!caller || caller.role !== "admin") {
-      return json({ error: "Unauthorized: Admin access required" }, 403);
+    if (!caller || !CALLER_ROLES.has(caller.role)) {
+      return json(
+        { error: "Unauthorized: Managing partner or system administrator access required" },
+        403,
+      );
     }
 
     const body: CreateRequest = await req.json().catch(() => ({}));
@@ -264,7 +288,7 @@ serve(async (req) => {
         return json(
           {
             error:
-              "Clients reset their own password from the sign-in page. Credentials can only be re-sent to lawyer and admin accounts.",
+              "Clients reset their own password from the sign-in page. Credentials can only be re-sent to staff accounts.",
           },
           400,
         );
@@ -318,7 +342,7 @@ serve(async (req) => {
       return json({ error: "Missing required fields: email, fullName, role" }, 400);
     }
     if (!ROLES.includes(role)) {
-      return json({ error: "Invalid role. Must be client, lawyer, or admin" }, 400);
+      return json({ error: `Invalid role. Must be one of: ${ROLES.join(", ")}` }, 400);
     }
 
     const isStaff = role !== "client";

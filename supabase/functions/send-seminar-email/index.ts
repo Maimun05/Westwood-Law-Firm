@@ -1,9 +1,10 @@
 // ============================================================================
 // send-seminar-email — email every registrant of one seminar
 // ============================================================================
-// Called from the admin portal (Website Content → Seminars → Registrants).
-// The admin composes the subject and the message in a dialog; this function
-// does the sending, so the mailbox password never reaches the browser.
+// Called from the managing partner portal (Website Content → Seminars →
+// Registrants). The managing partner composes the subject and the message in
+// a dialog; this function does the sending, so the mailbox password never
+// reaches the browser.
 //
 // SENDER: the firm's Gmail account, over SMTP with an App Password. Resend
 // would have been the first choice, but Resend can only send from a verified
@@ -15,10 +16,11 @@
 // allows roughly 500 recipients a day, which is why one send is capped at 200
 // and the log records exactly what went out.
 //
-// Auth is the admin-create-user shape: resolve the caller's JWT to a user
-// (401), require profiles.role = 'admin' (403), and only then build the
-// service-role client. That client reads the registrants — inquiries rows are
-// not admin-readable by email through RLS — and writes the send log.
+// Auth follows the admin-create-user shape: resolve the caller's JWT to a user
+// (401), require profiles.role = 'managing_partner' (403) — the firm owner's
+// role keeps this power; the system administrator is not given bulk mail — and
+// only then build the service-role client. That client reads the registrants —
+// inquiries rows are not readable in bulk through RLS — and writes the send log.
 //
 // The message is one template with a single {name} placeholder, replaced per
 // recipient (an empty name falls back to the address's local part).
@@ -49,7 +51,7 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
-// The admin's message is plain text and lands in an HTML email.
+// The composed message is plain text and lands in an HTML email.
 const esc = (v: unknown) =>
   String(v ?? "")
     .replace(/&/g, "&amp;")
@@ -106,8 +108,8 @@ serve(async (req) => {
       .select("role")
       .eq("id", user.id)
       .single();
-    if (profile?.role !== "admin") {
-      return json({ ok: false, error: "Admin access is required" }, 403);
+    if (profile?.role !== "managing_partner") {
+      return json({ ok: false, error: "Managing partner access is required" }, 403);
     }
 
     const payload = await req.json().catch(() => ({}));

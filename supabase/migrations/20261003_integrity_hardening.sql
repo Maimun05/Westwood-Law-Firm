@@ -184,6 +184,10 @@ AS $$
   LIMIT 1;
 $$;
 
+-- NOTE: the role comparisons go through ::TEXT so this file also re-runs
+-- cleanly AFTER 20261023 replaces the enum (a SQL function body is folded at
+-- CREATE time, and 'admin' is not a value of the six-role enum — a direct cast
+-- would fail the second pass). Behaviour on the three-role shape is identical.
 CREATE OR REPLACE FUNCTION private.is_admin()
 RETURNS BOOLEAN
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ''
@@ -191,7 +195,7 @@ AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.profiles AS p
     WHERE p.id = (SELECT auth.uid())
-      AND p.role = 'admin'::public.user_role
+      AND p.role::TEXT = 'admin'
       AND COALESCE(p.is_active, TRUE)
       AND p.deleted_at IS NULL
   );
@@ -204,7 +208,7 @@ AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.profiles AS p
     WHERE p.id = (SELECT auth.uid())
-      AND p.role IN ('lawyer'::public.user_role, 'admin'::public.user_role)
+      AND p.role::TEXT IN ('lawyer', 'admin')
       AND COALESCE(p.is_active, TRUE)
       AND p.deleted_at IS NULL
   );
@@ -361,7 +365,7 @@ DO $$
 DECLARE v_admins INT; v_sources TEXT;
 BEGIN
   SELECT count(*) INTO v_admins FROM public.profiles
-  WHERE role = 'admin' AND COALESCE(is_active, TRUE) AND deleted_at IS NULL;
+  WHERE role::TEXT = 'admin' AND COALESCE(is_active, TRUE) AND deleted_at IS NULL;
   SELECT string_agg(DISTINCT source, ', ') INTO v_sources FROM public.audit_logs;
 
   RAISE NOTICE 'Active administrators: %', v_admins;

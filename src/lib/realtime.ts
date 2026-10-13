@@ -44,7 +44,11 @@ export type RealtimeTable =
   | "seminar_email_log"
   | "inquiry_attachments"
   // Published by 20261021 so the public Law Library stays live.
-  | "court_decisions";
+  | "court_decisions"
+  // Published by 20261024 so every tasks surface stays live.
+  | "tasks"
+  | "task_reviews"
+  | "task_events";
 
 type PostgresChangeParams = {
   event: "*";

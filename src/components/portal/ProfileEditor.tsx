@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { updateProfile, updatePassword } from "@/lib/auth";
 import { removeProfilePicture } from "@/lib/services/profilePicture";
+import { normalizeRole, roleLabel } from "@/lib/roles";
 import Avatar from "./Avatar";
 import ProfilePictureModal from "./ProfilePictureModal";
 
@@ -132,7 +133,7 @@ export default function ProfileEditor({
   }, [userId]);
 
   if (!row) return <p className="text-sm text-[#8a9ab5]">{msg?.text ?? "Loading profile…"}</p>;
-  const isLawyer = row.role === "lawyer";
+  const isLawyer = normalizeRole(row.role) === "lawyer";
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setF({ ...f, [k]: e.target.value });
 
@@ -202,7 +203,7 @@ export default function ProfileEditor({
 
   const readOnly: [string, string][] = [
     ["Email", row.email],
-    ["Role", row.role[0].toUpperCase() + row.role.slice(1)],
+    ["Role", roleLabel(normalizeRole(row.role))],
     ...(row.position ? [["Position", row.position] as [string, string]] : []),
     [
       "Member since",

@@ -18,9 +18,9 @@
 
 // Security:
 
-// - Validates that the requesting user is an admin
+// - Validates that the requesting user is a managing partner or system admin
 
-// - Refuses to let an admin delete their own account (avoids accidental lockout)
+// - Refuses to let a manager delete their own account (avoids accidental lockout)
 
 // - Uses service-role key server-side only
 
@@ -35,6 +35,10 @@ const corsHeaders = {
 
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Both firm-management roles may delete accounts (locked decision 2026-10-12).
+
+const MANAGER_ROLES = new Set(["managing_partner", "system_admin"]);
 
 interface DeleteUserRequest {
   userId: string;
@@ -90,7 +94,7 @@ serve(async (req) => {
       );
     }
 
-    // Check if user is admin
+    // Check the caller holds a firm-management role
 
     const { data: profile, error: profileError } = await supabaseClient
 
@@ -102,9 +106,11 @@ serve(async (req) => {
 
       .single();
 
-    if (profileError || !profile || profile.role !== "admin") {
+    if (profileError || !profile || !MANAGER_ROLES.has(profile.role)) {
       return new Response(
-        JSON.stringify({ error: "Unauthorized: Admin access required" }),
+        JSON.stringify({
+          error: "Unauthorized: Managing partner or system administrator access required",
+        }),
 
         {
           status: 403,

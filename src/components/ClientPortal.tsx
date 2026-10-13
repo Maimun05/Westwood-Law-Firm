@@ -8,6 +8,8 @@ import { Person } from "./portal/Person";
 
 import AdminIntake from "./portal/AdminIntake";
 
+import TasksPanel from "./portal/TasksPanel";
+
 import BreakGlassModal from "./portal/BreakGlassModal";
 
 import MatterTimeline from "./portal/MatterTimeline";
@@ -18,7 +20,7 @@ import InquiryThread from "./portal/InquiryThread";
 
 import MattersTimeline from "./portal/MattersTimeline";
 
-import PortalShell, { type PortalSearchItem } from "./portal/PortalShell";
+import PortalShell, { type PortalSearchItem, type PortalTab } from "./portal/PortalShell";
 
 import StatCard from "./portal/StatCard";
 
@@ -57,6 +59,20 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePageMeta } from "@/hooks/usePageMeta";
 
 import { signIn, signUp, signOut, type AuthUser } from "@/lib/auth";
+
+import {
+  isClient,
+  isFirmAdmin,
+  isIntake,
+  isLawyer,
+  isParalegal,
+  isStaff,
+  isSystemAdmin,
+  normalizeRole,
+  roleLabel,
+  USER_ROLES,
+  type UserRole,
+} from "@/lib/roles";
 
 import { supabase } from "@/lib/supabase";
 
@@ -183,14 +199,17 @@ const LAWYER_TABS = [
   { key: "clients", label: "Clients", group: "Casework" },
   { key: "appointments", label: "Appointments", group: "Casework" },
   { key: "documents", label: "Documents", group: "Casework" },
+  { key: "tasks", label: "Tasks", group: "Casework" },
   { key: "profile", label: "Profile", group: "Account" },
 ];
 
-const ADMIN_TABS = [
+// The managing partner keeps every tab the old single-admin portal had.
+const MANAGING_PARTNER_TABS: PortalTab[] = [
   { key: "dashboard", label: "Dashboard" },
   { key: "users", label: "User Accounts", group: "Practice" },
   { key: "intake", label: "Client Intake", group: "Practice" },
   { key: "matters", label: "Matters", group: "Practice" },
+  { key: "tasks", label: "Tasks", group: "Practice" },
   { key: "appointments", label: "Appointments", group: "Practice" },
   { key: "lawyers", label: "Lawyers", group: "Practice" },
   { key: "documents", label: "Documents", group: "Practice" },
@@ -199,6 +218,39 @@ const ADMIN_TABS = [
   { key: "settings", label: "System Settings", group: "System" },
   { key: "profile", label: "My Profile", group: "System" },
   { key: "audit", label: "Audit Logs", group: "System" },
+];
+
+// The system administrator manages accounts and reads the audit trail.
+// Casework tabs (matters, intake, documents…) are deliberately absent — the
+// database gives this role no access to them and the shell mirrors that.
+// Tasks stays: work assigned to the administrator personally is theirs to
+// move, and RLS scopes the list to exactly that.
+const SYSTEM_ADMIN_TABS: PortalTab[] = [
+  { key: "dashboard", label: "Dashboard" },
+  { key: "users", label: "User Accounts", group: "Administration" },
+  { key: "tasks", label: "Tasks", group: "Administration" },
+  { key: "settings", label: "System Settings", group: "Administration" },
+  { key: "audit", label: "Audit Logs", group: "Administration" },
+  { key: "profile", label: "My Profile", group: "Account" },
+];
+
+// Intake works the inquiry queue. Acting on an inquiry (statuses, conversion)
+// stays with the managing partner and lawyers — see the read-only queue.
+const INTAKE_TABS: PortalTab[] = [
+  { key: "dashboard", label: "Dashboard" },
+  { key: "intake", label: "Inquiry Queue", group: "Intake" },
+  { key: "tasks", label: "Tasks", group: "Intake" },
+  { key: "profile", label: "Profile", group: "Account" },
+];
+
+// A paralegal supports the matters whose team they are on: the matter itself,
+// its documents (never Confidential), and no status or team controls.
+const PARALEGAL_TABS: PortalTab[] = [
+  { key: "dashboard", label: "Dashboard" },
+  { key: "matters", label: "My Matters", group: "Casework" },
+  { key: "documents", label: "Documents", group: "Casework" },
+  { key: "tasks", label: "Tasks", group: "Casework" },
+  { key: "profile", label: "Profile", group: "Account" },
 ];
 
 // ── Status colors ─────────────────────────────────────────────────────────────
@@ -296,26 +348,26 @@ function Badge({ text }: { text: string }) {
 }
 
 function RoleBadge({ role }: { role: string }) {
-  const styles: Record<string, string> = {
+  const styles: Record<UserRole, string> = {
     client: "bg-green-50 text-green-700",
 
     lawyer: "bg-blue-50 text-blue-700",
 
-    admin: "bg-purple-50 text-purple-700",
+    paralegal: "bg-indigo-50 text-indigo-700",
+
+    legal_assistant: "bg-teal-50 text-teal-700",
+
+    managing_partner: "bg-purple-50 text-purple-700",
+
+    system_admin: "bg-slate-100 text-slate-700",
   };
 
-  const labels: Record<string, string> = {
-    client: "Client",
-    lawyer: "Lawyer",
-    admin: "Admin",
-  };
+  // Raw values reach here from audit rows written before the six-role
+  // migration, so everything goes through the normalizer first.
+  const r = normalizeRole(role);
 
   return (
-    <span
-      className={`text-xs font-semibold px-2.5 py-1 rounded ${styles[role] ?? "bg-gray-100 text-gray-600"}`}
-    >
-      {labels[role] ?? role}
-    </span>
+    <span className={`text-xs font-semibold px-2.5 py-1 rounded ${styles[r]}`}>{roleLabel(r)}</span>
   );
 }
 
@@ -1269,7 +1321,7 @@ function MatterDetail({
   const [bgDoc, setBgDoc] = useState<Document | null>(null);
 
   const openMatterDoc = async (doc: Document) => {
-    if (currentUser.role === "admin" && doc.access_level === "Confidential") {
+    if (isFirmAdmin(currentUser.role) && doc.access_level === "Confidential") {
       setBgDoc(doc);
       return;
     }
@@ -1449,7 +1501,7 @@ function MatterDetail({
 
   const [teamMsg, setTeamMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
-  const canManageTeam = currentUser.role === "admin" || matter.lawyer_id === currentUser.id;
+  const canManageTeam = isFirmAdmin(currentUser.role) || matter.lawyer_id === currentUser.id;
 
   const refreshTeam = useCallback(
     () =>
@@ -1582,7 +1634,7 @@ function MatterDetail({
             <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
               <h3 className="font-serif text-base font-bold text-[#0d1f3c] mb-2">Description</h3>
               <p className="text-sm text-[#2c3347] leading-relaxed">{matter.description}</p>
-              {currentUser.role === "admin" && (
+              {isFirmAdmin(currentUser.role) && (
                 <p className="text-xs text-[#8a9ab5] mt-3 italic">
                   Some information in this matter is restricted due to confidentiality.
                 </p>
@@ -1623,7 +1675,7 @@ function MatterDetail({
           </div>
 
           <div className="space-y-3">
-            {(currentUser.role === "admin" || currentUser.role === "lawyer") && (
+            {(isFirmAdmin(currentUser.role) || isLawyer(currentUser.role)) && (
               <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
                 <h3 className="text-sm font-semibold text-[#0d1f3c] mb-3">Update Status</h3>
                 <select
@@ -1631,7 +1683,7 @@ function MatterDetail({
                   onChange={(e) => setStatus(e.target.value as Matter["status"])}
                   className={`${MODAL_INPUT_CLASS} mb-3`}
                 >
-                  {statusChoices(savedStatus, currentUser.role === "admin").map((s) => (
+                  {statusChoices(savedStatus, isFirmAdmin(currentUser.role)).map((s) => (
                     <option key={s}>{s}</option>
                   ))}
                 </select>
@@ -1650,7 +1702,7 @@ function MatterDetail({
               </div>
             )}
 
-            {currentUser.role === "admin" && (
+            {isFirmAdmin(currentUser.role) && (
               <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
                 <h3 className="text-sm font-semibold text-[#0d1f3c] mb-3">Assigned Lawyer</h3>
                 {lawyer ? (
@@ -1692,7 +1744,7 @@ function MatterDetail({
               </div>
             )}
 
-            {currentUser.role !== "client" && (
+            {isStaff(currentUser.role) && (
               <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
                 <h3 className="text-sm font-semibold text-[#0d1f3c] mb-1">Matter Team</h3>
                 <p className="text-xs text-[#8a9ab5] mb-3">
@@ -1776,7 +1828,7 @@ function MatterDetail({
               </div>
             )}
 
-            {currentUser.role === "admin" && (
+            {isFirmAdmin(currentUser.role) && (
               <div className="bg-amber-50 rounded-xl p-5 border border-amber-200">
                 <h3 className="text-sm font-semibold text-amber-800 mb-2">Conflict Check</h3>
                 <p className="text-xs text-amber-700 leading-relaxed mb-3">
@@ -1824,8 +1876,10 @@ function MatterDetail({
             <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-[#0d1f3c]">Documents</h3>
-                {/* Admins are view-only on documents (20261012). */}
-                {currentUser.role !== "admin" && (
+                {/* The managing partner is view-only on documents (20261012);
+                    matter teams — lawyers and paralegals — may upload, within
+                    the access levels their role allows (20261023). */}
+                {!isFirmAdmin(currentUser.role) && (
                   <button
                     onClick={() => setShowUpload(true)}
                     className="text-xs font-semibold text-[#c9a84c] hover:underline"
@@ -2215,7 +2269,7 @@ function DocumentsTable({
   };
 
   const act = async (d: Document, mode: "open" | "download") => {
-    if (currentUser.role === "admin" && d.access_level === "Confidential") {
+    if (isFirmAdmin(currentUser.role) && d.access_level === "Confidential") {
       setBgDoc({ doc: d, mode });
       return;
     }
@@ -3032,14 +3086,19 @@ function LawyerPortalView({
   onNavigate,
   onSignOut,
   onUserRefresh,
+  tabs = LAWYER_TABS,
 }: {
   currentUser: AuthUser;
   onNavigate: (p: Page, params?: Record<string, string>) => void;
   onSignOut: () => void;
   /** Re-reads the profile so the avatar/name update after an edit. */
   onUserRefresh?: () => void;
+  /** The lawyer sees the full set; the paralegal gets the casework subset. */
+  tabs?: PortalTab[];
 }) {
   const [tab, setTab] = useState("dashboard");
+
+  const isPara = isParalegal(currentUser.role);
 
   const [myMatters, setMyMatters] = useState<Matter[]>([]);
 
@@ -3165,24 +3224,28 @@ function LawyerPortalView({
       });
     }
     const seen = new Set<string>();
-    for (const m of myMatters) {
-      if (!m.client_id || seen.has(m.client_id)) continue;
-      seen.add(m.client_id);
-      items.push({
-        id: `client-${m.client_id}`,
-        title: clientNames[m.client_id] || "Client",
-        subtitle: `${m.matter_number} · ${m.title}`,
-        tab: "clients",
-      });
+    // Client search entries land on the Clients tab, which only the lawyer
+    // portal has — a paralegal's index would dead-end.
+    if (!isPara) {
+      for (const m of myMatters) {
+        if (!m.client_id || seen.has(m.client_id)) continue;
+        seen.add(m.client_id);
+        items.push({
+          id: `client-${m.client_id}`,
+          title: clientNames[m.client_id] || "Client",
+          subtitle: `${m.matter_number} · ${m.title}`,
+          tab: "clients",
+        });
+      }
     }
     return items;
-  }, [myMatters, myDocs, myAppts, practiceAreas, clientNames]);
+  }, [myMatters, myDocs, myAppts, practiceAreas, clientNames, isPara]);
 
   if (loading) {
     return (
       <PortalShell
         currentUser={currentUser}
-        tabs={LAWYER_TABS}
+        tabs={tabs}
         activeTab={tab}
         onTab={setTab}
         onSignOut={onSignOut}
@@ -3203,7 +3266,7 @@ function LawyerPortalView({
       <EmailVerificationBanner />
       <PortalShell
         currentUser={currentUser}
-        tabs={LAWYER_TABS}
+        tabs={tabs}
         activeTab={tab}
         onTab={setTab}
         onSignOut={onSignOut}
@@ -3228,12 +3291,16 @@ function LawyerPortalView({
                 tone="blue"
                 icon={<IconGavel className="h-5 w-5" />}
               />
-              <StatCard
-                label="Appointments"
-                value={myAppts.length}
-                tone="purple"
-                icon={<IconClock className="h-5 w-5" />}
-              />
+              {/* Paralegals never hold appointments — the card would always
+                  read zero and the database gives them no calendar access. */}
+              {!isPara && (
+                <StatCard
+                  label="Appointments"
+                  value={myAppts.length}
+                  tone="purple"
+                  icon={<IconClock className="h-5 w-5" />}
+                />
+              )}
               <StatCard
                 label="Unread Notifications"
                 value={notifs.unreadCount}
@@ -3250,34 +3317,36 @@ function LawyerPortalView({
                 }))}
               />
             </Panel>
-            <Panel>
-              <PanelHeader
-                title="Recent Appointments"
-                subtitle="Your latest scheduled consultations"
-              />
-              <div className="space-y-3">
-                {myAppts.length > 0 ? (
-                  myAppts.slice(0, 4).map((a) => (
-                    <div
-                      key={a.id}
-                      className="flex items-center justify-between gap-3 py-2 border-b border-[#f7f5f0] last:border-0"
-                    >
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-[#0d1f3c] truncate">
-                          {a.appointment_type}
-                        </p>
-                        <p className="text-xs text-[#8a9ab5]">
-                          {new Date(a.date + "T00:00").toLocaleDateString()} · {a.time}
-                        </p>
+            {!isPara && (
+              <Panel>
+                <PanelHeader
+                  title="Recent Appointments"
+                  subtitle="Your latest scheduled consultations"
+                />
+                <div className="space-y-3">
+                  {myAppts.length > 0 ? (
+                    myAppts.slice(0, 4).map((a) => (
+                      <div
+                        key={a.id}
+                        className="flex items-center justify-between gap-3 py-2 border-b border-[#f7f5f0] last:border-0"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-[#0d1f3c] truncate">
+                            {a.appointment_type}
+                          </p>
+                          <p className="text-xs text-[#8a9ab5]">
+                            {new Date(a.date + "T00:00").toLocaleDateString()} · {a.time}
+                          </p>
+                        </div>
+                        <Badge text={a.status} />
                       </div>
-                      <Badge text={a.status} />
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-[#8a9ab5] text-center py-2">No appointments yet</p>
-                )}
-              </div>
-            </Panel>
+                    ))
+                  ) : (
+                    <p className="text-xs text-[#8a9ab5] text-center py-2">No appointments yet</p>
+                  )}
+                </div>
+              </Panel>
+            )}
             <MattersTable
               matters={myMatters}
               currentUser={currentUser}
@@ -3294,7 +3363,11 @@ function LawyerPortalView({
             <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Matters</h2>
             {myMatters.length === 0 ? (
               <div className="bg-white rounded-xl border border-[#e8e4dc] p-10 text-center">
-                <p className="text-[#8a9ab5] text-sm">No matters assigned yet.</p>
+                <p className="text-[#8a9ab5] text-sm">
+                  {isPara
+                    ? "You are not on any matter team yet. A matter's assigned lawyer adds paralegals to its team."
+                    : "No matters assigned yet."}
+                </p>
               </div>
             ) : (
               <MattersTable
@@ -3406,6 +3479,10 @@ function LawyerPortalView({
           </div>
         )}
 
+        {tab === "tasks" && (
+          <TasksPanel currentUser={currentUser} matters={myMatters} onToast={showToast} />
+        )}
+
         {tab === "profile" && (
           <div className="space-y-5">
             <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Profile</h2>
@@ -3450,9 +3527,194 @@ function LawyerPortalView({
           onDelete={notifs.remove}
           onOpenLink={(link) => {
             setShowNotifs(false);
-            // "inquiries" lands on this portal's own inquiries tab: the
-            // lawyer's queue or the client's My Inquiries.
-            if (["matters", "appointments", "documents", "inquiries"].includes(link)) setTab(link);
+            // Land on this portal's own tab for the link — the lawyer's
+            // inquiries queue, a paralegal's matters — but never on a tab
+            // this role's portal does not have.
+            if (tabs.some((t) => t.key === link)) setTab(link);
+          }}
+          onClose={() => setShowNotifs(false)}
+        />
+      )}
+    </>
+  );
+}
+
+// ── Intake Portal ─────────────────────────────────────────────────────────────
+
+// The legal assistant works the firm's inquiry queue. The queue itself is
+// AdminIntake in read-only mode: the database grants intake SELECT on every
+// inquiry but reserves status changes, assignment and conversion for the
+// managing partner and the lawyers (guard_inquiry_update / convert_inquiry_to_matter).
+
+function IntakePortalView({
+  currentUser,
+  onNavigate,
+  onSignOut,
+  onUserRefresh,
+}: {
+  currentUser: AuthUser;
+  onNavigate: (p: Page, params?: Record<string, string>) => void;
+  onSignOut: () => void;
+  /** Re-reads the profile so the avatar/name update after an edit. */
+  onUserRefresh?: () => void;
+}) {
+  const [tab, setTab] = useState("dashboard");
+
+  // Status-only projection of the queue, for the dashboard counts. RLS admits
+  // every inquiry for intake; the rows themselves are rendered by AdminIntake.
+  const [queue, setQueue] = useState<{ id: string; status: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const notifs = useNotifications(currentUser.id);
+
+  const [showNotifs, setShowNotifs] = useState(false);
+
+  const [toast, setToast] = useState<{
+    message: string;
+    tone: "success" | "error";
+  } | null>(null);
+
+  const showToast = (message: string, tone: "success" | "error" = "success") =>
+    setToast({ message, tone });
+
+  const loadQueue = useCallback(async (showSpinner = true) => {
+    if (showSpinner) setLoading(true);
+
+    const { data } = await supabase
+      .from("inquiries")
+      .select("id, status")
+      .order("created_at", { ascending: false })
+      .limit(200);
+
+    setQueue((data as { id: string; status: string }[]) ?? []);
+
+    if (showSpinner) setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    void loadQueue();
+  }, [loadQueue]);
+
+  // Live queue: a new client inquiry or a status change moves the counts and
+  // the queue without a refresh.
+  useEffect(() => {
+    return subscribeToTables(["inquiries"], () => void loadQueue(false), {
+      channelKey: currentUser.id,
+    });
+  }, [loadQueue, currentUser.id]);
+
+  const count = (status: string) => queue.filter((r) => r.status === status).length;
+
+  if (loading) {
+    return (
+      <PortalShell
+        currentUser={currentUser}
+        tabs={INTAKE_TABS}
+        activeTab={tab}
+        onTab={setTab}
+        onSignOut={onSignOut}
+        unreadCount={notifs.unreadCount}
+      >
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="w-16 h-16 mx-auto mb-4 border-4 border-[#c9a84c] border-t-transparent rounded-full animate-spin" />
+            <p className="text-[#8a9ab5] text-sm">Loading the inquiry queue...</p>
+          </div>
+        </div>
+      </PortalShell>
+    );
+  }
+
+  return (
+    <>
+      <EmailVerificationBanner />
+      <PortalShell
+        currentUser={currentUser}
+        tabs={INTAKE_TABS}
+        activeTab={tab}
+        onTab={setTab}
+        onSignOut={onSignOut}
+        unreadCount={notifs.unreadCount}
+        onOpenNotifications={() => setShowNotifs(true)}
+      >
+        {tab === "dashboard" && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <StatCard
+                label="New"
+                value={count("New")}
+                tone="blue"
+                icon={<IconEnvelope className="h-5 w-5" />}
+                onClick={() => setTab("intake")}
+              />
+              <StatCard
+                label="Under Review"
+                value={count("Under Review")}
+                tone="amber"
+                icon={<IconClock className="h-5 w-5" />}
+                onClick={() => setTab("intake")}
+              />
+              <StatCard
+                label="Contacted"
+                value={count("Contacted")}
+                tone="purple"
+                icon={<IconTrendingUp className="h-5 w-5" />}
+                onClick={() => setTab("intake")}
+              />
+              <StatCard
+                label="Closed"
+                value={count("Closed")}
+                tone="green"
+                icon={<IconShield className="h-5 w-5" />}
+                onClick={() => setTab("intake")}
+              />
+            </div>
+            <Panel>
+              <PanelHeader
+                title="Intake queue"
+                subtitle="Every inquiry filed by a registered client"
+              />
+              <p className="text-sm text-[#2c3347] leading-relaxed">
+                You are notified about each new client inquiry — the bell in the top bar, and the
+                email the firm receives. The queue shows every inquiry and its attachments.
+                Assigning a lawyer, moving statuses and converting an inquiry into a matter stay
+                with the managing partner and the lawyers.
+              </p>
+            </Panel>
+          </div>
+        )}
+
+        {tab === "intake" && <AdminIntake readOnly />}
+
+        {tab === "tasks" && (
+          <TasksPanel currentUser={currentUser} matters={[]} onToast={showToast} />
+        )}
+
+        {tab === "profile" && (
+          <div className="space-y-5">
+            <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Profile</h2>
+            <ProfileEditor userId={currentUser.id} onSaved={onUserRefresh} />
+          </div>
+        )}
+      </PortalShell>
+      {toast && (
+        <PortalToast message={toast.message} tone={toast.tone} onClose={() => setToast(null)} />
+      )}
+      {showNotifs && (
+        <NotificationsModal
+          items={notifs.items}
+          loading={notifs.loading}
+          error={notifs.error}
+          unreadCount={notifs.unreadCount}
+          onMarkRead={notifs.markRead}
+          onMarkAllRead={notifs.markAllRead}
+          onDelete={notifs.remove}
+          onOpenLink={(link) => {
+            setShowNotifs(false);
+            // New-inquiry notifications carry the "intake" link; task
+            // notifications carry "tasks". Both land on this portal's tabs.
+            if (link === "intake" || link === "inquiries") setTab("intake");
+            else if (link === "tasks") setTab("tasks");
           }}
           onClose={() => setShowNotifs(false)}
         />
@@ -3468,14 +3730,23 @@ function AdminPortalView({
   onNavigate,
   onSignOut,
   onUserRefresh,
+  tabs = MANAGING_PARTNER_TABS,
 }: {
   currentUser: AuthUser;
   onNavigate: (p: Page, params?: Record<string, string>) => void;
   onSignOut: () => void;
   /** Re-reads the profile so the avatar/name update after an edit. */
   onUserRefresh?: () => void;
+  /** The managing partner sees every tab; the system administrator gets the
+      administration subset (accounts, settings, audit, profile). */
+  tabs?: PortalTab[];
 }) {
   const [tab, setTab] = useState("dashboard");
+
+  // The system administrator shares this component with the managing partner,
+  // but sees only the administration subset (tabs prop), an accounts-only
+  // dashboard and a users-only search index.
+  const sysAdmin = isSystemAdmin(currentUser.role);
 
   // Filters a dashboard stat card hands to the Matters tab (e.g. status=Active).
   // Empty means the plain "All Matters" list.
@@ -3559,7 +3830,7 @@ function AdminPortalView({
       key === "status"
         ? userStatus(u)
         : key === "role"
-          ? u.role
+          ? roleLabel(normalizeRole(u.role))
           : key === "position"
             ? u.position
             : null,
@@ -3670,14 +3941,12 @@ function AdminPortalView({
   const applyMatterPatch = (id: string, patch: Partial<Matter>) =>
     setAllMatters((prev) => prev.map((m) => (m.id === id ? { ...m, ...patch } : m)));
 
-  // How many administrators could still get in. The database refuses to remove
+  // How many managing partners could still get in. The database refuses to
+  // remove the last one (private.guard_last_admin), so the UI warns first
+  // rather than letting the account manager hit a raw SQL error.
 
-  // the last one (private.guard_last_admin), so the UI warns first rather than
-
-  // letting the admin hit a raw SQL error.
-
-  const activeAdminCount = userAccounts.filter(
-    (u) => u.role === "admin" && u.is_active !== false && !u.deleted_at,
+  const activeManagingPartnerCount = userAccounts.filter(
+    (u) => normalizeRole(u.role) === "managing_partner" && u.is_active !== false && !u.deleted_at,
   ).length;
 
   // ── Excel export (Reports tab) ──────────────────────────────────────────────
@@ -3884,6 +4153,9 @@ function AdminPortalView({
         tab: "users",
       });
     }
+    // Everything below lands on a casework tab, which the system
+    // administrator's portal does not have.
+    if (sysAdmin) return items;
     for (const m of allMatters) {
       items.push({
         id: `matter-${m.id}`,
@@ -3914,13 +4186,13 @@ function AdminPortalView({
       });
     }
     return items;
-  }, [userAccounts, allMatters, lawyers, allDocs, allAppointments, practiceAreas]);
+  }, [userAccounts, allMatters, lawyers, allDocs, allAppointments, practiceAreas, sysAdmin]);
 
   if (loading) {
     return (
       <PortalShell
         currentUser={currentUser}
-        tabs={ADMIN_TABS}
+        tabs={tabs}
         activeTab={tab}
         onTab={goToTab}
         onSignOut={onSignOut}
@@ -3941,13 +4213,13 @@ function AdminPortalView({
       <EmailVerificationBanner />
       <PortalShell
         currentUser={currentUser}
-        tabs={ADMIN_TABS}
+        tabs={tabs}
         activeTab={tab}
         onTab={goToTab}
         onSignOut={onSignOut}
         unreadCount={notifs.unreadCount}
         onOpenNotifications={() => setShowNotifs(true)}
-        searchPlaceholder="Search users, matters, lawyers…"
+        searchPlaceholder={sysAdmin ? "Search users…" : "Search users, matters, lawyers…"}
         searchItems={searchItems}
         onSearchSelect={(item) => {
           goToTab(item.tab);
@@ -3960,87 +4232,139 @@ function AdminPortalView({
           </div>
         )}
 
-        {tab === "dashboard" && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <StatCard
-                label="Total Matters"
-                value={allMatters.length}
-                tone="blue"
-                icon={<IconBriefcase className="h-5 w-5" />}
-                onClick={() => goToTab("matters")}
-              />
-              <StatCard
-                label="Active Matters"
-                value={allMatters.filter((m) => m.status === "Active").length}
-                tone="green"
-                icon={<IconTrendingUp className="h-5 w-5" />}
-                onClick={() => goToTab("matters", { status: "Active" })}
-              />
-              <StatCard
-                label="Pending Conflict Checks"
-                value={allMatters.filter((m) => m.status === "Conflict Check").length}
-                tone="amber"
-                icon={<IconShield className="h-5 w-5" />}
-                onClick={() => goToTab("matters", { status: "Conflict Check" })}
-              />
-              <StatCard
-                label="Unassigned Matters"
-                value={unassigned.length}
-                tone="red"
-                icon={<IconUsers className="h-5 w-5" />}
-                onClick={() => goToTab("matters", { lawyer: "Unassigned" })}
+        {tab === "dashboard" &&
+          (sysAdmin ? (
+            // The system administrator has no legal work in the database, so
+            // the firm-wide casework dashboard would read all zeros. Their
+            // dashboard counts accounts and audit activity instead.
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <StatCard
+                  label="Total Accounts"
+                  value={userAccounts.length}
+                  tone="purple"
+                  icon={<IconUsers className="h-5 w-5" />}
+                  onClick={() => goToTab("users")}
+                />
+                <StatCard
+                  label="Active Accounts"
+                  value={userAccounts.filter((u) => u.is_active !== false && !u.deleted_at).length}
+                  tone="green"
+                  icon={<IconTrendingUp className="h-5 w-5" />}
+                  onClick={() => goToTab("users")}
+                />
+                <StatCard
+                  label="Staff Accounts"
+                  value={
+                    userAccounts.filter((u) => isStaff(normalizeRole(u.role)) && !u.deleted_at)
+                      .length
+                  }
+                  tone="blue"
+                  icon={<IconGavel className="h-5 w-5" />}
+                  onClick={() => goToTab("users")}
+                />
+                <StatCard
+                  label="Audit Events"
+                  value={auditLogs.length}
+                  tone="gold"
+                  icon={<IconShield className="h-5 w-5" />}
+                  onClick={() => goToTab("audit")}
+                />
+              </div>
+              <Panel>
+                <PanelHeader
+                  title="System administration"
+                  subtitle="Accounts and the audit trail"
+                />
+                <p className="text-sm text-[#2c3347] leading-relaxed">
+                  Your role manages user accounts — creating them, changing roles and resetting
+                  credentials — and reviews the audit trail. Casework (matters, documents, inquiry
+                  conversations) is deliberately out of scope and stays with the firm&rsquo;s
+                  lawyers and managing partner.
+                </p>
+              </Panel>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <StatCard
+                  label="Total Matters"
+                  value={allMatters.length}
+                  tone="blue"
+                  icon={<IconBriefcase className="h-5 w-5" />}
+                  onClick={() => goToTab("matters")}
+                />
+                <StatCard
+                  label="Active Matters"
+                  value={allMatters.filter((m) => m.status === "Active").length}
+                  tone="green"
+                  icon={<IconTrendingUp className="h-5 w-5" />}
+                  onClick={() => goToTab("matters", { status: "Active" })}
+                />
+                <StatCard
+                  label="Pending Conflict Checks"
+                  value={allMatters.filter((m) => m.status === "Conflict Check").length}
+                  tone="amber"
+                  icon={<IconShield className="h-5 w-5" />}
+                  onClick={() => goToTab("matters", { status: "Conflict Check" })}
+                />
+                <StatCard
+                  label="Unassigned Matters"
+                  value={unassigned.length}
+                  tone="red"
+                  icon={<IconUsers className="h-5 w-5" />}
+                  onClick={() => goToTab("matters", { lawyer: "Unassigned" })}
+                />
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <StatCard
+                  label="Total Users"
+                  value={userAccounts.length}
+                  tone="purple"
+                  icon={<IconUsers className="h-5 w-5" />}
+                  onClick={() => goToTab("users")}
+                />
+                <StatCard
+                  label="Total Lawyers"
+                  value={lawyers.length}
+                  tone="gold"
+                  icon={<IconGavel className="h-5 w-5" />}
+                  onClick={() => goToTab("lawyers")}
+                />
+                <StatCard
+                  label="Client Inquiries"
+                  value={inquiryCount}
+                  tone="blue"
+                  icon={<IconEnvelope className="h-5 w-5" />}
+                  onClick={() => goToTab("intake")}
+                />
+                <StatCard
+                  label="Audit Events"
+                  value={auditLogs.length}
+                  tone="green"
+                  icon={<IconShield className="h-5 w-5" />}
+                  onClick={() => goToTab("audit")}
+                />
+              </div>
+              <Panel>
+                <PanelHeader title="Matters by Status" subtitle="All matters across the practice" />
+                <StatusBreakdown
+                  items={MATTER_STATUS_ORDER.map((s) => ({
+                    label: s,
+                    value: allMatters.filter((m) => m.status === s).length,
+                  }))}
+                />
+              </Panel>
+              <MattersTable
+                matters={allMatters}
+                currentUser={currentUser}
+                onNavigate={onNavigate}
+                practiceAreas={practiceAreas}
+                lawyers={lawyers}
+                onMatterUpdated={applyMatterPatch}
               />
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <StatCard
-                label="Total Users"
-                value={userAccounts.length}
-                tone="purple"
-                icon={<IconUsers className="h-5 w-5" />}
-                onClick={() => goToTab("users")}
-              />
-              <StatCard
-                label="Total Lawyers"
-                value={lawyers.length}
-                tone="gold"
-                icon={<IconGavel className="h-5 w-5" />}
-                onClick={() => goToTab("lawyers")}
-              />
-              <StatCard
-                label="Client Inquiries"
-                value={inquiryCount}
-                tone="blue"
-                icon={<IconEnvelope className="h-5 w-5" />}
-                onClick={() => goToTab("intake")}
-              />
-              <StatCard
-                label="Audit Events"
-                value={auditLogs.length}
-                tone="green"
-                icon={<IconShield className="h-5 w-5" />}
-                onClick={() => goToTab("audit")}
-              />
-            </div>
-            <Panel>
-              <PanelHeader title="Matters by Status" subtitle="All matters across the practice" />
-              <StatusBreakdown
-                items={MATTER_STATUS_ORDER.map((s) => ({
-                  label: s,
-                  value: allMatters.filter((m) => m.status === s).length,
-                }))}
-              />
-            </Panel>
-            <MattersTable
-              matters={allMatters}
-              currentUser={currentUser}
-              onNavigate={onNavigate}
-              practiceAreas={practiceAreas}
-              lawyers={lawyers}
-              onMatterUpdated={applyMatterPatch}
-            />
-          </div>
-        )}
+          ))}
 
         {tab === "users" && (
           <div className="space-y-4">
@@ -4063,7 +4387,9 @@ function AdminPortalView({
                   {
                     key: "role",
                     label: "Role",
-                    options: ["client", "lawyer", "admin"],
+                    // Filter values are the pretty labels; the predicate above
+                    // matches on roleLabel(normalizeRole(role)).
+                    options: USER_ROLES.map(roleLabel),
                   },
 
                   {
@@ -4252,7 +4578,7 @@ function AdminPortalView({
               <EditUserModal
                 user={editUser}
                 currentUserId={currentUser.id}
-                activeAdminCount={activeAdminCount}
+                activeManagingPartnerCount={activeManagingPartnerCount}
                 onClose={() => setEditUser(null)}
                 onUpdate={(updated) => {
                   setUserAccounts((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
@@ -4275,7 +4601,7 @@ function AdminPortalView({
               <ManageUserModal
                 user={manageUser}
                 currentUserId={currentUser.id}
-                activeAdminCount={activeAdminCount}
+                activeManagingPartnerCount={activeManagingPartnerCount}
                 onClose={() => setManageUser(null)}
                 onRoleChange={(newRole) => {
                   setUserAccounts((prev) =>
@@ -4384,8 +4710,12 @@ function AdminPortalView({
           </div>
         )}
 
+        {tab === "tasks" && (
+          <TasksPanel currentUser={currentUser} matters={allMatters} onToast={showToast} />
+        )}
+
         {tab === "appointments" && (
-          <AppointmentsPanel role="admin" userId={currentUser.id} matters={allMatters} />
+          <AppointmentsPanel role={currentUser.role} userId={currentUser.id} matters={allMatters} />
         )}
 
         {tab === "lawyers" && (
@@ -4828,10 +5158,11 @@ function AdminPortalView({
           onOpenLink={(link) => {
             setShowNotifs(false);
             // The admin has no inquiries tab; inquiry notifications land on
-            // Client Intake, which is the front desk's queue for them.
-            if (link === "inquiries") setTab("intake");
-            else if (["matters", "appointments", "documents", "intake"].includes(link))
-              setTab(link);
+            // Client Intake, which is the front desk's queue for them. Never
+            // land on a tab this role's portal does not have (the system
+            // administrator has no casework tabs).
+            const target = link === "inquiries" ? "intake" : link;
+            if (tabs.some((t) => t.key === target)) setTab(target);
           }}
           onClose={() => setShowNotifs(false)}
         />
@@ -4934,7 +5265,7 @@ function ViewUserModal({ user, onClose }: { user: Profile; onClose: () => void }
 function EditUserModal({
   user,
   currentUserId,
-  activeAdminCount,
+  activeManagingPartnerCount,
   onClose,
   onUpdate,
   onPictureChanged,
@@ -4943,7 +5274,7 @@ function EditUserModal({
 
   currentUserId: string;
 
-  activeAdminCount: number;
+  activeManagingPartnerCount: number;
 
   onClose: () => void;
 
@@ -4976,7 +5307,7 @@ function EditUserModal({
 
     city: user.city || "",
 
-    role: user.role,
+    role: normalizeRole(user.role),
 
     position: user.position || "",
   });
@@ -4988,9 +5319,12 @@ function EditUserModal({
   // The database will reject this, so say it here in plain language instead.
 
   const isLastAdmin =
-    user.role === "admin" && user.is_active !== false && !user.deleted_at && activeAdminCount <= 1;
+    normalizeRole(user.role) === "managing_partner" &&
+    user.is_active !== false &&
+    !user.deleted_at &&
+    activeManagingPartnerCount <= 1;
 
-  const wouldLoseLastAdmin = isLastAdmin && form.role !== "admin";
+  const wouldLoseLastAdmin = isLastAdmin && form.role !== "managing_partner";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -5003,7 +5337,7 @@ function EditUserModal({
 
     if (wouldLoseLastAdmin) {
       setError(
-        "This is the last active administrator. Promote another account to admin before changing this one.",
+        "This is the last active managing partner. Promote another account to managing partner before changing this one.",
       );
 
       return;
@@ -5034,9 +5368,12 @@ function EditUserModal({
 
       city: form.city || undefined,
 
-      role: form.role,
+      // Only sent when the role actually changed. Besides being tidier, this
+      // keeps profile edits working against a database that has not had the
+      // six-role migration pasted yet (the old enum has no 'managing_partner').
+      ...(form.role !== normalizeRole(user.role) ? { role: form.role } : {}),
 
-      position: form.role !== "client" ? form.position || undefined : undefined,
+      position: isStaff(form.role) ? form.position || undefined : undefined,
     });
 
     setLoading(false);
@@ -5238,21 +5575,23 @@ function EditUserModal({
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      role: e.target.value as "client" | "lawyer" | "admin",
+                      role: e.target.value as UserRole,
                       position: "",
                     })
                   }
                   disabled={loading || isLastAdmin}
                   className={MODAL_INPUT_CLASS}
                 >
-                  <option value="client">Client</option>
-                  <option value="lawyer">Lawyer</option>
-                  <option value="admin">Admin</option>
+                  {USER_ROLES.map((r) => (
+                    <option key={r} value={r}>
+                      {roleLabel(r)}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               {/* Position at the firm (lawyers & staff) */}
-              {form.role !== "client" && (
+              {isStaff(form.role) && (
                 <div>
                   <label className={MODAL_LABEL_CLASS}>Position at the Firm</label>
                   <select
@@ -5273,8 +5612,8 @@ function EditUserModal({
             </div>
             {isLastAdmin && (
               <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2.5 mt-3 leading-relaxed">
-                ⚠️ This is the only active administrator. The role is locked until you promote
-                someone else to admin, otherwise nobody could manage the firm.
+                ⚠️ This is the only active managing partner. The role is locked until you promote
+                someone else to managing partner, otherwise nobody could run the firm.
               </p>
             )}
           </div>
@@ -5335,7 +5674,7 @@ function EditUserModal({
 function ManageUserModal({
   user,
   currentUserId,
-  activeAdminCount,
+  activeManagingPartnerCount,
   onClose,
   onRoleChange,
   onDeactivate,
@@ -5345,17 +5684,17 @@ function ManageUserModal({
 
   currentUserId: string;
 
-  activeAdminCount: number;
+  activeManagingPartnerCount: number;
 
   onClose: () => void;
 
-  onRoleChange: (newRole: "client" | "lawyer" | "admin") => void;
+  onRoleChange: (newRole: UserRole) => void;
 
   onDeactivate: () => void;
 
   onReactivate: () => void;
 }) {
-  const [selectedRole, setSelectedRole] = useState(user.role);
+  const [selectedRole, setSelectedRole] = useState<UserRole>(normalizeRole(user.role));
 
   const [loading, setLoading] = useState(false);
 
@@ -5367,16 +5706,18 @@ function ManageUserModal({
 
   const [resendMsg, setResendMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
-  // The database refuses to remove the last active administrator
-
-  // (private.guard_last_admin), so explain it before the admin tries.
+  // The database refuses to remove the last active managing partner
+  // (private.guard_last_admin), so explain it before the account manager tries.
 
   const isLastAdmin =
-    user.role === "admin" && user.is_active !== false && !user.deleted_at && activeAdminCount <= 1;
+    normalizeRole(user.role) === "managing_partner" &&
+    user.is_active !== false &&
+    !user.deleted_at &&
+    activeManagingPartnerCount <= 1;
 
   const isSelf = user.id === currentUserId;
 
-  const wouldLoseLastAdmin = isLastAdmin && selectedRole !== "admin";
+  const wouldLoseLastAdmin = isLastAdmin && selectedRole !== "managing_partner";
 
   const isInactive = user.is_active === false;
 
@@ -5401,7 +5742,7 @@ function ManageUserModal({
   };
 
   const handleRoleChange = async () => {
-    if (selectedRole === user.role) {
+    if (selectedRole === normalizeRole(user.role)) {
       setError("Role is unchanged.");
 
       return;
@@ -5409,7 +5750,7 @@ function ManageUserModal({
 
     if (wouldLoseLastAdmin) {
       setError(
-        "This is the last active administrator. Promote another account to admin before changing this one.",
+        "This is the last active managing partner. Promote another account to managing partner before changing this one.",
       );
 
       return;
@@ -5439,7 +5780,7 @@ function ManageUserModal({
   const handleDeactivate = async () => {
     if (isLastAdmin) {
       setError(
-        "This is the last active administrator and cannot be deactivated. Promote another account first.",
+        "This is the last active managing partner and cannot be deactivated. Promote another account first.",
       );
 
       return;
@@ -5517,23 +5858,25 @@ function ManageUserModal({
               <label className={MODAL_LABEL_CLASS}>Change User Role</label>
               <select
                 value={selectedRole}
-                onChange={(e) => setSelectedRole(e.target.value as "client" | "lawyer" | "admin")}
+                onChange={(e) => setSelectedRole(e.target.value as UserRole)}
                 disabled={loading || isLastAdmin}
                 className={MODAL_INPUT_CLASS}
               >
-                <option value="client">Client</option>
-                <option value="lawyer">Lawyer</option>
-                <option value="admin">Admin</option>
+                {USER_ROLES.map((r) => (
+                  <option key={r} value={r}>
+                    {roleLabel(r)}
+                  </option>
+                ))}
               </select>
               {isLastAdmin && (
                 <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2.5 mt-3 leading-relaxed">
-                  ⚠️ This is the only active administrator. The role is locked until you promote
-                  someone else to admin, otherwise nobody could manage the firm.
+                  ⚠️ This is the only active managing partner. The role is locked until you promote
+                  someone else to managing partner, otherwise nobody could run the firm.
                 </p>
               )}
               <button
                 onClick={handleRoleChange}
-                disabled={loading || selectedRole === user.role || isLastAdmin}
+                disabled={loading || selectedRole === normalizeRole(user.role) || isLastAdmin}
                 className="w-full mt-3 bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] text-sm font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? "Updating..." : "Update Role"}
@@ -5541,7 +5884,7 @@ function ManageUserModal({
             </div>
 
             {/* Credentials Section (staff only) */}
-            {user.role !== "client" && (
+            {isStaff(normalizeRole(user.role)) && (
               <div className="pt-4 border-t border-[#e8e4dc]">
                 <label className={MODAL_LABEL_CLASS}>Login Credentials</label>
                 <p className="text-xs text-[#8a9ab5] mb-3 leading-relaxed">
@@ -5696,12 +6039,7 @@ function CreateUserModal({
 }: {
   onClose: () => void;
   /** Called once the account exists so the list and audit log can update. */
-  onCreate: (u: {
-    id: string;
-    email: string;
-    fullName: string;
-    role: "client" | "lawyer" | "admin";
-  }) => void;
+  onCreate: (u: { id: string; email: string; fullName: string; role: UserRole }) => void;
 }) {
   const [form, setForm] = useState({
     name: "",
@@ -5712,7 +6050,7 @@ function CreateUserModal({
 
     confirmPassword: "",
 
-    role: "client" as "client" | "lawyer" | "admin",
+    role: "client" as UserRole,
 
     position: "",
 
@@ -5744,9 +6082,9 @@ function CreateUserModal({
 
   const [resendMsg, setResendMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
-  // Clients get an admin-typed password; lawyers and admins get a generated
+  // Clients get an account-manager-typed password; staff accounts (lawyer,
+  // paralegal, intake, managing partner, system admin) get a generated
   // temporary password emailed to them.
-  const isStaff = form.role !== "client";
 
   const handleResend = async () => {
     if (!created) return;
@@ -5782,7 +6120,7 @@ function CreateUserModal({
     }
 
     // Only client accounts get a password typed here.
-    if (!isStaff) {
+    if (!isStaff(form.role)) {
       if (!form.password || !form.confirmPassword) {
         setError("A password is required for client accounts.");
 
@@ -5809,7 +6147,7 @@ function CreateUserModal({
     const { data, error: createError } = await adminCreateUser({
       email: form.email,
 
-      ...(isStaff ? {} : { password: form.password }),
+      ...(isStaff(form.role) ? {} : { password: form.password }),
 
       fullName: form.name,
 
@@ -5821,7 +6159,7 @@ function CreateUserModal({
 
       city: form.city || undefined,
 
-      position: isStaff && form.position ? form.position : undefined,
+      position: isStaff(form.role) && form.position ? form.position : undefined,
     });
 
     setLoading(false);
@@ -5954,7 +6292,7 @@ function CreateUserModal({
           </div>
 
           {/* Password — client accounts only. Staff get one emailed. */}
-          {!isStaff && (
+          {!isStaff(form.role) && (
             <>
               <div>
                 <label className={MODAL_LABEL_CLASS}>Password *</label>
@@ -6023,21 +6361,23 @@ function CreateUserModal({
               onChange={(e) =>
                 setForm({
                   ...form,
-                  role: e.target.value as "client" | "lawyer" | "admin",
+                  role: e.target.value as UserRole,
                   position: "",
                 })
               }
               disabled={loading}
               className={MODAL_INPUT_CLASS}
             >
-              <option value="client">Client</option>
-              <option value="lawyer">Lawyer</option>
-              <option value="admin">Admin</option>
+              {USER_ROLES.map((r) => (
+                <option key={r} value={r}>
+                  {roleLabel(r)}
+                </option>
+              ))}
             </select>
           </div>
 
           {/* Position at the firm (lawyers & staff) */}
-          {form.role !== "client" && (
+          {isStaff(form.role) && (
             <div>
               <label className={MODAL_LABEL_CLASS}>Position at the Firm</label>
               <select
@@ -6069,7 +6409,7 @@ function CreateUserModal({
           {/* Security note */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <p className="text-xs text-blue-700 leading-relaxed">
-              {isStaff
+              {isStaff(form.role)
                 ? "✉️ A temporary password will be generated and emailed to this user. They will be asked to choose a new password the first time they sign in."
                 : "🔒 The password is stored encrypted and is never shown again. Share it with the client through a secure channel."}
             </p>
@@ -6158,9 +6498,11 @@ export default function ClientPortal({ onNavigate, savedLawyers }: ClientPortalP
     );
   }
 
-  // Route to appropriate portal based on role
+  // Route to appropriate portal based on role. `user.role` is already
+  // normalized to the six-role vocabulary — an old 'admin' reads as the
+  // managing partner — so these checks hold before and after the migration.
 
-  if (user.role === "client") {
+  if (isClient(user.role)) {
     return (
       <ClientPortalView
         currentUser={user}
@@ -6172,7 +6514,7 @@ export default function ClientPortal({ onNavigate, savedLawyers }: ClientPortalP
     );
   }
 
-  if (user.role === "lawyer") {
+  if (isLawyer(user.role)) {
     return (
       <LawyerPortalView
         currentUser={user}
@@ -6182,6 +6524,43 @@ export default function ClientPortal({ onNavigate, savedLawyers }: ClientPortalP
       />
     );
   }
+
+  if (isParalegal(user.role)) {
+    return (
+      <LawyerPortalView
+        currentUser={user}
+        onNavigate={onNavigate}
+        onSignOut={handleSignOut}
+        onUserRefresh={refresh}
+        tabs={PARALEGAL_TABS}
+      />
+    );
+  }
+
+  if (isIntake(user.role)) {
+    return (
+      <IntakePortalView
+        currentUser={user}
+        onNavigate={onNavigate}
+        onSignOut={handleSignOut}
+        onUserRefresh={refresh}
+      />
+    );
+  }
+
+  if (isSystemAdmin(user.role)) {
+    return (
+      <AdminPortalView
+        currentUser={user}
+        onNavigate={onNavigate}
+        onSignOut={handleSignOut}
+        onUserRefresh={refresh}
+        tabs={SYSTEM_ADMIN_TABS}
+      />
+    );
+  }
+
+  // Managing partner — the full administration portal.
 
   return (
     <AdminPortalView

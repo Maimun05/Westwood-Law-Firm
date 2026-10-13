@@ -4,6 +4,8 @@ import type { User } from "@supabase/supabase-js";
 
 import { logAuditEvent } from "./services/audit";
 
+import { normalizeRole, type UserRole } from "./roles";
+
 import type { Database } from "./database.types";
 
 export interface AuthUser {
@@ -17,7 +19,7 @@ export interface AuthUser {
 
   phone: string | null;
 
-  role: "client" | "lawyer" | "admin";
+  role: UserRole;
 
   status?: string;
 
@@ -495,7 +497,7 @@ export async function getCurrentUserProfile(): Promise<AuthUser | null> {
 
       phone: data.phone,
 
-      role: data.role,
+      role: normalizeRole(data.role),
 
       status: data.is_active ? "active" : "inactive",
 

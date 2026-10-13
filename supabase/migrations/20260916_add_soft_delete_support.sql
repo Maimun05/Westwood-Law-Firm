@@ -44,7 +44,7 @@ CREATE POLICY "Users can view active profiles"
     OR 
     auth.uid() = id 
     OR 
-    (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+    (SELECT role::TEXT FROM public.profiles WHERE id = auth.uid()) = 'admin'
   );
 
 -- Policy: Users can update their own profile (only if active)
@@ -63,7 +63,7 @@ CREATE POLICY "Admins can update any profile"
   ON public.profiles
   FOR UPDATE
   USING (
-    (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+    (SELECT role::TEXT FROM public.profiles WHERE id = auth.uid()) = 'admin'
   );
 
 -- Function to soft delete a user account

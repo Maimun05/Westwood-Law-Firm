@@ -17,6 +17,7 @@ import {
   IconBell,
   IconBriefcase,
   IconChartBar,
+  IconCheck,
   IconChevronDown,
   IconClock,
   IconDocumentText,
@@ -35,6 +36,8 @@ import {
 
 import type { AuthUser } from "@/lib/auth";
 
+import { portalName, roleLabel } from "@/lib/roles";
+
 import Avatar from "./Avatar";
 
 export type PortalSearchItem = {
@@ -45,7 +48,7 @@ export type PortalSearchItem = {
   tab: string;
 };
 
-type Tab = { key: string; label: string; group?: string };
+export type PortalTab = { key: string; label: string; group?: string };
 type IconComponent = React.ComponentType<{ className?: string }>;
 
 const TAB_ICONS: Record<string, IconComponent> = {
@@ -57,6 +60,7 @@ const TAB_ICONS: Record<string, IconComponent> = {
   clients: IconUsers,
   users: IconUsers,
   intake: IconEnvelope,
+  tasks: IconCheck,
   lawyers: IconGavel,
   content: IconDocumentText,
   reports: IconChartBar,
@@ -66,7 +70,7 @@ const TAB_ICONS: Record<string, IconComponent> = {
 };
 
 function roleLabelFor(role: AuthUser["role"]) {
-  return role === "client" ? "Client Portal" : role === "lawyer" ? "Lawyer Portal" : "Admin Portal";
+  return portalName(role);
 }
 
 // ── Search ────────────────────────────────────────────────────────────────────
@@ -272,7 +276,7 @@ function UserMenu({
           <span className="block text-sm font-semibold text-[#0d1f3c] truncate max-w-[150px]">
             {user.fullName}
           </span>
-          <span className="block text-[11px] text-[#8a9ab5] capitalize">{user.role}</span>
+          <span className="block text-[11px] text-[#8a9ab5]">{roleLabel(user.role)}</span>
         </span>
         <IconChevronDown className="h-4 w-4 text-[#8a9ab5] hidden lg:block" />
       </button>
@@ -333,7 +337,7 @@ export default function PortalShell({
   children,
 }: {
   currentUser: AuthUser;
-  tabs: Tab[];
+  tabs: PortalTab[];
   activeTab: string;
   onTab: (t: string) => void;
   onSignOut: () => void;
