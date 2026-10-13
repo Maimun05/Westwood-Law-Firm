@@ -1366,9 +1366,10 @@ else
            + (SELECT count(*) FROM public.faqs              WHERE question = 'Payload check question?')
            + (SELECT count(*) FROM public.seminar_events    WHERE id       = 'payload-check-seminar')
            + (SELECT count(*) FROM public.retainer_packages WHERE id       = 'payload-check-retainer')
-           + (SELECT count(*) FROM public.practice_areas    WHERE id       = 'payload-check-area');" 2>&1 | tr -d '[:space:]')
+           + (SELECT count(*) FROM public.practice_areas    WHERE id       = 'payload-check-area')
+           + (SELECT count(*) FROM public.court_decisions   WHERE id       = 'payload-check-decision');" 2>&1 | tr -d '[:space:]')
     if [ "$leftover" = "0" ]; then
-      pass "admin can create, publish, unpublish and delete all five content types"
+      pass "admin can create, publish, unpublish and delete all six content types"
     else
       fail "content rows were left behind (leftover=$leftover)"
     fi
@@ -1521,6 +1522,65 @@ else
   fail "20261005 could not be re-applied once the schema grant was revoked"
   grep -i error "$WORKDIR/secfix.err" | head -5
 fi
+
+# ── 7d. The public Law Library (court_decisions) ────────────────────────────
+# 20261021. The public page reads published rows as anon; the admin Content
+# Manager writes as an authenticated admin. Neither may cross the line: a
+# signed-out visitor must not read an unpublished decision, and no non-admin
+# may write at all. The table is also in the realtime publication, so the
+# page updates without a reload.
+PUBLIB=$($PSQL -tA -c "SELECT count(*) FROM pg_publication_tables
+  WHERE pubname = 'supabase_realtime' AND schemaname = 'public'
+    AND tablename = 'court_decisions';" 2>&1 | tr -d '[:space:]')
+if [ "$PUBLIB" = "1" ]; then
+  pass "court_decisions is published for realtime"
+else
+  fail "court_decisions is not in the realtime publication (found '$PUBLIB')"
+fi
+
+# The grants are explicit in the migration on purpose (the live project's
+# default privileges did not cover the 20260918 tables), so assert the end
+# state the hard way — the harness cannot see the gap itself.
+grants_ok "the law library is granted to authenticated (full DML) and anon (read)" \
+  "SELECT has_table_privilege('authenticated', 'public.court_decisions', 'SELECT')
+      AND has_table_privilege('authenticated', 'public.court_decisions', 'INSERT')
+      AND has_table_privilege('authenticated', 'public.court_decisions', 'UPDATE')
+      AND has_table_privilege('authenticated', 'public.court_decisions', 'DELETE')
+      AND has_table_privilege('anon', 'public.court_decisions', 'SELECT');" \
+  "t"
+
+# The seed ships three published decisions; add an unpublished one as a control
+# so "anon reads published" cannot pass by the table simply being empty.
+$PSQL -q -c "INSERT INTO public.court_decisions
+               (id, title, slug, gr_no, decision_date, summary, is_published)
+             VALUES ('deny-test-decision','Deny Test','deny-test-decision','G.R. No. 0','2020-01-01','x', FALSE)
+             ON CONFLICT (id) DO NOTHING;" >/dev/null 2>&1
+
+ANON_HIDDEN=$($PSQL -tA -c "SET ROLE anon; SELECT count(*) FROM public.court_decisions WHERE id = 'deny-test-decision';" 2>&1 | tr -d '[:space:]')
+if [ "$ANON_HIDDEN" = "0" ]; then
+  pass "anon sees no unpublished decision"
+else
+  fail "anon read an unpublished decision (got '$ANON_HIDDEN')"
+fi
+ANON_PUB=$($PSQL -tA -c "SET ROLE anon; SELECT count(*) FROM public.court_decisions WHERE id = 'oposa-v-factoran';" 2>&1 | tr -d '[:space:]')
+if [ "$ANON_PUB" = "1" ]; then
+  pass "anon reads a published decision"
+else
+  fail "anon could not read a published decision (got '$ANON_PUB')"
+fi
+
+try_as "a visitor CANNOT add a decision" "" deny \
+  "INSERT INTO public.court_decisions (id, title, slug, gr_no, decision_date, summary) VALUES ('sneaky-decision-0','Sneaky 0','sneaky-decision-0','G.R. No. 9','2021-01-01','x');" anon
+try_as "a client CANNOT add a decision" "$CLIENT" deny \
+  "INSERT INTO public.court_decisions (id, title, slug, gr_no, decision_date, summary) VALUES ('sneaky-decision','Sneaky','sneaky-decision','G.R. No. 1','2021-01-01','x');"
+try_as "a lawyer CANNOT add a decision" "$LAWYER" deny \
+  "INSERT INTO public.court_decisions (id, title, slug, gr_no, decision_date, summary) VALUES ('sneaky-decision-2','Sneaky 2','sneaky-decision-2','G.R. No. 2','2021-01-01','x');"
+deny_mutation "a client CANNOT rewrite a decision" "$CLIENT" \
+  "UPDATE public.court_decisions SET title = 'Hijacked' WHERE id = 'deny-test-decision';" \
+  "SELECT title FROM public.court_decisions WHERE id = 'deny-test-decision';" "DenyTest"
+try_as "an admin CAN add a decision" "$ADMIN" allow \
+  "INSERT INTO public.court_decisions (id, title, slug, gr_no, decision_date, summary) VALUES ('admin-decision','Admin','admin-decision','G.R. No. 3','2021-01-01','x');"
+$PSQL -q -c "DELETE FROM public.court_decisions WHERE id IN ('deny-test-decision','admin-decision','sneaky-decision','sneaky-decision-2');" >/dev/null 2>&1
 
 # ── Reproduce the live shapes that killed the pastes of 2026-09-30 ──────────
 # Two live-only differences from this harness, both invisible here until now:

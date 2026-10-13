@@ -13,8 +13,8 @@ const { mockFrom } = vi.hoisted(() => ({ mockFrom: vi.fn() }));
 
 vi.mock("./supabase", () => ({ supabase: { from: mockFrom } }));
 
-import { getLawyers, getPracticeAreas } from "./content";
-import { fallbackLawyers, fallbackPracticeAreas } from "./fallbackContent";
+import { getLawyers, getPracticeAreas, getPublishedDecisions } from "./content";
+import { fallbackCourtDecisions, fallbackLawyers, fallbackPracticeAreas } from "./fallbackContent";
 
 function query(result: { data: unknown; error: unknown }) {
   const builder: Record<string, unknown> = {};
@@ -69,6 +69,24 @@ describe("getLawyers", () => {
 
     const result = await getLawyers();
     expect(result.data).toBe(fallbackLawyers);
+    expect(result.error).toBe("boom");
+  });
+});
+
+describe("getPublishedDecisions", () => {
+  it("returns [] for an empty library — never the mock decisions", async () => {
+    mockFrom.mockReturnValue(query({ data: [], error: null }));
+
+    const result = await getPublishedDecisions();
+    expect(result.data).toEqual([]);
+    expect(result.data).not.toBe(fallbackCourtDecisions);
+  });
+
+  it("falls back to the mock decisions when the request fails", async () => {
+    mockFrom.mockReturnValue(query({ data: null, error: { message: "boom" } }));
+
+    const result = await getPublishedDecisions();
+    expect(result.data).toBe(fallbackCourtDecisions);
     expect(result.error).toBe("boom");
   });
 });

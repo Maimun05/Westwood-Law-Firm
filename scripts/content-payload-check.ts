@@ -28,6 +28,7 @@ const KINDS: ContentKind[] = [
   "seminar_events",
   "retainer_packages",
   "practice_areas",
+  "court_decisions",
 ];
 
 // One realistic draft per table, with every field filled so no column is
@@ -87,6 +88,19 @@ const DRAFTS: Record<ContentKind, Record<string, unknown>> = {
     client_needs: "Need one",
     display_order: 99,
     is_active: true,
+  },
+  court_decisions: {
+    id: "payload-check-decision",
+    title: "Payload Check Decision",
+    slug: "payload-check-decision",
+    gr_no: "G.R. No. 000000",
+    division: "EN BANC",
+    decision_date: "2027-01-15",
+    ponente: "Atty. Payload Check",
+    category: "Constitutional Law",
+    summary: "Summary written by the payload check.",
+    full_text: "First paragraph.\n\nSecond paragraph.",
+    is_published: true,
   },
 };
 
@@ -177,6 +191,9 @@ out.push(
 );
 out.push(
   `     + (SELECT count(*) FROM public.practice_areas     WHERE id          = 'payload-check-area')`,
+);
+out.push(
+  `     + (SELECT count(*) FROM public.court_decisions    WHERE id          = 'payload-check-decision')`,
 );
 out.push(`       AS leftover;`);
 

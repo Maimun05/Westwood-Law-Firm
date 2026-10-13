@@ -2,7 +2,7 @@
 // the About page, and everywhere an unregistered visitor is pointed to when
 // an inquiry CTA is not available to them.
 
-export const FIRM_EMAIL = "westwoodlawfirm1@gmail.com";
+export const FIRM_EMAIL = "firmwestwoodlaw@gmail.com";
 export const FIRM_EMAIL_HREF = `mailto:${FIRM_EMAIL}`;
 
 export const FIRM_NAME = "Westwood Law Firm";
@@ -16,7 +16,7 @@ export const FIRM_CITY = "San Juan City";
 export const FIRM_REGION = "Metro Manila";
 export const FIRM_POSTAL_CODE = "1502";
 export const FIRM_COUNTRY = "PH";
-export const FIRM_PHONE = "(02) 7957 2121";
+export const FIRM_PHONE = "+63 2 8722 9244";
 export const FIRM_HOURS = "Monday – Friday, 8:30 AM – 5:30 PM (closed on Philippine holidays)";
 export const FIRM_FOUNDED = "1998-08";
 

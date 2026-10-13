@@ -30,6 +30,8 @@
 --   21. 20261018_realtime_inquiries_messaging_consultations.sql (realtime inquiries + encrypted inquiry conversations + consultation requests in appointments)
 --   22. 20261019_notify_event_email_log.sql          (email claim log so the notify-event function sends each email at most once)
 --   23. 20261020_realtime_remaining_tables.sql       (realtime for the rest of the portal: profiles, matters, documents, activity, team, audit, content, seminar log)
+--   24. 20261021_court_decisions_law_library.sql     (public Law Library: court_decisions table + RLS/grants + realtime + 3 seeded decisions)
+--   25. 20261022_contact_details.sql                 (seeded FAQ answer: new public email + phone, replacing every old variant)
 --
 -- ORDER MATTERS: 20261001 links each seeded lawyer to the practice areas created
 -- by 20260919, so 20260919 must run first. 20261003 supersedes functions that
@@ -57,7 +59,11 @@
 -- running it last keeps it after every table it may log about. 20261020 only
 -- adds tables to the supabase_realtime publication and sets replica identity on
 -- three of them, so it depends on nothing but those tables existing — running
--- it last keeps it after every table it publishes.
+-- it last keeps it after every table it publishes. 20261021 adds the public
+-- Law Library (court_decisions); it calls private.is_admin() (installed by
+-- 20261003) and public.update_updated_at() (pinned by 20261005), and it seeds
+-- its own rows, so it depends on nothing else and runs last. 20261022 rewrites
+-- the FAQ answer that 20260919 seeds, so it runs after that seed.
 --
 -- HOW TO RUN
 --   1. Open https://supabase.com/dashboard  ->  your project  ->  SQL Editor
@@ -73,7 +79,7 @@
 
 
 -- ############################################################################
--- ## 1/23  20260919_seed_content.sql
+-- ## 1/25  20260919_seed_content.sql
 -- ############################################################################
 -- ============================================================================
 -- Westwood Law Firm - Content Seed Data
@@ -405,7 +411,7 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.faqs (question, answer, display_order, is_active) VALUES
 ('How do I schedule a consultation with Westwood Law Firm?', 
-  'You can schedule a consultation through our website by clicking ''Schedule a Consultation'' and completing the online booking flow. You may also call our office at (02) 7957 2121 or send an email to westwoodlawfirm1@gmail.com. Our team will confirm your appointment within 24 hours.',
+  'You can schedule a consultation through our website by clicking ''Schedule a Consultation'' and completing the online booking flow. You may also call our office at +63 2 8722 9244 or send an email to firmwestwoodlaw@gmail.com. Our team will confirm your appointment within 24 hours.',
   1, true),
 
 ('How do I select the right lawyer for my concern?',
@@ -485,7 +491,7 @@ COMMIT;
 
 
 -- ############################################################################
--- ## 2/23  20260928_fix_admin_profile_write_access.sql
+-- ## 2/25  20260928_fix_admin_profile_write_access.sql
 -- ############################################################################
 -- ============================================================================
 -- Fix: Restore admin write-access to profiles (without reintroducing recursion)
@@ -520,7 +526,7 @@ COMMENT ON POLICY profiles_admin_write_policy ON public.profiles IS
 
 
 -- ############################################################################
--- ## 3/23  20260929_documents_and_notifications.sql
+-- ## 3/25  20260929_documents_and_notifications.sql
 -- ############################################################################
 -- ============================================================================
 -- Documents upload/download + Notifications
@@ -1024,7 +1030,7 @@ WITH CHECK ((SELECT private.is_admin()));
 
 
 -- ############################################################################
--- ## 4/23  20261001_consolidated_access_control.sql
+-- ## 4/25  20261001_consolidated_access_control.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261001  Consolidated access control, composite names, lawyer directory
@@ -1772,7 +1778,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 5/23  20261002_database_cleanup.sql
+-- ## 5/25  20261002_database_cleanup.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261002  Non-destructive cleanup + routing fixes
@@ -1915,7 +1921,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 6/23  20261003_integrity_hardening.sql
+-- ## 6/25  20261003_integrity_hardening.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261003  Integrity hardening
@@ -2292,7 +2298,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 7/23  20261004_client_messaging.sql
+-- ## 7/25  20261004_client_messaging.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261004  Client messaging on matters
@@ -2421,7 +2427,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 8/23  20261005_security_advisor_fixes.sql
+-- ## 8/25  20261005_security_advisor_fixes.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261005  Security advisor fixes
@@ -3020,7 +3026,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 9/23  20261006_public_inquiry_rpc.sql
+-- ## 9/25  20261006_public_inquiry_rpc.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261006  Public inquiry submission
@@ -3136,7 +3142,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 10/23  20261007_content_table_grants.sql
+-- ## 10/25  20261007_content_table_grants.sql
 -- ############################################################################
 -- ============================================================================
 -- CONTENT TABLE GRANTS — the live "Admin access is required" failure
@@ -3258,7 +3264,7 @@ WITH CHECK ((SELECT private.is_admin()));
 
 
 -- ############################################################################
--- ## 11/23  20261008_inquiry_attachments.sql
+-- ## 11/25  20261008_inquiry_attachments.sql
 -- ############################################################################
 -- ============================================================================
 -- INQUIRY ATTACHMENTS — "Attach File / Photo / Video" on the public form
@@ -3448,7 +3454,7 @@ GRANT EXECUTE ON FUNCTION public.attach_inquiry_files(TEXT, JSONB) TO anon, auth
 
 
 -- ############################################################################
--- ## 12/23  20261009_firm_contact_email.sql
+-- ## 12/25  20261009_firm_contact_email.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261009 — Firm public contact email
@@ -3471,7 +3477,7 @@ WHERE answer LIKE '%atty.boyet@westwoodlaw.ph%';
 
 
 -- ############################################################################
--- ## 13/23  20261010_inquiry_firm_notified.sql
+-- ## 13/25  20261010_inquiry_firm_notified.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261010 — Track whether the firm has been emailed about an inquiry
@@ -3493,7 +3499,7 @@ ALTER TABLE public.inquiries
 
 
 -- ############################################################################
--- ## 14/23  20261011_inquiries_service_role_grant.sql
+-- ## 14/25  20261011_inquiries_service_role_grant.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261011 — service_role access to inquiries (for notify-inquiry)
@@ -3521,7 +3527,7 @@ GRANT SELECT, UPDATE ON public.inquiries TO service_role;
 
 
 -- ############################################################################
--- ## 15/23  20261012_admin_view_only_documents.sql
+-- ## 15/25  20261012_admin_view_only_documents.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261012 — Admins are view-only on documents
@@ -3592,7 +3598,7 @@ USING (
 
 
 -- ############################################################################
--- ## 16/23  20261013_seminar_registrations.sql
+-- ## 16/25  20261013_seminar_registrations.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261013 — Seminar registrations get a real link + email send log
@@ -3770,7 +3776,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 17/23  20261014_audit_log_browser_writes.sql
+-- ## 17/25  20261014_audit_log_browser_writes.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261014  Audit log writes from the browser
@@ -3912,7 +3918,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 18/23  20261015_matter_notes_encryption.sql
+-- ## 18/25  20261015_matter_notes_encryption.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261015  Encrypt matter messages at rest (Tier B)
@@ -4217,7 +4223,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 19/23  20261016_profile_pictures_and_temp_passwords.sql
+-- ## 19/25  20261016_profile_pictures_and_temp_passwords.sql
 -- ############################################################################
 -- ============================================================================
 -- PROFILE PICTURES + FORCED PASSWORD CHANGE
@@ -4333,7 +4339,7 @@ NOTIFY pgrst, 'reload schema';
 
 
 -- ############################################################################
--- ## 20/23  20261017_notify_admins_new_inquiry.sql
+-- ## 20/25  20261017_notify_admins_new_inquiry.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261017  Notify admins when a registered client files an inquiry
@@ -4417,7 +4423,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 21/23  20261018_realtime_inquiries_messaging_consultations.sql
+-- ## 21/25  20261018_realtime_inquiries_messaging_consultations.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261018  Realtime inquiries, inquiry conversations, and consultation
@@ -5168,7 +5174,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 22/23  20261019_notify_event_email_log.sql
+-- ## 22/25  20261019_notify_event_email_log.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261019  Email claim log for the notify-event edge function
@@ -5237,7 +5243,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 23/23  20261020_realtime_remaining_tables.sql
+-- ## 23/25  20261020_realtime_remaining_tables.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261020 — Realtime for every remaining portal surface
@@ -5380,6 +5386,231 @@ END $$;
 
 
 -- ############################################################################
+-- ## 24/25  20261021_court_decisions_law_library.sql
+-- ############################################################################
+-- ============================================================================
+-- 20261021 — Law Library: public Philippine jurisprudence
+-- ============================================================================
+-- Adds `court_decisions`, a public library of Supreme Court decisions rendered
+-- on the site's "Law Library" page (mirroring the reference firm site's
+-- structure). It is a content table in the same family as `articles`/`faqs`:
+-- a TEXT id derived from the slug, an `is_published` gate, and admin CRUD from
+-- the portal's Website Content manager. Visitors read published rows only.
+--
+-- Deliberately TWO policies (one public SELECT, one admin FOR ALL) rather than
+-- the three the older `articles` table carries. The extra
+-- `articles_authenticated_select` policy is what produces the
+-- `multiple_permissive_policies` advisor finding the linter triage has to
+-- accept; admin SELECT is already covered by the FOR ALL policy here.
+--
+-- The GRANTs are explicit on purpose. The live project's default privileges
+-- did NOT cover the 20260918 content tables (the "Admin access is required"
+-- failure fixed by 20261007), and the local harness cannot reproduce that gap
+-- because it sets ALTER DEFAULT PRIVILEGES. Assert the end state the hard way
+-- in scripts/local-pg-validate.sh.
+-- ============================================================================
+
+-- ----------------------------------------------------------------------------
+-- 1. Table
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.court_decisions (
+  id            TEXT PRIMARY KEY,
+  title         TEXT NOT NULL,
+  slug          TEXT UNIQUE NOT NULL,
+  gr_no         TEXT NOT NULL,
+  division      TEXT,
+  decision_date DATE NOT NULL,
+  ponente       TEXT,
+  category      TEXT,
+  summary       TEXT NOT NULL,
+  full_text     TEXT,
+  is_published  BOOLEAN NOT NULL DEFAULT FALSE,
+  published_at  TIMESTAMPTZ,
+  view_count    INTEGER NOT NULL DEFAULT 0,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.court_decisions ENABLE ROW LEVEL SECURITY;
+
+-- ----------------------------------------------------------------------------
+-- 2. Policies
+-- ----------------------------------------------------------------------------
+-- Visitors read published decisions only.
+DROP POLICY IF EXISTS court_decisions_public_select ON public.court_decisions;
+CREATE POLICY court_decisions_public_select
+ON public.court_decisions FOR SELECT
+TO public
+USING (is_published = true);
+
+-- Admins manage every row. FOR ALL also grants admin SELECT.
+DROP POLICY IF EXISTS court_decisions_admin_all ON public.court_decisions;
+CREATE POLICY court_decisions_admin_all
+ON public.court_decisions FOR ALL
+TO authenticated
+USING ((SELECT private.is_admin()))
+WITH CHECK ((SELECT private.is_admin()));
+
+-- ----------------------------------------------------------------------------
+-- 3. Indexes + updated_at trigger
+-- ----------------------------------------------------------------------------
+CREATE INDEX IF NOT EXISTS idx_court_decisions_published
+  ON public.court_decisions(is_published, decision_date DESC);
+CREATE INDEX IF NOT EXISTS idx_court_decisions_category
+  ON public.court_decisions(category);
+
+DROP TRIGGER IF EXISTS court_decisions_updated_at ON public.court_decisions;
+CREATE TRIGGER court_decisions_updated_at BEFORE UPDATE ON public.court_decisions
+FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+-- ----------------------------------------------------------------------------
+-- 4. Grants
+-- ----------------------------------------------------------------------------
+-- anon  : SELECT only — the public site reads published rows.
+-- authed: full DML — the admin Content Manager writes; RLS filters the rest.
+GRANT SELECT ON public.court_decisions TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.court_decisions TO authenticated, service_role;
+
+-- ----------------------------------------------------------------------------
+-- 5. Realtime (guarded, mirrors 20261020)
+-- ----------------------------------------------------------------------------
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
+    RAISE NOTICE 'supabase_realtime publication not found — skipping realtime registration';
+    RETURN;
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND schemaname = 'public'
+      AND tablename = 'court_decisions'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.court_decisions;
+  END IF;
+END $$;
+
+-- ----------------------------------------------------------------------------
+-- 6. Starter entries
+-- ----------------------------------------------------------------------------
+-- Three landmark decisions so the page renders on first load. Citations were
+-- checked against the Supreme Court E-Library / LawPhil; the summaries are
+-- short, factual descriptions of the rulings, and full_text is left NULL for
+-- the firm to paste from the official report. Review and replace before the
+-- library goes public — an inaccurate citation on a law firm's site is a real
+-- liability. ON CONFLICT DO NOTHING keeps this idempotent.
+INSERT INTO public.court_decisions
+  (id, title, slug, gr_no, division, decision_date, category, summary, is_published, published_at)
+VALUES
+  (
+    'oposa-v-factoran',
+    'Oposa v. Factoran, Jr.',
+    'oposa-v-factoran',
+    'G.R. No. 101083',
+    'EN BANC',
+    '1993-07-30',
+    'Environmental Law',
+    'Landmark ruling that allowed minors, represented by their parents, to sue on behalf of themselves and succeeding generations, and recognized the right to a balanced and healthful ecology as enforceable against the State.',
+    TRUE,
+    NOW()
+  ),
+  (
+    'manila-prince-hotel-v-gsis',
+    'Manila Prince Hotel v. Government Service Insurance System',
+    'manila-prince-hotel-v-gsis',
+    'G.R. No. 122156',
+    'EN BANC',
+    '1997-02-03',
+    'Constitutional Law',
+    'Held that the Filipino First policy in the 1987 Constitution is self-executing and that the Manila Hotel forms part of the national patrimony, so the government''s shares could not be sold to a foreign bidder.',
+    TRUE,
+    NOW()
+  ),
+  (
+    'serrano-v-gallant-maritime-services',
+    'Serrano v. Gallant Maritime Services, Inc.',
+    'serrano-v-gallant-maritime-services',
+    'G.R. No. 167614',
+    'EN BANC',
+    '2009-03-24',
+    'Labor Law',
+    'Struck down as unconstitutional the clause in the POEA Standard Employment Contract that capped a seafarer''s disability compensation at twenty percent (20%) of the remaining contract term.',
+    TRUE,
+    NOW()
+  )
+ON CONFLICT (id) DO NOTHING;
+
+-- ----------------------------------------------------------------------------
+-- 7. Verify (read-only)
+-- ----------------------------------------------------------------------------
+DO $$
+DECLARE
+  v_total    INTEGER;
+  v_policies INTEGER;
+  v_realtime INTEGER;
+BEGIN
+  SELECT count(*) INTO v_total FROM public.court_decisions;
+  SELECT count(*) INTO v_policies FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'court_decisions';
+  SELECT count(*) INTO v_realtime FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND schemaname = 'public'
+      AND tablename = 'court_decisions';
+  RAISE NOTICE 'court_decisions: % row(s), % policy(ies), realtime=%',
+    v_total, v_policies, v_realtime;
+END $$;
+
+
+-- ############################################################################
+-- ## 25/25  20261022_contact_details.sql
+-- ############################################################################
+-- ============================================================================
+-- 20261022 — Firm contact details: new public email + phone
+-- ============================================================================
+-- The site renders the firm's contact details from src/lib/firm.ts, but the
+-- seeded FAQ answer is database content and still names the old address and
+-- number. Fix it in place so the live FAQ matches the site.
+--
+-- Every old variant is replaced so the file converges a database seeded from
+-- any earlier version of 20260919: some rows carry atty.boyet@westwoodlaw.ph
+-- (the pre-20261009 address), others the interim westwoodlawfirm1@gmail.com.
+-- Atty. Tabao's own directory email (public_lawyers.email) and his portal
+-- login are deliberately left alone — only the firm's public "contact us"
+-- details change.
+--
+-- Idempotent: on a database already carrying the new values the replacements
+-- find nothing, and re-running the file is a no-op.
+-- ============================================================================
+
+UPDATE public.faqs
+SET answer = replace(
+               replace(
+                 replace(
+                   replace(answer,
+                     '(02) 7957 2121', '+63 2 8722 9244'),
+                   '(02) 722 9244', '+63 2 8722 9244'),
+                 'westwoodlawfirm1@gmail.com', 'firmwestwoodlaw@gmail.com'),
+               'atty.boyet@westwoodlaw.ph', 'firmwestwoodlaw@gmail.com')
+WHERE answer LIKE '%(02) 7957 2121%'
+   OR answer LIKE '%(02) 722 9244%'
+   OR answer LIKE '%westwoodlawfirm1@gmail.com%'
+   OR answer LIKE '%atty.boyet@westwoodlaw.ph%';
+
+-- ----------------------------------------------------------------------------
+-- Verify (read-only)
+-- ----------------------------------------------------------------------------
+DO $$
+DECLARE
+  v_stale INTEGER;
+BEGIN
+  SELECT count(*) INTO v_stale FROM public.faqs
+   WHERE answer LIKE '%(02) 7957 2121%'
+      OR answer LIKE '%(02) 722 9244%'
+      OR answer LIKE '%westwoodlawfirm1@gmail.com%'
+      OR answer LIKE '%atty.boyet@westwoodlaw.ph%';
+  RAISE NOTICE 'faqs still naming an old contact detail: %', v_stale;
+END $$;
+
+
+-- ############################################################################
 -- ## VERIFICATION  —  read the result grid, not the "Success" toast
 -- ############################################################################
 -- Every row in the first result should say present = true.
@@ -5466,7 +5697,17 @@ UNION ALL SELECT 'realtime: 15 more portal tables published', (SELECT count(*) F
                                                                      'matter_members','audit_logs','practice_areas',
                                                                      'specialists','corporate_clients','articles',
                                                                      'faqs','seminar_events','retainer_packages',
-                                                                     'seminar_email_log','inquiry_attachments')) = 15;
+                                                                     'seminar_email_log','inquiry_attachments')) = 15
+UNION ALL SELECT 'court_decisions table',        to_regclass('public.court_decisions')                IS NOT NULL
+UNION ALL SELECT 'court_decisions public select policy', EXISTS (SELECT 1 FROM pg_policies
+                                                 WHERE schemaname='public' AND tablename='court_decisions'
+                                                   AND policyname='court_decisions_public_select')
+UNION ALL SELECT 'court_decisions admin policy', EXISTS (SELECT 1 FROM pg_policies
+                                                 WHERE schemaname='public' AND tablename='court_decisions'
+                                                   AND policyname='court_decisions_admin_all')
+UNION ALL SELECT 'realtime: court_decisions published', EXISTS (SELECT 1 FROM pg_publication_tables
+                                                 WHERE pubname='supabase_realtime' AND schemaname='public'
+                                                   AND tablename='court_decisions');
 
 SELECT 'practice_areas' AS table_name, count(*) AS rows FROM public.practice_areas
 UNION ALL SELECT 'articles',            count(*) FROM public.articles
@@ -5477,7 +5718,8 @@ UNION ALL SELECT 'corporate_clients',   count(*) FROM public.corporate_clients
 UNION ALL SELECT 'retainer_packages',   count(*) FROM public.retainer_packages
 UNION ALL SELECT 'profiles (lawyers)',  count(*) FROM public.profiles WHERE role = 'lawyer'
 UNION ALL SELECT 'public_lawyers view', count(*) FROM public.public_lawyers
-UNION ALL SELECT 'inquiries linked to a seminar', count(*) FROM public.inquiries WHERE seminar_id IS NOT NULL;
+UNION ALL SELECT 'inquiries linked to a seminar', count(*) FROM public.inquiries WHERE seminar_id IS NOT NULL
+UNION ALL SELECT 'court_decisions',     count(*) FROM public.court_decisions;
 
 -- Security checks: every row must read PASS.
 --
@@ -5720,4 +5962,37 @@ UNION ALL SELECT 'filtered-delete tables use replica identity full',
                    WHERE oid IN (to_regclass('public.documents'), to_regclass('public.matter_members'),
                                  to_regclass('public.notifications'))
                      AND relreplident = 'f') = 3
-            THEN 'PASS' ELSE 'FAIL' END;
+            THEN 'PASS' ELSE 'FAIL' END
+UNION ALL SELECT 'the law library is public-read but admin-write',
+       CASE WHEN to_regclass('public.court_decisions') IS NULL THEN 'FAIL'
+            WHEN NOT (SELECT relrowsecurity FROM pg_class WHERE oid = to_regclass('public.court_decisions')) THEN 'FAIL'
+            -- anon needs SELECT so the public page renders. Its write access is
+            -- governed by RLS, not the table grant: the harness's ALTER DEFAULT
+            -- PRIVILEGES hands anon table-level DML that the live project never
+            -- had, so the boundary is asserted through the policies below.
+            WHEN NOT has_table_privilege('anon', 'public.court_decisions', 'SELECT') THEN 'FAIL'
+            WHEN NOT (has_table_privilege('authenticated', 'public.court_decisions', 'SELECT')
+                  AND has_table_privilege('authenticated', 'public.court_decisions', 'INSERT')
+                  AND has_table_privilege('authenticated', 'public.court_decisions', 'UPDATE')
+                  AND has_table_privilege('authenticated', 'public.court_decisions', 'DELETE')) THEN 'FAIL'
+            WHEN NOT EXISTS (SELECT 1 FROM pg_policies
+                             WHERE schemaname = 'public' AND tablename = 'court_decisions'
+                               AND policyname = 'court_decisions_public_select'
+                               AND cmd = 'SELECT' AND qual LIKE '%is_published%') THEN 'FAIL'
+            WHEN NOT EXISTS (SELECT 1 FROM pg_policies
+                             WHERE schemaname = 'public' AND tablename = 'court_decisions'
+                               AND policyname = 'court_decisions_admin_all'
+                               AND cmd = 'ALL' AND qual LIKE '%is_admin%'
+                               AND roles = ARRAY['authenticated']::name[]) THEN 'FAIL'
+            -- Exactly those two policies: there is no INSERT/UPDATE/DELETE policy
+            -- anon could satisfy, so a visitor cannot write even with the grant.
+            WHEN (SELECT count(*) FROM pg_policies
+                  WHERE schemaname = 'public' AND tablename = 'court_decisions') <> 2 THEN 'FAIL'
+            ELSE 'PASS' END
+UNION ALL SELECT 'no seeded FAQ names a retired contact detail',
+       CASE WHEN EXISTS (SELECT 1 FROM public.faqs
+                         WHERE answer LIKE '%(02) 7957 2121%'
+                            OR answer LIKE '%(02) 722 9244%'
+                            OR answer LIKE '%westwoodlawfirm1@gmail.com%'
+                            OR answer LIKE '%atty.boyet@westwoodlaw.ph%')
+            THEN 'FAIL' ELSE 'PASS' END;

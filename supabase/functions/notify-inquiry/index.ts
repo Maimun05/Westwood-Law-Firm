@@ -13,7 +13,7 @@
 //
 // Secrets (supabase secrets set ...):
 //   RESEND_API_KEY      (required) API key from resend.com
-//   INQUIRY_TO_EMAIL    (optional) defaults to westwoodlawfirm1@gmail.com
+//   INQUIRY_TO_EMAIL    (optional) defaults to firmwestwoodlaw@gmail.com
 //   INQUIRY_FROM_EMAIL  (optional) defaults to Resend's onboarding sender.
 //                       With no verified domain Resend only accepts
 //                       onboarding@resend.dev and only delivers to the address
@@ -102,7 +102,7 @@ serve(async (req) => {
 
     const apiKey = Deno.env.get("RESEND_API_KEY");
     if (!apiKey) throw new Error("RESEND_API_KEY is not set");
-    const to = Deno.env.get("INQUIRY_TO_EMAIL") ?? "westwoodlawfirm1@gmail.com";
+    const to = Deno.env.get("INQUIRY_TO_EMAIL") ?? "firmwestwoodlaw@gmail.com";
     const from =
       Deno.env.get("INQUIRY_FROM_EMAIL") ?? "Westwood Law Firm Website <onboarding@resend.dev>";
 

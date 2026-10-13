@@ -1,12 +1,16 @@
 // ============================================================================
 // Sitemap generator (postbuild)
 // ============================================================================
-// Writes dist/sitemap.xml: the seven marketing routes plus one URL per
-// published article, active practice area, and public lawyer — the
-// query-param deep links the router understands. Content is DB-backed and
+// Writes dist/sitemap.xml: the marketing routes plus one URL per published
+// article, active practice area, public lawyer, and published court decision —
+// the query-param deep links the router understands. Content is DB-backed and
 // changes without a deploy, so the sitemap is generated on every build rather
 // than committed. Any missing env var or fetch failure degrades to the static
 // routes: a database outage must never fail the build.
+//
+// Failures are isolated per table: a table that is missing on the live project
+// (e.g. a migration that has not been pasted yet) drops only its own deep
+// links, so the rest of the sitemap survives the deploy-order window.
 //
 // Runs via the "postbuild" npm script after `vite build`. CI passes
 // VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY into the build, which is what
@@ -26,6 +30,7 @@ const STATIC_PATHS = [
   "/lawyers",
   "/specialists",
   "/insights-resources",
+  "/law-library",
   "/contact",
 ];
 
@@ -49,21 +54,33 @@ function urlEntry(path) {
   return `  <url>\n    <loc>${SITE_URL}${path}</loc>\n  </url>`;
 }
 
+/** fetchIds, but one table's failure does not drop the others' deep links. */
+async function fetchIdsSafe(table, filter) {
+  try {
+    return await fetchIds(table, filter);
+  } catch (error) {
+    console.warn(`[sitemap] ${table}: ${error.message}; skipping its deep links`);
+    return [];
+  }
+}
+
 async function main() {
   const paths = [...STATIC_PATHS];
 
   if (supabaseUrl && anonKey) {
     try {
-      const [articles, areas, lawyers] = await Promise.all([
-        fetchIds("articles", "is_published=eq.true"),
-        fetchIds("practice_areas", "is_active=eq.true"),
-        fetchIds("public_lawyers"),
+      const [articles, areas, lawyers, decisions] = await Promise.all([
+        fetchIdsSafe("articles", "is_published=eq.true"),
+        fetchIdsSafe("practice_areas", "is_active=eq.true"),
+        fetchIdsSafe("public_lawyers"),
+        fetchIdsSafe("court_decisions", "is_published=eq.true"),
       ]);
 
       paths.push(
         ...articles.map((id) => `/insights-resources?article=${encodeURIComponent(id)}`),
         ...areas.map((id) => `/expertise?area=${encodeURIComponent(id)}`),
         ...lawyers.map((id) => `/lawyers?lawyer=${encodeURIComponent(id)}`),
+        ...decisions.map((id) => `/law-library?decision=${encodeURIComponent(id)}`),
       );
     } catch (error) {
       console.warn(`[sitemap] live queries failed (${error.message}); static routes only`);

@@ -328,7 +328,7 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.faqs (question, answer, display_order, is_active) VALUES
 ('How do I schedule a consultation with Westwood Law Firm?', 
-  'You can schedule a consultation through our website by clicking ''Schedule a Consultation'' and completing the online booking flow. You may also call our office at (02) 7957 2121 or send an email to westwoodlawfirm1@gmail.com. Our team will confirm your appointment within 24 hours.',
+  'You can schedule a consultation through our website by clicking ''Schedule a Consultation'' and completing the online booking flow. You may also call our office at +63 2 8722 9244 or send an email to firmwestwoodlaw@gmail.com. Our team will confirm your appointment within 24 hours.',
   1, true),
 
 ('How do I select the right lawyer for my concern?',

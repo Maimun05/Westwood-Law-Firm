@@ -104,9 +104,10 @@ export async function setContentPublished(
 ): Promise<{ error: string | null }> {
   const cfg = CONTENT_CONFIG[kind];
   const patch = { [cfg.publishedColumn]: published };
-  // Articles also carry published_at, which the public list sorts on. Stamp it
-  // the first time an article is published so it does not sort to the bottom.
-  if (kind === "articles" && published) {
+  // Articles and court decisions carry published_at, which records when a row
+  // first went live. Stamp it on publish so it is not left NULL (the article
+  // list also sorts on it).
+  if (published && (kind === "articles" || kind === "court_decisions")) {
     (patch as any).published_at = new Date().toISOString();
   }
   return updateContent(kind, id, patch as any).then((r) => ({ error: r.error }));

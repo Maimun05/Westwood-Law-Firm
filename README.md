@@ -304,5 +304,5 @@ vacuously. In practice the safety net is:
 
 ## Contact
 
-Public enquiries: **westwoodlawfirm1@gmail.com** — defined once in `src/lib/firm.ts`, so change it
+Public enquiries: **firmwestwoodlaw@gmail.com** — defined once in `src/lib/firm.ts`, so change it
 there rather than inline.

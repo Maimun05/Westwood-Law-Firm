@@ -25,7 +25,8 @@ export type ContentKind =
   | "faqs"
   | "seminar_events"
   | "retainer_packages"
-  | "practice_areas";
+  | "practice_areas"
+  | "court_decisions";
 
 export type ContentRow<K extends ContentKind> = Tables[K]["Row"];
 export type ContentInsert<K extends ContentKind> = Tables[K]["Insert"];
@@ -149,6 +150,32 @@ export const CONTENT_CONFIG: Record<ContentKind, Config> = {
       "display_order",
       "is_active",
     ],
+  },
+  court_decisions: {
+    label: "Court Decisions",
+    titleField: "title",
+    publishedColumn: "is_published",
+    orderBy: "decision_date",
+    descending: true,
+    // gr_no and decision_date are NOT NULL because a citation without a docket
+    // number or a date is not a citation. `id` has no database default, so the
+    // admin gets it generated from the slug/title (see deriveId).
+    requiredFields: ["id", "title", "slug", "gr_no", "decision_date", "summary"],
+    fields: [
+      "id",
+      "title",
+      "slug",
+      "gr_no",
+      "division",
+      "decision_date",
+      "ponente",
+      "category",
+      "summary",
+      "full_text",
+      "is_published",
+    ],
+    // decision_date is a plain DATE, not a TIMESTAMPTZ, so it is NOT in
+    // timestampDateFields — a bare 'YYYY-MM-DD' is exactly what the column wants.
   },
 };
 

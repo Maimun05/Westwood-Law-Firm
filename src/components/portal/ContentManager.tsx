@@ -43,14 +43,25 @@ const KINDS: ContentKind[] = [
   "seminar_events",
   "retainer_packages",
   "practice_areas",
+  "court_decisions",
 ];
 
 // Which input to render for a given column. Anything unlisted is a text field.
-const TEXTAREA_FIELDS = new Set(["content", "description", "answer", "excerpt", "tagline"]);
+const TEXTAREA_FIELDS = new Set([
+  "content",
+  "description",
+  "answer",
+  "excerpt",
+  "tagline",
+  "summary",
+  "full_text",
+]);
 const LIST_FIELDS = new Set(["features", "services", "client_needs"]);
 const NUMBER_FIELDS = new Set(["display_order", "capacity"]);
 const CHECKBOX_FIELDS = new Set(["is_published", "is_active", "is_highlighted"]);
-const DATE_FIELDS = new Set(["date"]);
+// Plain DATE columns rendered with a date picker. seminar_events.date is a
+// TIMESTAMPTZ edited as a day; court_decisions.decision_date is a real DATE.
+const DATE_FIELDS = new Set(["date", "decision_date"]);
 
 const fieldLabel = (name: string) =>
   name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -102,6 +113,10 @@ export default function ContentManager({
     if (!silent) setLoading(false);
     if (error) {
       onToast?.(error, "error");
+      // Clear rather than keep the previous table's rows: a failed load (a
+      // missing table, a lost session) must not leave another kind's records
+      // sitting under this tab looking like they belong to it.
+      setRows([]);
       return;
     }
     setRows((data ?? []) as unknown as Row[]);
@@ -116,7 +131,14 @@ export default function ContentManager({
   // already on screen; the open edit form keeps its own draft untouched.
   useEffect(() => {
     return subscribeToTables(
-      ["articles", "faqs", "seminar_events", "retainer_packages", "practice_areas"],
+      [
+        "articles",
+        "faqs",
+        "seminar_events",
+        "retainer_packages",
+        "practice_areas",
+        "court_decisions",
+      ],
       () => void load(kind, true),
       { channelKey: "content" },
     );
@@ -231,6 +253,11 @@ export default function ContentManager({
           <div className="divide-y divide-[#e8e4dc]">
             {visible.map((row) => {
               const published = Boolean(row[cfg.publishedColumn]);
+              // The date column differs by table: seminar_events.date is a
+              // timestamptz, court_decisions.decision_date a plain date.
+              const dateValue = [row.date, row.decision_date].find(
+                (v) => typeof v === "string" && v,
+              ) as string | undefined;
               return (
                 <div key={String(row.id)} className="flex items-center gap-3 py-3">
                   <span
@@ -246,9 +273,7 @@ export default function ContentManager({
                     <p className="text-[11px] text-[#8a9ab5] truncate">
                       {String(row.id)}
                       {typeof row.category === "string" && row.category ? ` · ${row.category}` : ""}
-                      {typeof row.date === "string" && row.date
-                        ? ` · ${row.date.slice(0, 10)}`
-                        : ""}
+                      {dateValue ? ` · ${dateValue.slice(0, 10)}` : ""}
                     </p>
                   </div>
                   <button

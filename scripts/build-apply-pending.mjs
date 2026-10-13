@@ -113,6 +113,14 @@ const MIGRATIONS = [
     file: "20261020_realtime_remaining_tables.sql",
     note: "realtime for the rest of the portal: profiles, matters, documents, activity, team, audit, content, seminar log",
   },
+  {
+    file: "20261021_court_decisions_law_library.sql",
+    note: "public Law Library: court_decisions table + RLS/grants + realtime + 3 seeded decisions",
+  },
+  {
+    file: "20261022_contact_details.sql",
+    note: "seeded FAQ answer: new public email + phone, replacing every old variant",
+  },
 ];
 
 const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the practice areas created
@@ -141,7 +149,11 @@ const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the p
 -- running it last keeps it after every table it may log about. 20261020 only
 -- adds tables to the supabase_realtime publication and sets replica identity on
 -- three of them, so it depends on nothing but those tables existing — running
--- it last keeps it after every table it publishes.`;
+-- it last keeps it after every table it publishes. 20261021 adds the public
+-- Law Library (court_decisions); it calls private.is_admin() (installed by
+-- 20261003) and public.update_updated_at() (pinned by 20261005), and it seeds
+-- its own rows, so it depends on nothing else and runs last. 20261022 rewrites
+-- the FAQ answer that 20260919 seeds, so it runs after that seed.`;
 
 const VERIFICATION = `-- ############################################################################
 -- ## VERIFICATION  —  read the result grid, not the "Success" toast
@@ -230,7 +242,17 @@ UNION ALL SELECT 'realtime: 15 more portal tables published', (SELECT count(*) F
                                                                      'matter_members','audit_logs','practice_areas',
                                                                      'specialists','corporate_clients','articles',
                                                                      'faqs','seminar_events','retainer_packages',
-                                                                     'seminar_email_log','inquiry_attachments')) = 15;
+                                                                     'seminar_email_log','inquiry_attachments')) = 15
+UNION ALL SELECT 'court_decisions table',        to_regclass('public.court_decisions')                IS NOT NULL
+UNION ALL SELECT 'court_decisions public select policy', EXISTS (SELECT 1 FROM pg_policies
+                                                 WHERE schemaname='public' AND tablename='court_decisions'
+                                                   AND policyname='court_decisions_public_select')
+UNION ALL SELECT 'court_decisions admin policy', EXISTS (SELECT 1 FROM pg_policies
+                                                 WHERE schemaname='public' AND tablename='court_decisions'
+                                                   AND policyname='court_decisions_admin_all')
+UNION ALL SELECT 'realtime: court_decisions published', EXISTS (SELECT 1 FROM pg_publication_tables
+                                                 WHERE pubname='supabase_realtime' AND schemaname='public'
+                                                   AND tablename='court_decisions');
 
 SELECT 'practice_areas' AS table_name, count(*) AS rows FROM public.practice_areas
 UNION ALL SELECT 'articles',            count(*) FROM public.articles
@@ -241,7 +263,8 @@ UNION ALL SELECT 'corporate_clients',   count(*) FROM public.corporate_clients
 UNION ALL SELECT 'retainer_packages',   count(*) FROM public.retainer_packages
 UNION ALL SELECT 'profiles (lawyers)',  count(*) FROM public.profiles WHERE role = 'lawyer'
 UNION ALL SELECT 'public_lawyers view', count(*) FROM public.public_lawyers
-UNION ALL SELECT 'inquiries linked to a seminar', count(*) FROM public.inquiries WHERE seminar_id IS NOT NULL;
+UNION ALL SELECT 'inquiries linked to a seminar', count(*) FROM public.inquiries WHERE seminar_id IS NOT NULL
+UNION ALL SELECT 'court_decisions',     count(*) FROM public.court_decisions;
 
 -- Security checks: every row must read PASS.
 --
@@ -484,7 +507,40 @@ UNION ALL SELECT 'filtered-delete tables use replica identity full',
                    WHERE oid IN (to_regclass('public.documents'), to_regclass('public.matter_members'),
                                  to_regclass('public.notifications'))
                      AND relreplident = 'f') = 3
-            THEN 'PASS' ELSE 'FAIL' END;
+            THEN 'PASS' ELSE 'FAIL' END
+UNION ALL SELECT 'the law library is public-read but admin-write',
+       CASE WHEN to_regclass('public.court_decisions') IS NULL THEN 'FAIL'
+            WHEN NOT (SELECT relrowsecurity FROM pg_class WHERE oid = to_regclass('public.court_decisions')) THEN 'FAIL'
+            -- anon needs SELECT so the public page renders. Its write access is
+            -- governed by RLS, not the table grant: the harness's ALTER DEFAULT
+            -- PRIVILEGES hands anon table-level DML that the live project never
+            -- had, so the boundary is asserted through the policies below.
+            WHEN NOT has_table_privilege('anon', 'public.court_decisions', 'SELECT') THEN 'FAIL'
+            WHEN NOT (has_table_privilege('authenticated', 'public.court_decisions', 'SELECT')
+                  AND has_table_privilege('authenticated', 'public.court_decisions', 'INSERT')
+                  AND has_table_privilege('authenticated', 'public.court_decisions', 'UPDATE')
+                  AND has_table_privilege('authenticated', 'public.court_decisions', 'DELETE')) THEN 'FAIL'
+            WHEN NOT EXISTS (SELECT 1 FROM pg_policies
+                             WHERE schemaname = 'public' AND tablename = 'court_decisions'
+                               AND policyname = 'court_decisions_public_select'
+                               AND cmd = 'SELECT' AND qual LIKE '%is_published%') THEN 'FAIL'
+            WHEN NOT EXISTS (SELECT 1 FROM pg_policies
+                             WHERE schemaname = 'public' AND tablename = 'court_decisions'
+                               AND policyname = 'court_decisions_admin_all'
+                               AND cmd = 'ALL' AND qual LIKE '%is_admin%'
+                               AND roles = ARRAY['authenticated']::name[]) THEN 'FAIL'
+            -- Exactly those two policies: there is no INSERT/UPDATE/DELETE policy
+            -- anon could satisfy, so a visitor cannot write even with the grant.
+            WHEN (SELECT count(*) FROM pg_policies
+                  WHERE schemaname = 'public' AND tablename = 'court_decisions') <> 2 THEN 'FAIL'
+            ELSE 'PASS' END
+UNION ALL SELECT 'no seeded FAQ names a retired contact detail',
+       CASE WHEN EXISTS (SELECT 1 FROM public.faqs
+                         WHERE answer LIKE '%(02) 7957 2121%'
+                            OR answer LIKE '%(02) 722 9244%'
+                            OR answer LIKE '%westwoodlawfirm1@gmail.com%'
+                            OR answer LIKE '%atty.boyet@westwoodlaw.ph%')
+            THEN 'FAIL' ELSE 'PASS' END;
 `;
 
 const bar = (ch) => ch.repeat(76);

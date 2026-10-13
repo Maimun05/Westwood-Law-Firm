@@ -1,5 +1,6 @@
 import type {
   Article,
+  CaseDecision,
   CorporateClient,
   FAQ,
   Lawyer,
@@ -491,3 +492,63 @@ export const fallbackRetainerPackages: RetainerPackage[] = [
   created_at: now,
   updated_at: now,
 }));
+
+// Used only when the court_decisions request itself fails. Mirrors the three
+// decisions seeded by 20261021 so the Law Library still renders when the
+// database is unreachable. An empty table returns [], never this.
+export const fallbackCourtDecisions: CaseDecision[] = [
+  {
+    id: "oposa-v-factoran",
+    title: "Oposa v. Factoran, Jr.",
+    slug: "oposa-v-factoran",
+    gr_no: "G.R. No. 101083",
+    division: "EN BANC",
+    decision_date: "1993-07-30",
+    ponente: null,
+    category: "Environmental Law",
+    summary:
+      "Landmark ruling that allowed minors, represented by their parents, to sue on behalf of themselves and succeeding generations, and recognized the right to a balanced and healthful ecology as enforceable against the State.",
+    full_text: null,
+    is_published: true,
+    published_at: now,
+    view_count: 0,
+    created_at: now,
+    updated_at: now,
+  },
+  {
+    id: "manila-prince-hotel-v-gsis",
+    title: "Manila Prince Hotel v. Government Service Insurance System",
+    slug: "manila-prince-hotel-v-gsis",
+    gr_no: "G.R. No. 122156",
+    division: "EN BANC",
+    decision_date: "1997-02-03",
+    ponente: null,
+    category: "Constitutional Law",
+    summary:
+      "Held that the Filipino First policy in the 1987 Constitution is self-executing and that the Manila Hotel forms part of the national patrimony, so the government's shares could not be sold to a foreign bidder.",
+    full_text: null,
+    is_published: true,
+    published_at: now,
+    view_count: 0,
+    created_at: now,
+    updated_at: now,
+  },
+  {
+    id: "serrano-v-gallant-maritime-services",
+    title: "Serrano v. Gallant Maritime Services, Inc.",
+    slug: "serrano-v-gallant-maritime-services",
+    gr_no: "G.R. No. 167614",
+    division: "EN BANC",
+    decision_date: "2009-03-24",
+    ponente: null,
+    category: "Labor Law",
+    summary:
+      "Struck down as unconstitutional the clause in the POEA Standard Employment Contract that capped a seafarer's disability compensation at twenty percent (20%) of the remaining contract term.",
+    full_text: null,
+    is_published: true,
+    published_at: now,
+    view_count: 0,
+    created_at: now,
+    updated_at: now,
+  },
+];

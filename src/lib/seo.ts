@@ -8,7 +8,7 @@
 // og:image, the LegalService JSON-LD), plus public/robots.txt.
 // ============================================================================
 
-import type { Article, Lawyer, PracticeArea } from "@/lib/content";
+import type { Article, CaseDecision, Lawyer, PracticeArea } from "@/lib/content";
 import { FIRM_NAME } from "@/lib/firm";
 import type { Page } from "@/types/navigation";
 
@@ -51,10 +51,15 @@ export const PAGE_META: Record<Page, PageMeta> = {
     description:
       "Legal insights, guides and seminars from Westwood Law Firm — practical reading on Philippine business, labor and civil law.",
   },
+  "law-library": {
+    title: "Law Library — Westwood Law Firm",
+    description:
+      "A reference library of Philippine Supreme Court decisions, summarised by Westwood Law Firm for quick reading across practice areas.",
+  },
   contact: {
     title: "Contact — Westwood Law Firm",
     description:
-      "Contact Westwood Law Firm — Suite 1004 Atlanta Center, 31 Annapolis St., Greenhills, San Juan City, Metro Manila. Call (02) 7957 2121.",
+      "Contact Westwood Law Firm — Suite 1004 Atlanta Center, 31 Annapolis St., Greenhills, San Juan City, Metro Manila. Call +63 2 8722 9244.",
   },
   inquiry: {
     title: "Legal Inquiry — Westwood Law Firm",
@@ -172,6 +177,29 @@ export function articleJsonLd(article: Article, authorName?: string): object {
     ...(authorName ? { author: { "@type": "Person", name: authorName } } : {}),
     publisher: { "@type": "Organization", name: FIRM_NAME },
     mainEntityOfPage: `${SITE_URL}/insights-resources?article=${article.id}`,
+  };
+}
+
+export function courtDecisionJsonLd(decision: CaseDecision): object {
+  // schema.org has no "court decision" type, so this is modelled as a
+  // CreativeWork: the Supreme Court is the publisher, the ponente the creator,
+  // and the library the collection it belongs to. The firm is deliberately not
+  // named as the author of a decision it did not write.
+  return {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name: decision.title,
+    description: decision.summary,
+    ...(decision.decision_date ? { datePublished: decision.decision_date } : {}),
+    ...(decision.ponente ? { creator: { "@type": "Person", name: decision.ponente } } : {}),
+    ...(decision.gr_no ? { identifier: decision.gr_no } : {}),
+    publisher: { "@type": "Organization", name: "Supreme Court of the Philippines" },
+    isPartOf: {
+      "@type": "CollectionPage",
+      name: "Law Library",
+      url: `${SITE_URL}/law-library`,
+    },
+    mainEntityOfPage: `${SITE_URL}/law-library?decision=${decision.id}`,
   };
 }
 

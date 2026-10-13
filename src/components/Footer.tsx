@@ -1,7 +1,7 @@
 import { IconLinkedin } from "@/components/Icons";
 import { useAuth } from "@/hooks/useAuth";
 import InquiryFallback from "@/components/InquiryFallback";
-import { FIRM_EMAIL, FIRM_EMAIL_HREF } from "@/lib/firm";
+import { FIRM_EMAIL, FIRM_EMAIL_HREF, FIRM_PHONE } from "@/lib/firm";
 
 type Page =
   | "home"
@@ -10,6 +10,7 @@ type Page =
   | "lawyers"
   | "specialists"
   | "insights-resources"
+  | "law-library"
   | "contact"
   | "inquiry"
   | "consultation"
@@ -40,6 +41,7 @@ export default function Footer({ onNavigate }: FooterProps) {
       { label: "Our Lawyers", page: "lawyers" as Page },
       { label: "Partner Network", page: "specialists" as Page },
       { label: "Insights & Resources", page: "insights-resources" as Page },
+      { label: "Law Library", page: "law-library" as Page },
       { label: "Contact", page: "contact" as Page },
     ],
   };
@@ -76,7 +78,7 @@ export default function Footer({ onNavigate }: FooterProps) {
                   {FIRM_EMAIL}
                 </a>
               </p>
-              <p>(02) 7957 2121</p>
+              <p>{FIRM_PHONE}</p>
             </address>
 
             <a

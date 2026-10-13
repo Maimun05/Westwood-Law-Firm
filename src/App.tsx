@@ -12,6 +12,8 @@ import ExpertisePage from "@/components/ExpertisePage";
 
 import InsightsResourcesPage from "@/components/InsightsResourcesPage";
 
+import LawLibraryPage from "@/components/LawLibraryPage";
+
 import SpecialistNetwork from "@/components/SpecialistNetwork";
 
 import AboutPage from "@/components/AboutPage";
@@ -212,6 +214,9 @@ export default function App() {
             {page === "specialists" && <SpecialistNetwork onNavigate={navigate} />}
             {page === "insights-resources" && (
               <InsightsResourcesPage onNavigate={navigate} selectedArticleId={pageParams.article} />
+            )}
+            {page === "law-library" && (
+              <LawLibraryPage onNavigate={navigate} selectedDecisionId={pageParams.decision} />
             )}
             {page === "contact" && <ContactPage onNavigate={navigate} />}
             {page === "consultation" && (

@@ -26,6 +26,7 @@ export default function Navigation({ currentPage, onNavigate }: NavigationProps)
     { label: "Our Lawyers", page: "lawyers" },
     { label: "Partner Network", page: "specialists" },
     { label: "Insights", page: "insights-resources" },
+    { label: "Law Library", page: "law-library" },
     { label: "Contact", page: "contact" },
   ];
 
@@ -65,7 +66,7 @@ export default function Navigation({ currentPage, onNavigate }: NavigationProps)
               <button
                 key={link.page}
                 onClick={() => handleNav(link.page)}
-                className={`px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 whitespace-nowrap ${
+                className={`px-2.5 xl:px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 whitespace-nowrap ${
                   currentPage === link.page
                     ? overHero
                       ? "text-[var(--color-gold)] bg-white/10"
@@ -87,7 +88,7 @@ export default function Navigation({ currentPage, onNavigate }: NavigationProps)
               <>
                 <button
                   onClick={() => handleNav(user ? "portal" : "auth")}
-                  className={`btn-ghost text-sm ${
+                  className={`btn-ghost text-sm whitespace-nowrap ${
                     overHero ? "text-white/80 hover:text-white hover:bg-white/10" : ""
                   }`}
                 >

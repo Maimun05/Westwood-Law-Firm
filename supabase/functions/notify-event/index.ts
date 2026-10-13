@@ -29,7 +29,7 @@
 //
 // Secrets (supabase secrets set ...):
 //   RESEND_API_KEY      (required) API key from resend.com
-//   INQUIRY_TO_EMAIL    (optional) firm inbox, defaults to westwoodlawfirm1@gmail.com
+//   INQUIRY_TO_EMAIL    (optional) firm inbox, defaults to firmwestwoodlaw@gmail.com
 //   INQUIRY_FROM_EMAIL  (optional) defaults to Resend's onboarding sender.
 //                       With no verified domain Resend only accepts
 //                       onboarding@resend.dev and only delivers to the address
@@ -164,7 +164,7 @@ serve(async (req) => {
     }
 
     const admin = createClient(url, serviceKey);
-    const firmInbox = Deno.env.get("INQUIRY_TO_EMAIL") || "westwoodlawfirm1@gmail.com";
+    const firmInbox = Deno.env.get("INQUIRY_TO_EMAIL") || "firmwestwoodlaw@gmail.com";
 
     const emailOf = async (uid: string | null): Promise<string | null> => {
       if (!uid) return null;

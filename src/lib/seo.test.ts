@@ -20,6 +20,7 @@ const ALL_PAGES: Page[] = [
   "lawyers",
   "specialists",
   "insights-resources",
+  "law-library",
   "contact",
   "inquiry",
   "consultation",
@@ -39,6 +40,7 @@ const INDEXABLE_PAGES: Page[] = [
   "lawyers",
   "specialists",
   "insights-resources",
+  "law-library",
   "contact",
 ];
 

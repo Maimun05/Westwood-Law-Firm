@@ -8,6 +8,7 @@ import { supabase } from "./supabase";
 import {
   fallbackArticles,
   fallbackCorporateClients,
+  fallbackCourtDecisions,
   fallbackFAQs,
   fallbackLawyers,
   fallbackPracticeAreas,
@@ -161,6 +162,24 @@ export interface RetainerPackage {
   created_at: string;
   updated_at: string;
   tagline: string | null;
+}
+
+export interface CaseDecision {
+  id: string;
+  title: string;
+  slug: string;
+  gr_no: string;
+  division: string | null;
+  decision_date: string;
+  ponente: string | null;
+  category: string | null;
+  summary: string;
+  full_text: string | null;
+  is_published: boolean;
+  published_at: string | null;
+  view_count: number;
+  created_at: string;
+  updated_at: string;
 }
 
 // ============================================================================
@@ -476,5 +495,64 @@ export async function getRetainerPackages(): Promise<{
     return { data: (data ?? []) as RetainerPackage[], error: null };
   } catch (error: any) {
     return { data: fallbackRetainerPackages, error: error.message };
+  }
+}
+
+// ============================================================================
+// COURT DECISIONS (public Law Library)
+// ============================================================================
+// Same shape as the articles accessors: a plain query with no embeds (there is
+// nothing to join — the table stands alone), published-only, ordered by the
+// decision date. The byline is a free-text ponente, not a profile, so there is
+// no profiles embed to trip the public boundary.
+
+export async function getPublishedDecisions(): Promise<{
+  data: CaseDecision[] | null;
+  error: string | null;
+}> {
+  try {
+    const { data, error } = await supabase
+      .from("court_decisions")
+      .select("*")
+      .eq("is_published", true)
+      .order("decision_date", { ascending: false });
+
+    if (error) throw error;
+    return { data: (data ?? []) as CaseDecision[], error: null };
+  } catch (error: any) {
+    return { data: fallbackCourtDecisions, error: error.message };
+  }
+}
+
+export async function getDecisionById(
+  id: string,
+): Promise<{ data: CaseDecision | null; error: string | null }> {
+  try {
+    const { data, error } = await supabase
+      .from("court_decisions")
+      .select("*")
+      .eq("id", id)
+      .eq("is_published", true)
+      .single();
+
+    if (error) throw error;
+
+    // Increment view count (best effort — a failed bump must not hide the row).
+    await supabase
+      .from("court_decisions")
+      .update({ view_count: (data.view_count || 0) + 1 })
+      .eq("id", id);
+
+    return {
+      data: data
+        ? (data as CaseDecision)
+        : (fallbackCourtDecisions.find((d) => d.id === id) ?? null),
+      error: null,
+    };
+  } catch (error: any) {
+    return {
+      data: fallbackCourtDecisions.find((d) => d.id === id) ?? null,
+      error: error.message,
+    };
   }
 }

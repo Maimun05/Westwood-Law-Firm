@@ -181,7 +181,7 @@ export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) 
                   {
                     icon: IconPhone,
                     label: "Phone",
-                    value: "(02) 7957 2121\n(02) 722 9244\nMobile: (63) 917 569 8234",
+                    value: "+63 2 8722 9244",
                   },
 
                   { icon: IconEnvelope, label: "Email", value: FIRM_EMAIL },

@@ -5,6 +5,7 @@ export type Page =
   | "lawyers"
   | "specialists"
   | "insights-resources"
+  | "law-library"
   | "contact"
   | "inquiry"
   | "consultation"

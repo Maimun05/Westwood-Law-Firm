@@ -100,4 +100,25 @@ describe("schema knowledge", () => {
     expect(CONTENT_CONFIG.articles.publishedColumn).toBe("is_published");
     expect(CONTENT_CONFIG.faqs.publishedColumn).toBe("is_active");
   });
+
+  it("orders the law library by decision date, newest first", () => {
+    expect(CONTENT_CONFIG.court_decisions.publishedColumn).toBe("is_published");
+    expect(CONTENT_CONFIG.court_decisions.orderBy).toBe("decision_date");
+    expect(CONTENT_CONFIG.court_decisions.descending).toBe(true);
+  });
+
+  it("keeps decision_date a plain DATE, not a Manila-anchored timestamp", () => {
+    // seminar_events.date is a TIMESTAMPTZ edited as a day; a court decision's
+    // decision_date is a real DATE and must be sent as a bare 'YYYY-MM-DD'.
+    expect(CONTENT_CONFIG.court_decisions.timestampDateFields ?? []).not.toContain("decision_date");
+    expect(draftToPayload("court_decisions", { decision_date: "2027-01-15" }).decision_date).toBe(
+      "2027-01-15",
+    );
+  });
+
+  it("demands a docket number before anything else on a decision", () => {
+    expect(
+      validateDraft("court_decisions", { id: "d", title: "T", slug: "s", summary: "x" }, true),
+    ).toBe("Gr No is required.");
+  });
 });

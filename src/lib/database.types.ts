@@ -1064,6 +1064,60 @@ export interface Database {
           },
         ];
       };
+      court_decisions: {
+        Row: {
+          id: string;
+          title: string;
+          slug: string;
+          gr_no: string;
+          division: string | null;
+          decision_date: string;
+          ponente: string | null;
+          category: string | null;
+          summary: string;
+          full_text: string | null;
+          is_published: boolean;
+          published_at: string | null;
+          view_count: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          title: string;
+          slug: string;
+          gr_no: string;
+          division?: string | null;
+          decision_date: string;
+          ponente?: string | null;
+          category?: string | null;
+          summary: string;
+          full_text?: string | null;
+          is_published?: boolean;
+          published_at?: string | null;
+          view_count?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          slug?: string;
+          gr_no?: string;
+          division?: string | null;
+          decision_date?: string;
+          ponente?: string | null;
+          category?: string | null;
+          summary?: string;
+          full_text?: string | null;
+          is_published?: boolean;
+          published_at?: string | null;
+          view_count?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     }>;
     Views: {
       public_lawyers: {
