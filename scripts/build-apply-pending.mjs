@@ -346,6 +346,12 @@ UNION ALL SELECT 'lawyer-photos cannot be listed anonymously',
                            AND policyname = 'lawyer_photos_select'
                            AND roles && ARRAY['anon','public']::name[])
             THEN 'FAIL' ELSE 'PASS' END
+UNION ALL SELECT 'lawyer-photos write policies rebuilt on the helper',
+       CASE WHEN (SELECT count(*) FROM pg_policies
+                  WHERE schemaname = 'storage' AND tablename = 'objects'
+                    AND policyname IN ('lawyer_photos_insert','lawyer_photos_update','lawyer_photos_delete')
+                    AND COALESCE(qual, '') || COALESCE(with_check, '') LIKE '%is_admin%') = 3
+            THEN 'PASS' ELSE 'FAIL' END
 UNION ALL SELECT 'no unexpected SECURITY DEFINER function is anon-executable',
        CASE WHEN EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
                          WHERE n.nspname = 'public' AND p.prosecdef

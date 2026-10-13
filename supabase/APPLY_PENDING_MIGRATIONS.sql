@@ -5667,6 +5667,11 @@ END $$;
 --     shape: the live project has the first, a replayed chain the second)
 --   * policy inquiries_select_assigned_lawyer / inquiries_update_assigned_lawyer
 --   * the public_lawyers view's rule
+--   * policies lawyer_photos_insert / lawyer_photos_update / lawyer_photos_delete
+--     (storage.objects): the live project's dashboard-era copies compare
+--     profiles.role DIRECTLY — a column dependency, which ALTER COLUMN TYPE
+--     refuses with 0A000 (hit on the first live paste of this file). They are
+--     dropped and rebuilt against private.is_admin().
 --   Everything else that mentions the old role names lives inside function
 --   bodies, which CREATE OR REPLACE re-parses — so the ~30 policies calling
 --   private.is_admin() and friends keep working untouched, as long as the
@@ -5687,6 +5692,16 @@ DROP POLICY IF EXISTS profiles_update_own ON public.profiles;
 DROP POLICY IF EXISTS profiles_update_policy ON public.profiles;
 DROP POLICY IF EXISTS inquiries_select_assigned_lawyer ON public.inquiries;
 DROP POLICY IF EXISTS inquiries_update_assigned_lawyer ON public.inquiries;
+
+-- The live project's dashboard-era lawyer-photos storage policies compare
+-- public.profiles.role DIRECTLY (schema-production.sql's copies call
+-- private.is_admin(), but the live rows never were rebuilt). A policy
+-- dependency on the column blocks ALTER COLUMN TYPE with 0A000 — the exact
+-- error the first live paste of this file died on — so they are dropped here
+-- and rebuilt in step 4 against the function.
+DROP POLICY IF EXISTS lawyer_photos_insert ON storage.objects;
+DROP POLICY IF EXISTS lawyer_photos_update ON storage.objects;
+DROP POLICY IF EXISTS lawyer_photos_delete ON storage.objects;
 
 -- get_user_role() returns the enum by value, so its return type is part of its
 -- identity: DROP is the only way to change it. The view's stored rule holds a
@@ -5906,6 +5921,24 @@ WITH CHECK (
   assigned_to = (SELECT auth.uid())
   AND (SELECT private.get_user_role()) = 'lawyer'::public.user_role
 );
+
+-- The lawyer-photos write policies, rebuilt against the helper (the live
+-- project's copies compared profiles.role directly — see step 1). is_admin()
+-- now means managing partner, so the access the old admin had is preserved
+-- exactly. lawyer_photos_select stays dropped: 20261005 removed it so the
+-- public bucket cannot be enumerated.
+CREATE POLICY lawyer_photos_insert ON storage.objects
+FOR INSERT TO authenticated
+WITH CHECK (bucket_id = 'lawyer-photos' AND (SELECT private.is_admin()));
+
+CREATE POLICY lawyer_photos_update ON storage.objects
+FOR UPDATE TO authenticated
+USING (bucket_id = 'lawyer-photos' AND (SELECT private.is_admin()))
+WITH CHECK (bucket_id = 'lawyer-photos' AND (SELECT private.is_admin()));
+
+CREATE POLICY lawyer_photos_delete ON storage.objects
+FOR DELETE TO authenticated
+USING (bucket_id = 'lawyer-photos' AND (SELECT private.is_admin()));
 
 
 -- ----------------------------------------------------------------------------
@@ -6954,6 +6987,12 @@ UNION ALL SELECT 'lawyer-photos cannot be listed anonymously',
                            AND policyname = 'lawyer_photos_select'
                            AND roles && ARRAY['anon','public']::name[])
             THEN 'FAIL' ELSE 'PASS' END
+UNION ALL SELECT 'lawyer-photos write policies rebuilt on the helper',
+       CASE WHEN (SELECT count(*) FROM pg_policies
+                  WHERE schemaname = 'storage' AND tablename = 'objects'
+                    AND policyname IN ('lawyer_photos_insert','lawyer_photos_update','lawyer_photos_delete')
+                    AND COALESCE(qual, '') || COALESCE(with_check, '') LIKE '%is_admin%') = 3
+            THEN 'PASS' ELSE 'FAIL' END
 UNION ALL SELECT 'no unexpected SECURITY DEFINER function is anon-executable',
        CASE WHEN EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
                          WHERE n.nspname = 'public' AND p.prosecdef

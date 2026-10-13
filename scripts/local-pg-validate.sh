@@ -190,9 +190,31 @@ CREATE TABLE public.audit_logs (
   ip_address TEXT, user_agent TEXT, success BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- The live project's lawyer-photos storage policies predate the migrations and
+-- compare public.profiles.role DIRECTLY. schema-production.sql's own copies use
+-- private.is_admin() (a function call, which records no column dependency), so
+-- the harness was friendlier than live — and 20261023 passed locally while the
+-- same paste died on the live project with
+--   0A000 cannot alter type of a column used in a policy definition
+-- The prelude mirrors live, it never invents a friendlier shape.
+DROP POLICY IF EXISTS lawyer_photos_insert ON storage.objects;
+CREATE POLICY lawyer_photos_insert ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'lawyer-photos'
+    AND (SELECT role::TEXT FROM public.profiles WHERE id = auth.uid()) = 'admin');
+DROP POLICY IF EXISTS lawyer_photos_update ON storage.objects;
+CREATE POLICY lawyer_photos_update ON storage.objects FOR UPDATE TO authenticated
+  USING (bucket_id = 'lawyer-photos'
+    AND (SELECT role::TEXT FROM public.profiles WHERE id = auth.uid()) = 'admin')
+  WITH CHECK (bucket_id = 'lawyer-photos'
+    AND (SELECT role::TEXT FROM public.profiles WHERE id = auth.uid()) = 'admin');
+DROP POLICY IF EXISTS lawyer_photos_delete ON storage.objects;
+CREATE POLICY lawyer_photos_delete ON storage.objects FOR DELETE TO authenticated
+  USING (bucket_id = 'lawyer-photos'
+    AND (SELECT role::TEXT FROM public.profiles WHERE id = auth.uid()) = 'admin');
 SQL
 [ $? -eq 0 ] || { echo "  prelude failed"; exit 1; }
-echo "  audit_logs reshaped (inquiries left at its real live shape)"
+echo "  audit_logs reshaped + dashboard-era lawyer-photos policies (live shapes)"
 
 echo "== 5. Migration chain, $PASSES passes =="
 mapfile -t FILES < <(ls "$REPO/supabase/migrations/"*.sql | sort)
@@ -1517,6 +1539,17 @@ try_as "paralegal CANNOT file a Confidential document" "$PARALEGAL" deny \
 
 try_as "intake CANNOT be added to a matter team" "$LAWYER" deny \
   "INSERT INTO public.matter_members (matter_id, lawyer_id) VALUES ('$M_CLIENT','$INTAKE');"
+
+# The live project's dashboard-era lawyer-photos policies compared
+# profiles.role directly, which blocked the enum swap (0A000 — hit on the first
+# live paste). The swap must rebuild them against the helper: dropping them
+# alone would silently leave the bucket without its write policies.
+grants_ok "the lawyer-photos write policies are rebuilt on the helper" \
+  "SELECT count(*) = 3 FROM pg_policies
+   WHERE schemaname = 'storage' AND tablename = 'objects'
+     AND policyname IN ('lawyer_photos_insert','lawyer_photos_update','lawyer_photos_delete')
+     AND COALESCE(qual, '') || COALESCE(with_check, '') LIKE '%is_admin%';" \
+  "t"
 
 # Clean up what this section created (as superuser: matters have no DELETE
 # policy for a reason).
