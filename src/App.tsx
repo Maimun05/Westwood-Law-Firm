@@ -143,6 +143,41 @@ export default function App() {
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
+  // Deter casual inspection on the public site: suppress the right-click
+  // context menu and the browser's devtools shortcuts. This is a deterrent,
+  // not a security boundary — the browser's own menu can still open devtools
+  // and nothing served to a client can prevent that — but it closes the
+  // everyday right-click → Inspect path. The portal is exempt: staff rely on
+  // right-click (paste, open-in-new-tab) inside their tools.
+
+  useEffect(() => {
+    if (page === "portal") return;
+
+    const blockContextMenu = (event: MouseEvent) => event.preventDefault();
+
+    const blockInspectKeys = (event: KeyboardEvent) => {
+      const key = event.key.toUpperCase();
+
+      if (
+        event.key === "F12" ||
+        ((event.ctrlKey || event.metaKey) && event.shiftKey && ["I", "J", "C"].includes(key)) ||
+        ((event.ctrlKey || event.metaKey) && key === "U")
+      ) {
+        event.preventDefault();
+      }
+    };
+
+    document.addEventListener("contextmenu", blockContextMenu);
+
+    document.addEventListener("keydown", blockInspectKeys);
+
+    return () => {
+      document.removeEventListener("contextmenu", blockContextMenu);
+
+      document.removeEventListener("keydown", blockInspectKeys);
+    };
+  }, [page]);
+
   const toggleSave = (id: string) => {
     setSavedLawyers((prev) => {
       const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
