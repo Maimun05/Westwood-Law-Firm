@@ -129,6 +129,10 @@ const MIGRATIONS = [
     file: "20261024_tasks_and_reviews.sql",
     note: "tasks, task_reviews, task_events: assignment + four-eyes review workflow",
   },
+  {
+    file: "20261025_service_role_profile_write.sql",
+    note: "service_role UPDATE on profiles — without it admin-create-user cannot set a new account's role",
+  },
 ];
 
 const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the practice areas created
@@ -168,7 +172,9 @@ const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the p
 -- against the new enum. It cannot run earlier: the swap drops the old type,
 -- which every earlier role literal depends on. 20261024 builds tasks and
 -- reviews on the six-role helpers 20261023 installs (is_matter_team,
--- is_matter_lawyer_team, is_admin), so it runs last.`;
+-- is_matter_lawyer_team, is_admin), so it runs last. 20261025 is a plain
+-- grant on profiles with no dependencies; running it last means a rebuilt
+-- database has it after the table exists.`;
 
 const VERIFICATION = `-- ############################################################################
 -- ## VERIFICATION  —  read the result grid, not the "Success" toast
@@ -588,6 +594,9 @@ UNION ALL SELECT 'a task cannot be reviewed by its assignee',
        CASE WHEN to_regprocedure('private.guard_task_review()') IS NULL THEN 'FAIL'
             WHEN (SELECT prosrc FROM pg_proc WHERE oid = to_regprocedure('private.guard_task_review()'))
                  LIKE '%cannot be reviewed by its assignee%'
+            THEN 'PASS' ELSE 'FAIL' END
+UNION ALL SELECT 'service_role can write profiles (admin-create-user)',
+       CASE WHEN has_table_privilege('service_role', 'public.profiles', 'UPDATE')
             THEN 'PASS' ELSE 'FAIL' END;
 `;
 

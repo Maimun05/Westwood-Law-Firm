@@ -1823,6 +1823,26 @@ try_as "lawyer still CANNOT write content after the policy swap" "$LAWYER" deny 
   "INSERT INTO public.articles (id, title, slug, excerpt, content, category) VALUES ('grant-check-2','Grant Check 2','grant-check-2','x','x','x');"
 $PSQL -q -c "DELETE FROM public.articles WHERE id = 'grant-check';" >/dev/null 2>&1
 
+# The harness's blanket default privileges grant service_role everything, so a
+# missing grant on the live project is invisible here (the documented blind
+# spot). 20261025 exists because live lacked UPDATE on profiles and
+# admin-create-user died with 42501 when setting a new account's role. Prove
+# the file alone can restore it: strip the grants, re-apply it, assert them.
+$PSQL -c "REVOKE ALL ON public.profiles FROM service_role;" >/dev/null 2>&1
+grants_ok "control: the service_role profiles grants really are gone" \
+  "SELECT has_table_privilege('service_role', 'public.profiles', 'UPDATE')
+      OR has_table_privilege('service_role', 'public.profiles', 'SELECT');" "f"
+if $PSQL -f "$REPO/supabase/migrations/20261025_service_role_profile_write.sql" \
+     > "$WORKDIR/svcgrant.out" 2>"$WORKDIR/svcgrant.err"; then
+  grants_ok "20261025 restores the service_role profiles grants on its own" \
+    "SELECT has_table_privilege('service_role', 'public.profiles', 'UPDATE')
+        AND has_table_privilege('service_role', 'public.profiles', 'SELECT');" \
+    "t"
+else
+  fail "20261025 could not be re-applied once the profiles grants were revoked"
+  grep -i error "$WORKDIR/svcgrant.err" | head -5
+fi
+
 # ── 7c. Inquiry attachments ─────────────────────────────────────────────────
 # The public form uploads files as a signed-out visitor and then links them to
 # the inquiry by reference number. Exercise the whole anonymous path, then the

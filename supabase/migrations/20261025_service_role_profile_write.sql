@@ -1,0 +1,19 @@
+-- ============================================================================
+-- 20261025  service_role: write access to public.profiles
+-- ============================================================================
+-- admin-create-user sets profiles.role and profiles.must_change_password with
+-- the service-role key. The live project never granted UPDATE on profiles to
+-- service_role (20261018 added SELECT only), so that write died with
+--
+--   42501 permission denied for table profiles
+--
+-- and the function — correctly — rolled the new auth user back, making account
+-- creation from the portal impossible. Reproduced live on 2026-10-13 with a
+-- managing-partner session: "Failed to set up the account: permission denied
+-- for table profiles", no orphan left behind.
+--
+-- Same class as 20261007 (content tables) and 20261011 (inquiries): the
+-- project-level defaults do not cover every table, so the grants the edge
+-- functions depend on must be explicit. SELECT is re-asserted for rebuilt
+-- databases — the function reads the caller's profile before anything else.
+GRANT SELECT, UPDATE ON public.profiles TO service_role;
