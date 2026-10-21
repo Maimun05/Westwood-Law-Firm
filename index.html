@@ -10,6 +10,24 @@
       content="Westwood Law Firm provides corporate, labor, civil, and family law services in San Juan City, Metro Manila, Philippines."
     />
     <meta name="theme-color" content="#0d1f3c" />
+    <!-- Applies the saved theme before the first paint. Without this a
+         dark-mode visitor sees the light site flash on every load. Kept
+         outside the figma markers so a re-sync cannot drop it. Default is
+         light; only an explicit saved "dark" turns the theme on. -->
+    <script>
+      (function () {
+        try {
+          if (localStorage.getItem("wlf-theme") === "dark") {
+            document.documentElement.classList.add("dark");
+            document.documentElement.style.colorScheme = "dark";
+            var meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) meta.setAttribute("content", "#081120");
+          }
+        } catch (e) {
+          /* storage disabled — fall back to light */
+        }
+      })();
+    </script>
     <meta property="og:title" content="Westwood Law Firm" />
     <meta
       property="og:description"

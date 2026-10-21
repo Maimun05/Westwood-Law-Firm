@@ -24,7 +24,7 @@ export function BrandMark({
       alt=""
       aria-hidden="true"
       className={`${className} rounded-lg object-cover shadow-sm ${
-        tone === "light" ? "ring-1 ring-white/20" : "ring-1 ring-[#0d1f3c]/10"
+        tone === "light" ? "ring-1 ring-white/20" : "ring-1 ring-[var(--ink-strong)]/10"
       }`}
     />
   );
@@ -37,14 +37,14 @@ export function BrandLogo({ tone = "dark" }: { tone?: "dark" | "light" }) {
       <span className="flex flex-col items-start leading-none">
         <span
           className={`font-serif text-[1.05rem] lg:text-[1.2rem] font-bold tracking-wide ${
-            tone === "light" ? "text-white" : "text-[#0d1f3c]"
+            tone === "light" ? "text-white" : "text-[var(--ink-strong)]"
           }`}
         >
           WESTWOOD
         </span>
         <span
           className={`text-[0.55rem] lg:text-[0.6rem] tracking-[0.32em] uppercase mt-1 ${
-            tone === "light" ? "text-white/60" : "text-[#8a9ab5]"
+            tone === "light" ? "text-white/60" : "text-[var(--ink-muted)]"
           }`}
         >
           Law Firm

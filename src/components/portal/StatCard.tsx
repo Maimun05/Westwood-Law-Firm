@@ -12,12 +12,15 @@ import type { ReactNode } from "react";
 export type StatTone = "navy" | "green" | "blue" | "amber" | "red" | "gold" | "purple";
 
 const TONES: Record<StatTone, { value: string; chip: string }> = {
-  navy: { value: "text-[#0d1f3c]", chip: "bg-[#0d1f3c]/5 text-[#0d1f3c]" },
+  navy: {
+    value: "text-[var(--ink-strong)]",
+    chip: "bg-[var(--navy-solid)]/5 text-[var(--ink-strong)]",
+  },
   green: { value: "text-green-600", chip: "bg-green-50 text-green-600" },
   blue: { value: "text-blue-600", chip: "bg-blue-50 text-blue-600" },
   amber: { value: "text-amber-600", chip: "bg-amber-50 text-amber-600" },
   red: { value: "text-red-600", chip: "bg-red-50 text-red-600" },
-  gold: { value: "text-[#a8863a]", chip: "bg-[#c9a84c]/10 text-[#a8863a]" },
+  gold: { value: "text-[var(--gold-ink)]", chip: "bg-[#c9a84c]/10 text-[var(--gold-ink)]" },
   purple: { value: "text-purple-600", chip: "bg-purple-50 text-purple-600" },
 };
 
@@ -48,20 +51,24 @@ export default function StatCard({
           </span>
         )}
       </div>
-      <p className="text-xs text-[#8a9ab5] mt-2">{label}</p>
-      {hint && <p className="text-[11px] text-[#8a9ab5] mt-0.5">{hint}</p>}
+      <p className="text-xs text-[var(--ink-muted)] mt-2">{label}</p>
+      {hint && <p className="text-[11px] text-[var(--ink-muted)] mt-0.5">{hint}</p>}
     </>
   );
 
   if (!onClick) {
-    return <div className="bg-white rounded-xl border border-[#e8e4dc] p-5">{body}</div>;
+    return (
+      <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-5">
+        {body}
+      </div>
+    );
   }
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className="w-full text-left bg-white rounded-xl border border-[#e8e4dc] p-5 cursor-pointer transition-colors hover:border-[#c9a84c] hover:bg-[#fdfbf6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c]/60"
+      className="w-full text-left bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-5 cursor-pointer transition-colors hover:border-[#c9a84c] hover:bg-[var(--surface-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c]/60"
     >
       {body}
     </button>

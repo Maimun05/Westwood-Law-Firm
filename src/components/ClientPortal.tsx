@@ -275,7 +275,7 @@ const statusColors: Record<string, string> = {
 
   Active: "bg-green-50 text-green-700",
 
-  Resolved: "bg-[#c9a84c]/10 text-[#a8863a]",
+  Resolved: "bg-[#c9a84c]/10 text-[var(--gold-ink)]",
 
   Closed: "bg-gray-100 text-gray-500",
 
@@ -384,7 +384,7 @@ function DocAccessBadge({ level }: { level: DocAccessLevel }) {
 
 function PrivacyLabel({ label }: { label: string }) {
   return (
-    <span className="inline-flex items-center gap-1 text-xs text-[#8a9ab5] font-medium">
+    <span className="inline-flex items-center gap-1 text-xs text-[var(--ink-muted)] font-medium">
       🔒 <span>{label}</span>
     </span>
   );
@@ -397,14 +397,17 @@ function RestrictedScreen({ onReturn }: { onReturn: () => void }) {
     <Modal open onClose={onReturn} size="md" labelledBy="restricted-title">
       <ModalBody className="p-8 text-center">
         <div className="text-5xl mb-4">🔒</div>
-        <h2 id="restricted-title" className="font-serif text-2xl font-bold text-[#0d1f3c] mb-3">
+        <h2
+          id="restricted-title"
+          className="font-serif text-2xl font-bold text-[var(--ink-strong)] mb-3"
+        >
           Restricted Access
         </h2>
-        <p className="text-[#2c3347] text-sm leading-relaxed mb-6">
+        <p className="text-[var(--ink-body)] text-sm leading-relaxed mb-6">
           This information contains confidential legal content and is limited to authorized legal
           personnel.
         </p>
-        <div className="bg-[#f7f5f0] rounded-xl p-5 text-left space-y-3 mb-6">
+        <div className="bg-[var(--surface-sunken)] rounded-xl p-5 text-left space-y-3 mb-6">
           {[
             ["Access Level", "Confidential"],
 
@@ -413,10 +416,10 @@ function RestrictedScreen({ onReturn }: { onReturn: () => void }) {
             ["Status", "Restricted"],
           ].map(([label, value]) => (
             <div key={label} className="flex justify-between">
-              <span className="text-xs text-[#8a9ab5] font-semibold uppercase tracking-wide">
+              <span className="text-xs text-[var(--ink-muted)] font-semibold uppercase tracking-wide">
                 {label}
               </span>
-              <span className="text-xs font-semibold text-[#0d1f3c]">{value}</span>
+              <span className="text-xs font-semibold text-[var(--ink-strong)]">{value}</span>
             </div>
           ))}
         </div>
@@ -432,15 +435,15 @@ function RestrictedScreen({ onReturn }: { onReturn: () => void }) {
 
 function AccessDeniedScreen({ onReturn }: { onReturn: () => void }) {
   return (
-    <div className="bg-white rounded-2xl border border-[#e8e4dc] p-12 text-center max-w-md mx-auto mt-8">
+    <div className="bg-[var(--surface-card)] rounded-2xl border border-[var(--line)] p-12 text-center max-w-md mx-auto mt-8">
       <div className="text-5xl mb-4">🔒</div>
-      <h2 className="font-serif text-2xl font-bold text-[#0d1f3c] mb-3">Access Denied</h2>
-      <p className="text-[#8a9ab5] text-sm leading-relaxed mb-6">
+      <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)] mb-3">Access Denied</h2>
+      <p className="text-[var(--ink-muted)] text-sm leading-relaxed mb-6">
         You do not have permission to access this section.
       </p>
       <button
         onClick={onReturn}
-        className="bg-[#0d1f3c] text-white font-semibold px-8 py-3 rounded hover:bg-[#162d52] transition-colors text-sm"
+        className="bg-[var(--navy-solid)] text-white font-semibold px-8 py-3 rounded hover:bg-[#162d52] transition-colors text-sm"
       >
         Return to Dashboard
       </button>
@@ -622,8 +625,10 @@ function CreateAccountModal({
                 />
               </svg>
             </div>
-            <h3 className="font-serif text-2xl font-bold text-[#0d1f3c] mb-3">Welcome Aboard!</h3>
-            <p className="text-[#8a9ab5] text-sm leading-relaxed mb-8 max-w-sm mx-auto">
+            <h3 className="font-serif text-2xl font-bold text-[var(--ink-strong)] mb-3">
+              Welcome Aboard!
+            </h3>
+            <p className="text-[var(--ink-muted)] text-sm leading-relaxed mb-8 max-w-sm mx-auto">
               Your account has been successfully created. You can now access our secure client
               portal.
             </p>
@@ -641,7 +646,7 @@ function CreateAccountModal({
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
                       step >= s
                         ? "bg-gradient-to-br from-[#c9a84c] to-[#b89840] text-white shadow-md"
-                        : "bg-[#e8e4dc] text-[#8a9ab5]"
+                        : "bg-[var(--fill-muted)] text-[var(--ink-muted)]"
                     }`}
                   >
                     {s}
@@ -649,7 +654,9 @@ function CreateAccountModal({
                   {s < 3 && (
                     <div
                       className={`w-12 h-1 mx-1 rounded transition-all ${
-                        step > s ? "bg-gradient-to-r from-[#c9a84c] to-[#b89840]" : "bg-[#e8e4dc]"
+                        step > s
+                          ? "bg-gradient-to-r from-[#c9a84c] to-[#b89840]"
+                          : "bg-[var(--fill-muted)]"
                       }`}
                     />
                   )}
@@ -704,7 +711,9 @@ function CreateAccountModal({
                     <div>
                       <label className={MODAL_LABEL_CLASS}>
                         Middle Name{" "}
-                        <span className="text-[#8a9ab5] normal-case font-normal">(Optional)</span>
+                        <span className="text-[var(--ink-muted)] normal-case font-normal">
+                          (Optional)
+                        </span>
                       </label>
                       <input
                         type="text"
@@ -720,7 +729,9 @@ function CreateAccountModal({
                     <div>
                       <label className={MODAL_LABEL_CLASS}>
                         Suffix{" "}
-                        <span className="text-[#8a9ab5] normal-case font-normal">(Optional)</span>
+                        <span className="text-[var(--ink-muted)] normal-case font-normal">
+                          (Optional)
+                        </span>
                       </label>
                       <input
                         type="text"
@@ -744,7 +755,7 @@ function CreateAccountModal({
                         setError("");
                       }}
                       placeholder="your@email.com"
-                      className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
+                      className="w-full bg-[var(--surface-card)] border-2 border-[var(--line)] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[var(--ink-strong)] placeholder-[var(--ink-muted)] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
                     />
                   </div>
                 </div>
@@ -763,7 +774,7 @@ function CreateAccountModal({
                         setError("");
                       }}
                       placeholder="Minimum 6 characters"
-                      className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
+                      className="w-full bg-[var(--surface-card)] border-2 border-[var(--line)] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[var(--ink-strong)] placeholder-[var(--ink-muted)] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
                       autoFocus
                     />
                   </div>
@@ -777,7 +788,7 @@ function CreateAccountModal({
                         setError("");
                       }}
                       placeholder="Re-enter password"
-                      className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
+                      className="w-full bg-[var(--surface-card)] border-2 border-[var(--line)] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[var(--ink-strong)] placeholder-[var(--ink-muted)] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
                     />
                   </div>
                   <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
@@ -802,68 +813,76 @@ function CreateAccountModal({
                   <div>
                     <label className={MODAL_LABEL_CLASS}>
                       Phone Number{" "}
-                      <span className="text-[#8a9ab5] normal-case font-normal">(Optional)</span>
+                      <span className="text-[var(--ink-muted)] normal-case font-normal">
+                        (Optional)
+                      </span>
                     </label>
                     <input
                       type="tel"
                       value={form.phone}
                       onChange={(e) => setForm({ ...form, phone: e.target.value })}
                       placeholder="+63 9XX XXX XXXX"
-                      className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
+                      className="w-full bg-[var(--surface-card)] border-2 border-[var(--line)] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[var(--ink-strong)] placeholder-[var(--ink-muted)] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
                       autoFocus
                     />
                   </div>
                   <div>
                     <label className={MODAL_LABEL_CLASS}>
                       Address{" "}
-                      <span className="text-[#8a9ab5] normal-case font-normal">(Optional)</span>
+                      <span className="text-[var(--ink-muted)] normal-case font-normal">
+                        (Optional)
+                      </span>
                     </label>
                     <input
                       type="text"
                       value={form.address}
                       onChange={(e) => setForm({ ...form, address: e.target.value })}
                       placeholder="Street address"
-                      className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
+                      className="w-full bg-[var(--surface-card)] border-2 border-[var(--line)] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[var(--ink-strong)] placeholder-[var(--ink-muted)] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
                     />
                   </div>
                   <div>
                     <label className={MODAL_LABEL_CLASS}>
                       City{" "}
-                      <span className="text-[#8a9ab5] normal-case font-normal">(Optional)</span>
+                      <span className="text-[var(--ink-muted)] normal-case font-normal">
+                        (Optional)
+                      </span>
                     </label>
                     <input
                       type="text"
                       value={form.city}
                       onChange={(e) => setForm({ ...form, city: e.target.value })}
                       placeholder="City"
-                      className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
+                      className="w-full bg-[var(--surface-card)] border-2 border-[var(--line)] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[var(--ink-strong)] placeholder-[var(--ink-muted)] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
                     />
                   </div>
                   <div>
                     <label className={MODAL_LABEL_CLASS}>
                       Date of Birth{" "}
-                      <span className="text-[#8a9ab5] normal-case font-normal">(Optional)</span>
+                      <span className="text-[var(--ink-muted)] normal-case font-normal">
+                        (Optional)
+                      </span>
                     </label>
                     <input
                       type="date"
                       value={form.dateOfBirth}
                       onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
-                      className="w-full bg-white border-2 border-[#e8e4dc] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
+                      className="w-full bg-[var(--surface-card)] border-2 border-[var(--line)] focus:border-[#c9a84c] rounded-xl px-4 py-3.5 text-sm text-[var(--ink-strong)] placeholder-[var(--ink-muted)] transition-all focus:outline-none focus:ring-4 focus:ring-[#c9a84c]/10"
                     />
                   </div>
-                  <div className="bg-gradient-to-br from-[#f7f5f0] to-[#eae6dd] rounded-xl p-5 border border-[#e8e4dc]">
+                  <div className="bg-gradient-to-br from-[var(--surface-sunken)] to-[var(--surface-subtle)] rounded-xl p-5 border border-[var(--line)]">
                     <div className="flex items-start gap-3 mb-3">
                       <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center flex-shrink-0">
                         <span className="text-white text-lg">👤</span>
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-[#2c3347] uppercase tracking-wider mb-1">
+                        <p className="text-xs font-bold text-[var(--ink-body)] uppercase tracking-wider mb-1">
                           Account Type
                         </p>
-                        <p className="text-sm font-bold text-[#0d1f3c]">Client Account</p>
+                        <p className="text-sm font-bold text-[var(--ink-strong)]">Client Account</p>
                       </div>
                     </div>
-                    <p className="text-xs text-[#8a9ab5] leading-relaxed">
+                    <p className="text-xs text-[var(--ink-muted)] leading-relaxed">
                       Lawyer and Admin accounts are created and managed directly by Westwood Law
                       Firm administration.
                     </p>
@@ -897,7 +916,7 @@ function CreateAccountModal({
                 ) : (
                   <button
                     type="submit"
-                    className="flex-1 bg-gradient-to-r from-[#c9a84c] to-[#b89840] hover:from-[#e2c87a] hover:to-[#c9a84c] text-[#0d1f3c] text-sm font-bold py-3 rounded-lg transition-all shadow-lg shadow-[#c9a84c]/30 active:scale-[0.99] disabled:opacity-40 disabled:pointer-events-none"
+                    className="flex-1 bg-gradient-to-r from-[#c9a84c] to-[#b89840] hover:from-[#e2c87a] hover:to-[#c9a84c] text-[var(--ink-strong)] text-sm font-bold py-3 rounded-lg transition-all shadow-lg shadow-[#c9a84c]/30 active:scale-[0.99] disabled:opacity-40 disabled:pointer-events-none"
                     disabled={loading}
                   >
                     {loading ? "Creating account…" : "Create Account"}
@@ -909,7 +928,7 @@ function CreateAccountModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-full text-center text-[#8a9ab5] hover:text-[#0d1f3c] text-sm transition-colors py-2 font-medium"
+                  className="w-full text-center text-[var(--ink-muted)] hover:text-[var(--ink-strong)] text-sm transition-colors py-2 font-medium"
                 >
                   Cancel
                 </button>
@@ -965,17 +984,21 @@ function SignIn({ onNavigate }: { onNavigate: (p: Page) => void }) {
 
   return (
     <>
-      <div className="bg-[#f7f5f0] min-h-screen flex items-center justify-center px-6 py-12">
+      <div className="bg-[var(--surface-sunken)] min-h-screen flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <p className="text-[#c9a84c] text-xs tracking-[0.2em] uppercase font-medium mb-3">
               Westwood Law Firm
             </p>
-            <h2 className="font-serif text-3xl font-bold text-[#0d1f3c] mb-2">Welcome Back</h2>
-            <p className="text-[#8a9ab5] text-sm">Sign in to your Westwood Law Firm account.</p>
+            <h2 className="font-serif text-3xl font-bold text-[var(--ink-strong)] mb-2">
+              Welcome Back
+            </h2>
+            <p className="text-[var(--ink-muted)] text-sm">
+              Sign in to your Westwood Law Firm account.
+            </p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-[#e8e4dc] p-8 shadow-sm mb-4">
+          <div className="bg-[var(--surface-card)] rounded-2xl border border-[var(--line)] p-8 shadow-sm mb-4">
             <form onSubmit={handleSubmit} className="space-y-4 mb-6">
               <div>
                 <label className={MODAL_LABEL_CLASS}>Email</label>
@@ -988,12 +1011,12 @@ function SignIn({ onNavigate }: { onNavigate: (p: Page) => void }) {
                   }}
                   placeholder="your@email.com"
                   disabled={loading}
-                  className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-3 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                  className="w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-4 py-3 text-sm text-[var(--ink-strong)] placeholder-[var(--ink-muted)] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
                 />
               </div>
               <div>
                 <div className="flex justify-between items-center mb-1.5">
-                  <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide">
+                  <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide">
                     Password
                   </label>
                   <button
@@ -1013,7 +1036,7 @@ function SignIn({ onNavigate }: { onNavigate: (p: Page) => void }) {
                   }}
                   placeholder="••••••••"
                   disabled={loading}
-                  className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-3 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                  className="w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-4 py-3 text-sm text-[var(--ink-strong)] placeholder-[var(--ink-muted)] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
                 />
               </div>
               {error && (
@@ -1025,13 +1048,13 @@ function SignIn({ onNavigate }: { onNavigate: (p: Page) => void }) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#0d1f3c] hover:bg-[#162d52] text-white font-semibold py-3 rounded transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-[var(--navy-solid)] hover:bg-[#162d52] text-white font-semibold py-3 rounded transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? "Signing in..." : "Sign In"}
               </button>
             </form>
 
-            <p className="text-xs text-[#8a9ab5] text-center mt-5">
+            <p className="text-xs text-[var(--ink-muted)] text-center mt-5">
               {"Don't have an account? "}
               <button
                 onClick={() => setShowCreate(true)}
@@ -1044,7 +1067,7 @@ function SignIn({ onNavigate }: { onNavigate: (p: Page) => void }) {
 
           <button
             onClick={() => onNavigate("home")}
-            className="w-full text-center text-[#8a9ab5] hover:text-[#0d1f3c] text-sm transition-colors py-2"
+            className="w-full text-center text-[var(--ink-muted)] hover:text-[var(--ink-strong)] text-sm transition-colors py-2"
           >
             ← Return to Website
           </button>
@@ -1108,26 +1131,26 @@ function NotificationsModal({
           <div className="ml-auto flex items-center">
             <button
               onClick={onMarkAllRead}
-              className="text-xs font-semibold text-[#0d1f3c] border border-[#e8e4dc] hover:border-[#0d1f3c] px-3 py-1.5 rounded-lg transition-colors"
+              className="text-xs font-semibold text-[var(--ink-strong)] border border-[var(--line)] hover:border-[var(--line-strong)] px-3 py-1.5 rounded-lg transition-colors"
             >
               Mark all read
             </button>
           </div>
         )}
       </ModalHeader>
-      <ModalBody className="divide-y divide-[#e8e4dc]">
+      <ModalBody className="divide-y divide-[var(--line)]">
         {error && (
           <div className="p-4 bg-red-50 text-xs text-red-700">
             Couldn't load notifications: {error}
           </div>
         )}
         {loading && items.length === 0 ? (
-          <p className="p-8 text-center text-sm text-[#8a9ab5]">Loading notifications…</p>
+          <p className="p-8 text-center text-sm text-[var(--ink-muted)]">Loading notifications…</p>
         ) : items.length === 0 ? (
           <div className="p-10 text-center">
             <p className="text-3xl mb-2">🔔</p>
-            <p className="text-sm text-[#2c3347] font-medium">No notifications yet</p>
-            <p className="text-xs text-[#8a9ab5] mt-1">
+            <p className="text-sm text-[var(--ink-body)] font-medium">No notifications yet</p>
+            <p className="text-xs text-[var(--ink-muted)] mt-1">
               You'll be notified about new documents, matter updates and appointments.
             </p>
           </div>
@@ -1151,7 +1174,7 @@ function NotificationsModal({
                   if (n.link) onOpenLink(n.link);
                 }
               }}
-              className={`flex items-start gap-4 p-5 cursor-pointer hover:bg-[#f7f5f0] transition-colors ${
+              className={`flex items-start gap-4 p-5 cursor-pointer hover:bg-[var(--surface-hover)] transition-colors ${
                 n.read ? "" : "bg-[#c9a84c]/5"
               }`}
             >
@@ -1178,21 +1201,21 @@ function NotificationsModal({
                 <div className="flex items-start justify-between gap-3">
                   <p
                     className={`text-sm font-semibold ${
-                      n.read ? "text-[#2c3347]" : "text-[#0d1f3c]"
+                      n.read ? "text-[var(--ink-body)]" : "text-[var(--ink-strong)]"
                     }`}
                   >
                     {n.title}
                   </p>
                   {!n.read && (
-                    <span className="text-xs bg-[#c9a84c] text-[#0d1f3c] font-semibold px-2 py-0.5 rounded-full flex-shrink-0">
+                    <span className="text-xs bg-[#c9a84c] text-[var(--ink-on-gold)] font-semibold px-2 py-0.5 rounded-full flex-shrink-0">
                       New
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-[#8a9ab5] leading-relaxed mt-0.5 break-words">
+                <p className="text-xs text-[var(--ink-muted)] leading-relaxed mt-0.5 break-words">
                   {n.message}
                 </p>
-                <p className="text-xs text-[#8a9ab5] mt-1.5">
+                <p className="text-xs text-[var(--ink-muted)] mt-1.5">
                   {(() => {
                     const then = new Date(n.created_at).getTime();
                     if (Number.isNaN(then)) return "";
@@ -1219,7 +1242,7 @@ function NotificationsModal({
                 }}
                 aria-label="Delete notification"
                 title="Delete"
-                className="text-[#8a9ab5] hover:text-red-500 text-lg leading-none px-1"
+                className="text-[var(--ink-muted)] hover:text-red-500 text-lg leading-none px-1"
               >
                 ×
               </button>
@@ -1596,7 +1619,7 @@ function MatterDetail({
 
         <ModalBody className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-5">
           <div className="lg:col-span-2 space-y-5">
-            <div className="bg-[#f7f5f0] rounded-xl p-5 grid grid-cols-2 gap-4">
+            <div className="bg-[var(--surface-sunken)] rounded-xl p-5 grid grid-cols-2 gap-4">
               {(
                 [
                   ["Client", <Person key="c" id={matter.client_id} />],
@@ -1611,12 +1634,14 @@ function MatterDetail({
                 ] as [string, ReactNode][]
               ).map(([label, value]) => (
                 <div key={label}>
-                  <p className="text-xs text-[#8a9ab5] uppercase tracking-wide font-semibold mb-1">
+                  <p className="text-xs text-[var(--ink-muted)] uppercase tracking-wide font-semibold mb-1">
                     {label}
                   </p>
                   <p
                     className={`text-sm font-medium ${
-                      label === "Priority" ? priorityColors[matter.priority] : "text-[#0d1f3c]"
+                      label === "Priority"
+                        ? priorityColors[matter.priority]
+                        : "text-[var(--ink-strong)]"
                     }`}
                   >
                     {value}
@@ -1624,41 +1649,43 @@ function MatterDetail({
                 </div>
               ))}
               <div>
-                <p className="text-xs text-[#8a9ab5] uppercase tracking-wide font-semibold mb-1">
+                <p className="text-xs text-[var(--ink-muted)] uppercase tracking-wide font-semibold mb-1">
                   Status
                 </p>
                 <Badge text={status} />
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
-              <h3 className="font-serif text-base font-bold text-[#0d1f3c] mb-2">Description</h3>
-              <p className="text-sm text-[#2c3347] leading-relaxed">{matter.description}</p>
+            <div className="bg-[var(--surface-card)] rounded-xl p-5 border border-[var(--line)]">
+              <h3 className="font-serif text-base font-bold text-[var(--ink-strong)] mb-2">
+                Description
+              </h3>
+              <p className="text-sm text-[var(--ink-body)] leading-relaxed">{matter.description}</p>
               {isFirmAdmin(currentUser.role) && (
-                <p className="text-xs text-[#8a9ab5] mt-3 italic">
+                <p className="text-xs text-[var(--ink-muted)] mt-3 italic">
                   Some information in this matter is restricted due to confidentiality.
                 </p>
               )}
             </div>
 
-            <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
-              <h3 className="font-serif text-base font-bold text-[#0d1f3c] mb-4">
+            <div className="bg-[var(--surface-card)] rounded-xl p-5 border border-[var(--line)]">
+              <h3 className="font-serif text-base font-bold text-[var(--ink-strong)] mb-4">
                 Activity Timeline
               </h3>
               <div className="relative">
                 {matterTimeline.length > 0 ? (
                   <>
-                    <div className="absolute left-2 top-0 bottom-0 w-px bg-[#e8e4dc]" />
+                    <div className="absolute left-2 top-0 bottom-0 w-px bg-[var(--fill-muted)]" />
                     <div className="space-y-5">
                       {matterTimeline.slice(0, 7).map((ev) => (
                         <div key={ev.id} className="flex gap-4 pl-8 relative">
                           <div className="absolute left-0 top-1 w-4 h-4 rounded-full bg-[#c9a84c]/20 border-2 border-[#c9a84c] flex-shrink-0" />
                           <div>
-                            <p className="text-sm font-medium text-[#0d1f3c]">
+                            <p className="text-sm font-medium text-[var(--ink-strong)]">
                               {ev.title}
                               {ev.detail ? ` — ${ev.detail}` : ""}
                             </p>
-                            <p className="text-xs text-[#8a9ab5] mt-0.5">
+                            <p className="text-xs text-[var(--ink-muted)] mt-0.5">
                               {matterEventActor(ev.actor_id)} ·{" "}
                               {new Date(ev.created_at).toLocaleDateString()}
                             </p>
@@ -1668,7 +1695,9 @@ function MatterDetail({
                     </div>
                   </>
                 ) : (
-                  <p className="text-sm text-[#8a9ab5] text-center py-4">No recent activity</p>
+                  <p className="text-sm text-[var(--ink-muted)] text-center py-4">
+                    No recent activity
+                  </p>
                 )}
               </div>
             </div>
@@ -1676,8 +1705,10 @@ function MatterDetail({
 
           <div className="space-y-3">
             {(isFirmAdmin(currentUser.role) || isLawyer(currentUser.role)) && (
-              <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
-                <h3 className="text-sm font-semibold text-[#0d1f3c] mb-3">Update Status</h3>
+              <div className="bg-[var(--surface-card)] rounded-xl p-5 border border-[var(--line)]">
+                <h3 className="text-sm font-semibold text-[var(--ink-strong)] mb-3">
+                  Update Status
+                </h3>
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value as Matter["status"])}
@@ -1703,20 +1734,24 @@ function MatterDetail({
             )}
 
             {isFirmAdmin(currentUser.role) && (
-              <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
-                <h3 className="text-sm font-semibold text-[#0d1f3c] mb-3">Assigned Lawyer</h3>
+              <div className="bg-[var(--surface-card)] rounded-xl p-5 border border-[var(--line)]">
+                <h3 className="text-sm font-semibold text-[var(--ink-strong)] mb-3">
+                  Assigned Lawyer
+                </h3>
                 {lawyer ? (
                   <div className="flex items-center gap-3 mb-3">
                     <img
                       src={lawyer.profile_image || "/lawyers/placeholder.svg"}
                       alt=""
-                      className="w-9 h-9 rounded-full object-cover object-top bg-[#f7f5f0]"
+                      className="w-9 h-9 rounded-full object-cover object-top bg-[var(--surface-sunken)]"
                     />
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-[#0d1f3c] truncate">
+                      <p className="text-sm font-medium text-[var(--ink-strong)] truncate">
                         {lawyer.full_name}
                       </p>
-                      <p className="text-xs text-[#8a9ab5]">{lawyer.position || "Lawyer"}</p>
+                      <p className="text-xs text-[var(--ink-muted)]">
+                        {lawyer.position || "Lawyer"}
+                      </p>
                     </div>
                   </div>
                 ) : (
@@ -1735,7 +1770,7 @@ function MatterDetail({
                     </option>
                   ))}
                 </select>
-                {assignBusy && <p className="text-xs mt-2 text-[#8a9ab5]">Saving…</p>}
+                {assignBusy && <p className="text-xs mt-2 text-[var(--ink-muted)]">Saving…</p>}
                 {assignMsg && (
                   <p className={`text-xs mt-2 ${assignMsg.ok ? "text-green-700" : "text-red-600"}`}>
                     {assignMsg.text}
@@ -1745,15 +1780,15 @@ function MatterDetail({
             )}
 
             {isStaff(currentUser.role) && (
-              <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
-                <h3 className="text-sm font-semibold text-[#0d1f3c] mb-1">Matter Team</h3>
-                <p className="text-xs text-[#8a9ab5] mb-3">
+              <div className="bg-[var(--surface-card)] rounded-xl p-5 border border-[var(--line)]">
+                <h3 className="text-sm font-semibold text-[var(--ink-strong)] mb-1">Matter Team</h3>
+                <p className="text-xs text-[var(--ink-muted)] mb-3">
                   Everyone here can read this matter&rsquo;s internal notes and documents.
                 </p>
 
                 <div className="space-y-2 mb-3">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm text-[#0d1f3c]">
+                    <span className="text-sm text-[var(--ink-strong)]">
                       {lawyer ? (
                         lawyer.full_name
                       ) : (
@@ -1769,14 +1804,14 @@ function MatterDetail({
 
                     return (
                       <div key={m.lawyer_id} className="flex items-center justify-between gap-2">
-                        <span className="text-sm text-[#2c3347]">
+                        <span className="text-sm text-[var(--ink-body)]">
                           {member?.full_name ?? "Unknown lawyer"}
                         </span>
                         {canManageTeam && (
                           <button
                             onClick={() => void removeMember(m.lawyer_id)}
                             disabled={teamBusy}
-                            className="text-xs text-[#8a9ab5] hover:text-red-600 disabled:opacity-40"
+                            className="text-xs text-[var(--ink-muted)] hover:text-red-600 disabled:opacity-40"
                           >
                             Remove
                           </button>
@@ -1785,7 +1820,7 @@ function MatterDetail({
                     );
                   })}
                   {team.length === 0 && (
-                    <p className="text-xs text-[#8a9ab5]">No additional lawyers.</p>
+                    <p className="text-xs text-[var(--ink-muted)]">No additional lawyers.</p>
                   )}
                 </div>
 
@@ -1873,9 +1908,9 @@ function MatterDetail({
               clientId={matter.client_id}
             />
 
-            <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
+            <div className="bg-[var(--surface-card)] rounded-xl p-5 border border-[var(--line)]">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-[#0d1f3c]">Documents</h3>
+                <h3 className="text-sm font-semibold text-[var(--ink-strong)]">Documents</h3>
                 {/* The managing partner is view-only on documents (20261012);
                     matter teams — lawyers and paralegals — may upload, within
                     the access levels their role allows (20261023). */}
@@ -1889,15 +1924,15 @@ function MatterDetail({
                 )}
               </div>
               {matterDocs.length === 0 ? (
-                <p className="text-xs text-[#8a9ab5]">No documents yet.</p>
+                <p className="text-xs text-[var(--ink-muted)]">No documents yet.</p>
               ) : (
                 <div className="space-y-3">
                   {matterDocs.map((doc) => (
                     <div
                       key={doc.id}
-                      className="border-b border-[#f7f5f0] pb-3 last:border-0 last:pb-0"
+                      className="border-b border-[var(--line)] pb-3 last:border-0 last:pb-0"
                     >
-                      <p className="text-xs font-medium text-[#0d1f3c] leading-snug break-words mb-1">
+                      <p className="text-xs font-medium text-[var(--ink-strong)] leading-snug break-words mb-1">
                         {doc.name}
                       </p>
                       <div className="flex items-center justify-between gap-2">
@@ -2081,7 +2116,7 @@ function MattersTable({
 
   return (
     <>
-      <div className="bg-white rounded-xl border border-[#e8e4dc] p-5">
+      <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-5">
         <ListFilters
           search={search}
           onSearch={setSearch}
@@ -2095,7 +2130,7 @@ function MattersTable({
         <div className="overflow-x-auto -mx-5 px-5">
           <table className="w-full">
             <thead>
-              <tr className="bg-[#f7f5f0]">
+              <tr className="bg-[var(--surface-sunken)]">
                 {[
                   "Matter No.",
                   "Title",
@@ -2109,17 +2144,17 @@ function MattersTable({
                 ].map((h) => (
                   <th
                     key={h}
-                    className="text-left text-xs font-semibold text-[#8a9ab5] uppercase tracking-wide px-5 py-3"
+                    className="text-left text-xs font-semibold text-[var(--ink-muted)] uppercase tracking-wide px-5 py-3"
                   >
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#e8e4dc]">
+            <tbody className="divide-y divide-[var(--line)]">
               {visible.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-5 py-8 text-center text-sm text-[#8a9ab5]">
+                  <td colSpan={9} className="px-5 py-8 text-center text-sm text-[var(--ink-muted)]">
                     No matters match that search.
                   </td>
                 </tr>
@@ -2133,24 +2168,24 @@ function MattersTable({
                   <tr
                     key={m.id}
                     onClick={() => setSelected(m)}
-                    className="hover:bg-[#f7f5f0] transition-colors cursor-pointer"
+                    className="hover:bg-[var(--surface-hover)] transition-colors cursor-pointer"
                   >
-                    <td className="px-5 py-4 text-sm font-mono font-semibold text-[#0d1f3c] whitespace-nowrap">
+                    <td className="px-5 py-4 text-sm font-mono font-semibold text-[var(--ink-strong)] whitespace-nowrap">
                       {m.matter_number}
                     </td>
                     <td
-                      className="px-5 py-4 text-sm text-[#0d1f3c] font-medium max-w-[240px] truncate"
+                      className="px-5 py-4 text-sm text-[var(--ink-strong)] font-medium max-w-[240px] truncate"
                       title={m.title}
                     >
                       {m.title}
                     </td>
-                    <td className="px-5 py-4 text-sm text-[#2c3347]">
+                    <td className="px-5 py-4 text-sm text-[var(--ink-body)]">
                       <Person id={m.client_id} />
                     </td>
-                    <td className="px-5 py-4 text-sm text-[#2c3347] whitespace-nowrap">
+                    <td className="px-5 py-4 text-sm text-[var(--ink-body)] whitespace-nowrap">
                       {pa?.name ?? m.practice_area}
                     </td>
-                    <td className="px-5 py-4 text-sm text-[#2c3347] whitespace-nowrap">
+                    <td className="px-5 py-4 text-sm text-[var(--ink-body)] whitespace-nowrap">
                       {lyr ? (
                         lyr.full_name
                       ) : (
@@ -2163,7 +2198,7 @@ function MattersTable({
                     <td className={`px-5 py-4 text-sm font-semibold ${priorityColors[m.priority]}`}>
                       {m.priority}
                     </td>
-                    <td className="px-5 py-4 text-sm text-[#8a9ab5] whitespace-nowrap">
+                    <td className="px-5 py-4 text-sm text-[var(--ink-muted)] whitespace-nowrap">
                       {m.date_opened}
                     </td>
                     <td className="px-5 py-4">
@@ -2343,7 +2378,7 @@ function DocumentsTable({
   );
 
   return (
-    <div className="bg-white rounded-xl border border-[#e8e4dc] p-5">
+    <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-5">
       {bgDoc && (
         <BreakGlassModal
           fileName={bgDoc.doc.name}
@@ -2364,12 +2399,12 @@ function DocumentsTable({
       <div className="overflow-x-auto -mx-5 px-5">
         <table className="w-full">
           <thead>
-            <tr className="bg-[#f7f5f0]">
+            <tr className="bg-[var(--surface-sunken)]">
               {["Document", "Type", "Matter", "Uploaded By", "Date", "Access Level", ""].map(
                 (h) => (
                   <th
                     key={h}
-                    className="text-left text-xs font-semibold text-[#8a9ab5] uppercase px-5 py-3"
+                    className="text-left text-xs font-semibold text-[var(--ink-muted)] uppercase px-5 py-3"
                   >
                     {h}
                   </th>
@@ -2377,16 +2412,16 @@ function DocumentsTable({
               )}
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#e8e4dc]">
+          <tbody className="divide-y divide-[var(--line)]">
             {docs.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-5 py-10 text-center text-sm text-[#8a9ab5]">
+                <td colSpan={7} className="px-5 py-10 text-center text-sm text-[var(--ink-muted)]">
                   No documents yet.
                 </td>
               </tr>
             ) : visible.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-5 py-10 text-center text-sm text-[#8a9ab5]">
+                <td colSpan={7} className="px-5 py-10 text-center text-sm text-[var(--ink-muted)]">
                   No documents match that search.
                 </td>
               </tr>
@@ -2397,17 +2432,21 @@ function DocumentsTable({
                 const canDelete = d.uploaded_by === currentUser.id;
 
                 return (
-                  <tr key={d.id} className="hover:bg-[#f7f5f0]">
+                  <tr key={d.id} className="hover:bg-[var(--surface-hover)]">
                     <td className="px-5 py-4">
-                      <p className="text-sm font-medium text-[#0d1f3c] break-all">{d.name}</p>
-                      <p className="text-xs text-[#8a9ab5] mt-0.5">{formatFileSize(d.file_size)}</p>
+                      <p className="text-sm font-medium text-[var(--ink-strong)] break-all">
+                        {d.name}
+                      </p>
+                      <p className="text-xs text-[var(--ink-muted)] mt-0.5">
+                        {formatFileSize(d.file_size)}
+                      </p>
                     </td>
-                    <td className="px-5 py-4 text-sm text-[#8a9ab5]">{d.file_type}</td>
-                    <td className="px-5 py-4 text-sm font-mono text-[#2c3347]">
+                    <td className="px-5 py-4 text-sm text-[var(--ink-muted)]">{d.file_type}</td>
+                    <td className="px-5 py-4 text-sm font-mono text-[var(--ink-body)]">
                       {matterFor(d)?.matter_number ?? "—"}
                     </td>
-                    <td className="px-5 py-4 text-sm text-[#2c3347]">{uploaderLabel(d)}</td>
-                    <td className="px-5 py-4 text-sm text-[#8a9ab5] whitespace-nowrap">
+                    <td className="px-5 py-4 text-sm text-[var(--ink-body)]">{uploaderLabel(d)}</td>
+                    <td className="px-5 py-4 text-sm text-[var(--ink-muted)] whitespace-nowrap">
                       {new Date(d.uploaded_at).toLocaleDateString()}
                     </td>
                     <td className="px-5 py-4">
@@ -2425,7 +2464,7 @@ function DocumentsTable({
                         <button
                           disabled={busy}
                           onClick={() => act(d, "download")}
-                          className="text-xs text-[#0d1f3c] hover:underline disabled:opacity-40"
+                          className="text-xs text-[var(--ink-strong)] hover:underline disabled:opacity-40"
                         >
                           Download
                         </button>
@@ -2468,13 +2507,16 @@ function DeleteConfirmModal({
         <div className="mx-auto mb-4 grid h-11 w-11 place-items-center rounded-full border border-red-100 bg-red-50 text-lg text-red-600">
           <span aria-hidden="true">⚠</span>
         </div>
-        <h3 id="delete-account-title" className="font-serif text-lg font-bold text-[#0d1f3c] mb-2">
+        <h3
+          id="delete-account-title"
+          className="font-serif text-lg font-bold text-[var(--ink-strong)] mb-2"
+        >
           Delete Account?
         </h3>
-        <p className="text-sm text-[#2c3347] mb-1 break-words">
+        <p className="text-sm text-[var(--ink-body)] mb-1 break-words">
           This action will permanently remove <strong>{userName}</strong>'s account from the system.
         </p>
-        <p className="text-xs text-[#8a9ab5]">This cannot be undone from here.</p>
+        <p className="text-xs text-[var(--ink-muted)]">This cannot be undone from here.</p>
       </ModalBody>
       <ModalFooter className="flex gap-3 px-6 pb-6 pt-1">
         <button
@@ -2727,7 +2769,7 @@ function ClientPortalView({
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
             <div className="w-16 h-16 mx-auto mb-4 border-4 border-[#c9a84c] border-t-transparent rounded-full animate-spin" />
-            <p className="text-[#8a9ab5] text-sm">Loading your data...</p>
+            <p className="text-[var(--ink-muted)] text-sm">Loading your data...</p>
           </div>
         </div>
       </PortalShell>
@@ -2780,16 +2822,18 @@ function ClientPortalView({
             <Panel>
               <PanelHeader title="Matter Status" subtitle="Where your matters currently stand" />
               {myMatters.length === 0 ? (
-                <p className="text-sm text-[#8a9ab5]">No active matters.</p>
+                <p className="text-sm text-[var(--ink-muted)]">No active matters.</p>
               ) : (
                 myMatters.map((m) => (
                   <div
                     key={m.id}
-                    className="flex items-center justify-between py-3 border-b border-[#f7f5f0] last:border-0"
+                    className="flex items-center justify-between py-3 border-b border-[var(--line)] last:border-0"
                   >
                     <div>
-                      <p className="text-sm font-semibold text-[#0d1f3c]">{m.matter_number}</p>
-                      <p className="text-xs text-[#8a9ab5]">
+                      <p className="text-sm font-semibold text-[var(--ink-strong)]">
+                        {m.matter_number}
+                      </p>
+                      <p className="text-xs text-[var(--ink-muted)]">
                         {practiceAreas.find((p) => p.id === m.practice_area)?.name ||
                           m.practice_area}
                       </p>
@@ -2820,11 +2864,11 @@ function ClientPortalView({
                       <div key={ev.id} className="flex gap-3">
                         <div className="w-1.5 h-1.5 rounded-full bg-[#c9a84c] mt-1.5 flex-shrink-0" />
                         <div>
-                          <p className="text-sm text-[#2c3347]">
+                          <p className="text-sm text-[var(--ink-body)]">
                             {ev.title}
                             {ev.detail ? ` — ${ev.detail}` : ""}
                           </p>
-                          <p className="text-xs text-[#8a9ab5]">
+                          <p className="text-xs text-[var(--ink-muted)]">
                             {matterNumber(ev.matter_id)} · {matterEventActor(ev.actor_id)} ·{" "}
                             {new Date(ev.created_at).toLocaleDateString()}
                           </p>
@@ -2832,12 +2876,14 @@ function ClientPortalView({
                       </div>
                     ))
                   ) : (
-                    <p className="text-xs text-[#8a9ab5] text-center py-2">No recent activity</p>
+                    <p className="text-xs text-[var(--ink-muted)] text-center py-2">
+                      No recent activity
+                    </p>
                   )}
                 </div>
               </Panel>
             </div>
-            <div className="bg-[#0d1f3c] rounded-xl p-6 flex items-center justify-between">
+            <div className="bg-[var(--navy-solid)] rounded-xl p-6 flex items-center justify-between">
               <div>
                 <p className="text-white font-semibold">Need to submit a new legal concern?</p>
                 <p className="text-white/50 text-sm mt-0.5">
@@ -2846,7 +2892,7 @@ function ClientPortalView({
               </div>
               <button
                 onClick={() => onNavigate("inquiry")}
-                className="bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] text-sm font-semibold px-6 py-3 rounded transition-colors whitespace-nowrap"
+                className="bg-[#c9a84c] hover:bg-[#e2c87a] text-[var(--ink-on-gold)] text-sm font-semibold px-6 py-3 rounded transition-colors whitespace-nowrap"
               >
                 New Inquiry
               </button>
@@ -2858,26 +2904,28 @@ function ClientPortalView({
           <div className="space-y-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Inquiries</h2>
-                <p className="text-[#8a9ab5] text-sm mt-1">
+                <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">
+                  My Inquiries
+                </h2>
+                <p className="text-[var(--ink-muted)] text-sm mt-1">
                   Every inquiry you have submitted to the firm, and where it stands.
                 </p>
               </div>
               <button
                 onClick={() => onNavigate("inquiry")}
-                className="bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] text-sm font-semibold px-6 py-3 rounded transition-colors whitespace-nowrap"
+                className="bg-[#c9a84c] hover:bg-[#e2c87a] text-[var(--ink-on-gold)] text-sm font-semibold px-6 py-3 rounded transition-colors whitespace-nowrap"
               >
                 New Inquiry
               </button>
             </div>
             {myInquiries.length === 0 ? (
-              <div className="bg-white rounded-xl border border-[#e8e4dc] p-10 text-center">
-                <p className="text-[#8a9ab5] text-sm mb-4">
+              <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-10 text-center">
+                <p className="text-[var(--ink-muted)] text-sm mb-4">
                   You have not submitted any inquiries yet.
                 </p>
                 <button
                   onClick={() => onNavigate("inquiry")}
-                  className="bg-[#c9a84c] text-[#0d1f3c] font-semibold px-6 py-3 rounded text-sm"
+                  className="bg-[#c9a84c] text-[var(--ink-on-gold)] font-semibold px-6 py-3 rounded text-sm"
                 >
                   Start a Legal Inquiry
                 </button>
@@ -2890,19 +2938,22 @@ function ClientPortalView({
                     : null;
                   const open = openInquiry === q.id;
                   return (
-                    <div key={q.id} className="bg-white rounded-xl border border-[#e8e4dc] p-5">
+                    <div
+                      key={q.id}
+                      className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-5"
+                    >
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-mono text-sm font-semibold text-[#0d1f3c]">
+                            <span className="font-mono text-sm font-semibold text-[var(--ink-strong)]">
                               {q.inquiry_number}
                             </span>
                             <Badge text={q.status} />
                           </div>
-                          <p className="text-sm font-semibold text-[#0d1f3c] mt-2">
+                          <p className="text-sm font-semibold text-[var(--ink-strong)] mt-2">
                             {q.subject || "Legal inquiry"}
                           </p>
-                          <p className="text-xs text-[#8a9ab5] mt-0.5">
+                          <p className="text-xs text-[var(--ink-muted)] mt-0.5">
                             {q.practice_area || "General"} ·{" "}
                             {new Date(q.created_at).toLocaleDateString("en-PH", {
                               year: "numeric",
@@ -2912,14 +2963,14 @@ function ClientPortalView({
                             {assignedName ? ` · Assigned to ${assignedName}` : ""}
                           </p>
                           {q.message && (
-                            <p className="text-sm text-[#2c3347] mt-3 whitespace-pre-line line-clamp-3">
+                            <p className="text-sm text-[var(--ink-body)] mt-3 whitespace-pre-line line-clamp-3">
                               {q.message}
                             </p>
                           )}
                         </div>
                         <button
                           onClick={() => setOpenInquiry(open ? null : q.id)}
-                          className="bg-[#0d1f3c] text-white text-xs font-semibold px-3 py-2 rounded whitespace-nowrap"
+                          className="bg-[var(--navy-solid)] text-white text-xs font-semibold px-3 py-2 rounded whitespace-nowrap"
                         >
                           {open ? "Hide messages" : "Messages"}
                         </button>
@@ -2944,13 +2995,13 @@ function ClientPortalView({
 
         {tab === "matters" && (
           <div className="space-y-4">
-            <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Matters</h2>
+            <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">My Matters</h2>
             {myMatters.length === 0 ? (
-              <div className="bg-white rounded-xl border border-[#e8e4dc] p-10 text-center">
-                <p className="text-[#8a9ab5] text-sm mb-4">No active matters yet.</p>
+              <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-10 text-center">
+                <p className="text-[var(--ink-muted)] text-sm mb-4">No active matters yet.</p>
                 <button
                   onClick={() => onNavigate("inquiry")}
-                  className="bg-[#c9a84c] text-[#0d1f3c] font-semibold px-6 py-3 rounded text-sm"
+                  className="bg-[#c9a84c] text-[var(--ink-on-gold)] font-semibold px-6 py-3 rounded text-sm"
                 >
                   Start a Legal Inquiry
                 </button>
@@ -2975,10 +3026,12 @@ function ClientPortalView({
         {tab === "documents" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Documents</h2>
+              <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">
+                My Documents
+              </h2>
               <button
                 onClick={() => setShowUpload(true)}
-                className="bg-[#0d1f3c] hover:bg-[#162d52] text-white text-sm font-semibold px-6 py-3 rounded transition-colors"
+                className="bg-[var(--navy-solid)] hover:bg-[#162d52] text-white text-sm font-semibold px-6 py-3 rounded transition-colors"
               >
                 Upload Document
               </button>
@@ -2998,33 +3051,42 @@ function ClientPortalView({
         {tab === "partners" && (
           <div className="space-y-5">
             <div>
-              <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">Partner Network</h2>
-              <p className="text-[#8a9ab5] text-sm mt-1">
+              <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">
+                Partner Network
+              </h2>
+              <p className="text-[var(--ink-muted)] text-sm mt-1">
                 Specialist partners available to support your legal matters with non-legal
                 professional services.
               </p>
             </div>
             {specialists.length === 0 ? (
-              <div className="bg-white rounded-xl border border-[#e8e4dc] p-10 text-center">
-                <p className="text-[#8a9ab5] text-sm">
+              <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-10 text-center">
+                <p className="text-[var(--ink-muted)] text-sm">
                   No partner network specialists are currently listed.
                 </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {specialists.map((s) => (
-                  <div key={s.id} className="bg-white rounded-xl border border-[#e8e4dc] p-6">
+                  <div
+                    key={s.id}
+                    className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-6"
+                  >
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div>
-                        <p className="font-serif text-base font-bold text-[#0d1f3c]">{s.name}</p>
+                        <p className="font-serif text-base font-bold text-[var(--ink-strong)]">
+                          {s.name}
+                        </p>
                         <p className="text-[#c9a84c] text-xs font-semibold mt-0.5">{s.specialty}</p>
                       </div>
                       <span className="text-xs bg-green-50 text-green-700 font-semibold px-2.5 py-1 rounded flex-shrink-0">
                         Active
                       </span>
                     </div>
-                    <p className="text-xs text-[#8a9ab5] mb-3">{s.specialist_type}</p>
-                    <p className="text-xs text-[#2c3347] leading-relaxed">{s.description}</p>
+                    <p className="text-xs text-[var(--ink-muted)] mb-3">{s.specialist_type}</p>
+                    <p className="text-xs text-[var(--ink-body)] leading-relaxed">
+                      {s.description}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -3034,7 +3096,7 @@ function ClientPortalView({
 
         {tab === "profile" && (
           <div className="space-y-5">
-            <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Profile</h2>
+            <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">My Profile</h2>
             <ProfileEditor userId={currentUser.id} onSaved={onUserRefresh} />
           </div>
         )}
@@ -3254,7 +3316,7 @@ function LawyerPortalView({
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
             <div className="w-16 h-16 mx-auto mb-4 border-4 border-[#c9a84c] border-t-transparent rounded-full animate-spin" />
-            <p className="text-[#8a9ab5] text-sm">Loading your data...</p>
+            <p className="text-[var(--ink-muted)] text-sm">Loading your data...</p>
           </div>
         </div>
       </PortalShell>
@@ -3328,13 +3390,13 @@ function LawyerPortalView({
                     myAppts.slice(0, 4).map((a) => (
                       <div
                         key={a.id}
-                        className="flex items-center justify-between gap-3 py-2 border-b border-[#f7f5f0] last:border-0"
+                        className="flex items-center justify-between gap-3 py-2 border-b border-[var(--line)] last:border-0"
                       >
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold text-[#0d1f3c] truncate">
+                          <p className="text-sm font-semibold text-[var(--ink-strong)] truncate">
                             {a.appointment_type}
                           </p>
-                          <p className="text-xs text-[#8a9ab5]">
+                          <p className="text-xs text-[var(--ink-muted)]">
                             {new Date(a.date + "T00:00").toLocaleDateString()} · {a.time}
                           </p>
                         </div>
@@ -3342,7 +3404,9 @@ function LawyerPortalView({
                       </div>
                     ))
                   ) : (
-                    <p className="text-xs text-[#8a9ab5] text-center py-2">No appointments yet</p>
+                    <p className="text-xs text-[var(--ink-muted)] text-center py-2">
+                      No appointments yet
+                    </p>
                   )}
                 </div>
               </Panel>
@@ -3360,10 +3424,10 @@ function LawyerPortalView({
 
         {tab === "matters" && (
           <div className="space-y-4">
-            <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Matters</h2>
+            <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">My Matters</h2>
             {myMatters.length === 0 ? (
-              <div className="bg-white rounded-xl border border-[#e8e4dc] p-10 text-center">
-                <p className="text-[#8a9ab5] text-sm">
+              <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-10 text-center">
+                <p className="text-[var(--ink-muted)] text-sm">
                   {isPara
                     ? "You are not on any matter team yet. A matter's assigned lawyer adds paralegals to its team."
                     : "No matters assigned yet."}
@@ -3386,16 +3450,16 @@ function LawyerPortalView({
 
         {tab === "clients" && (
           <div className="space-y-4">
-            <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Clients</h2>
-            <div className="bg-white rounded-xl border border-[#e8e4dc] overflow-hidden">
+            <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">My Clients</h2>
+            <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] overflow-hidden">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-[#f7f5f0]">
+                  <tr className="bg-[var(--surface-sunken)]">
                     {["Client", "Active Matter", "Practice Area", "Status", "Last Activity"].map(
                       (h) => (
                         <th
                           key={h}
-                          className="text-left text-xs font-semibold text-[#8a9ab5] uppercase tracking-wide px-5 py-3"
+                          className="text-left text-xs font-semibold text-[var(--ink-muted)] uppercase tracking-wide px-5 py-3"
                         >
                           {h}
                         </th>
@@ -3403,10 +3467,13 @@ function LawyerPortalView({
                     )}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#e8e4dc]">
+                <tbody className="divide-y divide-[var(--line)]">
                   {myMatters.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-5 py-8 text-center text-sm text-[#8a9ab5]">
+                      <td
+                        colSpan={5}
+                        className="px-5 py-8 text-center text-sm text-[var(--ink-muted)]"
+                      >
                         No assigned clients.
                       </td>
                     </tr>
@@ -3415,26 +3482,32 @@ function LawyerPortalView({
                       const pa = practiceAreas.find((p) => p.id === m.practice_area);
 
                       return (
-                        <tr key={m.id} className="hover:bg-[#f7f5f0]">
+                        <tr key={m.id} className="hover:bg-[var(--surface-hover)]">
                           <td className="px-5 py-4">
-                            <p className="text-sm font-semibold text-[#0d1f3c]">
+                            <p className="text-sm font-semibold text-[var(--ink-strong)]">
                               <Person id={m.client_id} />
                             </p>
-                            <p className="text-xs text-[#8a9ab5] mt-0.5">{m.matter_number}</p>
+                            <p className="text-xs text-[var(--ink-muted)] mt-0.5">
+                              {m.matter_number}
+                            </p>
                           </td>
                           <td className="px-5 py-4">
-                            <p className="text-sm font-mono text-[#2c3347]">{m.matter_number}</p>
-                            <p className="text-xs text-[#8a9ab5] mt-0.5 truncate max-w-[220px]">
+                            <p className="text-sm font-mono text-[var(--ink-body)]">
+                              {m.matter_number}
+                            </p>
+                            <p className="text-xs text-[var(--ink-muted)] mt-0.5 truncate max-w-[220px]">
                               {m.title}
                             </p>
                           </td>
-                          <td className="px-5 py-4 text-sm text-[#2c3347]">
+                          <td className="px-5 py-4 text-sm text-[var(--ink-body)]">
                             {pa?.name ?? m.practice_area}
                           </td>
                           <td className="px-5 py-4">
                             <Badge text={m.status} />
                           </td>
-                          <td className="px-5 py-4 text-sm text-[#8a9ab5]">{m.date_opened}</td>
+                          <td className="px-5 py-4 text-sm text-[var(--ink-muted)]">
+                            {m.date_opened}
+                          </td>
                         </tr>
                       );
                     })
@@ -3459,10 +3532,10 @@ function LawyerPortalView({
         {tab === "documents" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">Documents</h2>
+              <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">Documents</h2>
               <button
                 onClick={() => setShowUpload(true)}
-                className="bg-[#0d1f3c] hover:bg-[#162d52] text-white text-sm font-semibold px-6 py-3 rounded transition-colors"
+                className="bg-[var(--navy-solid)] hover:bg-[#162d52] text-white text-sm font-semibold px-6 py-3 rounded transition-colors"
               >
                 Upload Document
               </button>
@@ -3485,12 +3558,12 @@ function LawyerPortalView({
 
         {tab === "profile" && (
           <div className="space-y-5">
-            <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Profile</h2>
+            <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">My Profile</h2>
             <ProfileEditor userId={currentUser.id} onSaved={onUserRefresh} />
             {currentUser.lawyerId && (
               <button
                 onClick={() => onNavigate("lawyers", { lawyer: currentUser.lawyerId! })}
-                className="w-full border-2 border-[#0d1f3c] text-[#0d1f3c] hover:bg-[#0d1f3c] hover:text-white font-semibold py-3 rounded transition-colors text-sm"
+                className="w-full border-2 border-[var(--line-strong)] text-[var(--ink-strong)] hover:bg-[var(--navy-solid)] hover:text-white font-semibold py-3 rounded transition-colors text-sm"
               >
                 View Public Lawyer Profile
               </button>
@@ -3618,7 +3691,7 @@ function IntakePortalView({
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
             <div className="w-16 h-16 mx-auto mb-4 border-4 border-[#c9a84c] border-t-transparent rounded-full animate-spin" />
-            <p className="text-[#8a9ab5] text-sm">Loading the inquiry queue...</p>
+            <p className="text-[var(--ink-muted)] text-sm">Loading the inquiry queue...</p>
           </div>
         </div>
       </PortalShell>
@@ -3674,7 +3747,7 @@ function IntakePortalView({
                 title="Intake queue"
                 subtitle="Every inquiry filed by a registered client"
               />
-              <p className="text-sm text-[#2c3347] leading-relaxed">
+              <p className="text-sm text-[var(--ink-body)] leading-relaxed">
                 You are notified about each new client inquiry — the bell in the top bar, and the
                 email the firm receives. The queue shows every inquiry and its attachments.
                 Assigning a lawyer, moving statuses and converting an inquiry into a matter stay
@@ -3692,7 +3765,7 @@ function IntakePortalView({
 
         {tab === "profile" && (
           <div className="space-y-5">
-            <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Profile</h2>
+            <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">My Profile</h2>
             <ProfileEditor userId={currentUser.id} onSaved={onUserRefresh} />
           </div>
         )}
@@ -4201,7 +4274,7 @@ function AdminPortalView({
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
             <div className="w-16 h-16 mx-auto mb-4 border-4 border-[#c9a84c] border-t-transparent rounded-full animate-spin" />
-            <p className="text-[#8a9ab5] text-sm">Loading admin dashboard...</p>
+            <p className="text-[var(--ink-muted)] text-sm">Loading admin dashboard...</p>
           </div>
         </div>
       </PortalShell>
@@ -4227,7 +4300,7 @@ function AdminPortalView({
         }}
       >
         {deleteSuccess && (
-          <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 bg-[#0d1f3c] text-white text-sm font-medium px-5 py-3 rounded-full shadow-lg flex items-center gap-2">
+          <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 bg-[var(--navy-solid)] text-white text-sm font-medium px-5 py-3 rounded-full shadow-lg flex items-center gap-2">
             <span className="text-[#c9a84c]">✓</span> {deleteSuccess}
           </div>
         )}
@@ -4276,7 +4349,7 @@ function AdminPortalView({
                   title="System administration"
                   subtitle="Accounts and the audit trail"
                 />
-                <p className="text-sm text-[#2c3347] leading-relaxed">
+                <p className="text-sm text-[var(--ink-body)] leading-relaxed">
                   Your role manages user accounts — creating them, changing roles and resetting
                   credentials — and reviews the audit trail. Casework (matters, documents, inquiry
                   conversations) is deliberately out of scope and stays with the firm&rsquo;s
@@ -4369,16 +4442,18 @@ function AdminPortalView({
         {tab === "users" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">User Accounts</h2>
+              <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">
+                User Accounts
+              </h2>
               <button
                 onClick={() => setShowCreateUser(true)}
-                className="bg-[#0d1f3c] hover:bg-[#162d52] text-white text-sm font-semibold px-5 py-2.5 rounded transition-colors"
+                className="bg-[var(--navy-solid)] hover:bg-[#162d52] text-white text-sm font-semibold px-5 py-2.5 rounded transition-colors"
               >
                 + Add Account
               </button>
             </div>
 
-            <div className="bg-white rounded-xl border border-[#e8e4dc] p-5">
+            <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-5">
               <ListFilters
                 search={userSearch}
                 onSearch={setUserSearch}
@@ -4414,27 +4489,30 @@ function AdminPortalView({
               <div className="overflow-x-auto -mx-5 px-5">
                 <table className="w-full">
                   <thead>
-                    <tr className="bg-[#f7f5f0]">
+                    <tr className="bg-[var(--surface-sunken)]">
                       {["Name", "Email", "Role", "Status", "Date Created", "Actions"].map((h) => (
                         <th
                           key={h}
-                          className="text-left text-xs font-semibold text-[#8a9ab5] uppercase tracking-wide px-5 py-3"
+                          className="text-left text-xs font-semibold text-[var(--ink-muted)] uppercase tracking-wide px-5 py-3"
                         >
                           {h}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#e8e4dc]">
+                  <tbody className="divide-y divide-[var(--line)]">
                     {visibleUsers.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="px-5 py-10 text-center text-sm text-[#8a9ab5]">
+                        <td
+                          colSpan={6}
+                          className="px-5 py-10 text-center text-sm text-[var(--ink-muted)]"
+                        >
                           No users match that search.
                         </td>
                       </tr>
                     )}
                     {visibleUsers.map((u) => (
-                      <tr key={u.id} className="hover:bg-[#f7f5f0]">
+                      <tr key={u.id} className="hover:bg-[var(--surface-hover)]">
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-3">
                             <Avatar
@@ -4443,12 +4521,12 @@ function AdminPortalView({
                               className="h-9 w-9 text-xs"
                               ring={false}
                             />
-                            <span className="text-sm font-semibold text-[#0d1f3c]">
+                            <span className="text-sm font-semibold text-[var(--ink-strong)]">
                               {u.full_name}
                             </span>
                           </div>
                         </td>
-                        <td className="px-5 py-4 text-sm text-[#8a9ab5]">{u.email}</td>
+                        <td className="px-5 py-4 text-sm text-[var(--ink-muted)]">{u.email}</td>
                         <td className="px-5 py-4">
                           <RoleBadge role={u.role} />
                         </td>
@@ -4463,7 +4541,7 @@ function AdminPortalView({
                             <Badge text="Active" />
                           )}
                         </td>
-                        <td className="px-5 py-4 text-sm text-[#8a9ab5]">
+                        <td className="px-5 py-4 text-sm text-[var(--ink-muted)]">
                           {new Date(u.created_at).toLocaleDateString()}
                         </td>
                         <td className="px-5 py-4">
@@ -4476,7 +4554,7 @@ function AdminPortalView({
                             </button>
                             <button
                               onClick={() => setEditUser(u)}
-                              className="text-xs text-[#8a9ab5] hover:text-[#0d1f3c] hover:underline"
+                              className="text-xs text-[var(--ink-muted)] hover:text-[var(--ink-strong)] hover:underline"
                             >
                               Edit
                             </button>
@@ -4651,14 +4729,16 @@ function AdminPortalView({
 
         {tab === "intake" && (
           <div className="space-y-4">
-            <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">Client Intake</h2>
+            <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">
+              Client Intake
+            </h2>
             <AdminIntake />
           </div>
         )}
 
         {tab === "matters" && (
           <div className="space-y-5">
-            <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">All Matters</h2>
+            <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">All Matters</h2>
             {/* Remounts when a dashboard card jumps in with a different filter seed. */}
             <MattersTable
               key={JSON.stringify(matterSeed)}
@@ -4671,10 +4751,12 @@ function AdminPortalView({
               initialFilters={matterSeed}
             />
 
-            <div className="space-y-4 max-w-2xl pt-4 border-t border-[#e8e4dc]">
-              <h3 className="font-serif text-xl font-bold text-[#0d1f3c]">Conflict Check</h3>
-              <div className="bg-white rounded-xl border border-[#e8e4dc] p-6">
-                <p className="text-[#2c3347] text-sm mb-4 leading-relaxed">
+            <div className="space-y-4 max-w-2xl pt-4 border-t border-[var(--line)]">
+              <h3 className="font-serif text-xl font-bold text-[var(--ink-strong)]">
+                Conflict Check
+              </h3>
+              <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-6">
+                <p className="text-[var(--ink-body)] text-sm mb-4 leading-relaxed">
                   Search for a client or party name to identify potential conflicts with existing
                   matters.
                 </p>
@@ -4685,11 +4767,11 @@ function AdminPortalView({
                     value={conflictName}
                     onChange={(e) => setConflictName(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && runConflictCheck()}
-                    className="flex-1 bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-3 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c]"
+                    className="flex-1 bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-4 py-3 text-sm text-[var(--ink-strong)] focus:outline-none focus:border-[#c9a84c]"
                   />
                   <button
                     onClick={runConflictCheck}
-                    className="bg-[#0d1f3c] hover:bg-[#162d52] text-white text-sm font-semibold px-6 py-3 rounded transition-colors"
+                    className="bg-[var(--navy-solid)] hover:bg-[#162d52] text-white text-sm font-semibold px-6 py-3 rounded transition-colors"
                   >
                     Search
                   </button>
@@ -4720,7 +4802,9 @@ function AdminPortalView({
 
         {tab === "lawyers" && (
           <div className="space-y-4">
-            <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">Lawyer Management</h2>
+            <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">
+              Lawyer Management
+            </h2>
             {unassigned.length > 0 && (
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
                 <p className="text-amber-800 text-sm font-semibold mb-2">
@@ -4730,13 +4814,13 @@ function AdminPortalView({
                   {unassigned.map((m) => (
                     <div
                       key={m.id}
-                      className="flex items-center justify-between bg-white rounded-lg p-3 border border-amber-100"
+                      className="flex items-center justify-between bg-[var(--surface-card)] rounded-lg p-3 border border-amber-100"
                     >
                       <div>
-                        <span className="text-sm font-mono font-semibold text-[#0d1f3c]">
+                        <span className="text-sm font-mono font-semibold text-[var(--ink-strong)]">
                           {m.matter_number}
                         </span>
-                        <span className="text-sm text-[#8a9ab5] ml-3">
+                        <span className="text-sm text-[var(--ink-muted)] ml-3">
                           <Person id={m.client_id} />
                         </span>
                       </div>
@@ -4777,7 +4861,7 @@ function AdminPortalView({
 
                           showToast(`${m.matter_number} assigned.`, "success");
                         }}
-                        className="bg-[#f7f5f0] border border-[#e8e4dc] rounded px-3 py-1.5 text-xs text-[#0d1f3c]"
+                        className="bg-[var(--surface-sunken)] border border-[var(--line)] rounded px-3 py-1.5 text-xs text-[var(--ink-strong)]"
                       >
                         <option value="">Assign Lawyer…</option>
                         {lawyers.map((l) => (
@@ -4791,28 +4875,28 @@ function AdminPortalView({
                 </div>
               </div>
             )}
-            <div className="bg-white rounded-xl border border-[#e8e4dc] overflow-hidden">
+            <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] overflow-hidden">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-[#f7f5f0]">
+                  <tr className="bg-[var(--surface-sunken)]">
                     {["Lawyer", "Position", "Practice Areas", "Active Matters", ""].map((h) => (
                       <th
                         key={h}
-                        className="text-left text-xs font-semibold text-[#8a9ab5] uppercase tracking-wide px-5 py-3"
+                        className="text-left text-xs font-semibold text-[var(--ink-muted)] uppercase tracking-wide px-5 py-3"
                       >
                         {h}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#e8e4dc]">
+                <tbody className="divide-y divide-[var(--line)]">
                   {lawyers.map((l) => {
                     const active = allMatters.filter(
                       (m) => m.lawyer_id === l.id && m.status === "Active",
                     ).length;
 
                     return (
-                      <tr key={l.id} className="hover:bg-[#f7f5f0]">
+                      <tr key={l.id} className="hover:bg-[var(--surface-hover)]">
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-3">
                             <img
@@ -4820,16 +4904,18 @@ function AdminPortalView({
                               alt={l.full_name}
                               className="w-8 h-8 rounded-full object-cover object-top"
                             />
-                            <span className="text-sm font-semibold text-[#0d1f3c]">
+                            <span className="text-sm font-semibold text-[var(--ink-strong)]">
                               {l.full_name}
                             </span>
                           </div>
                         </td>
-                        <td className="px-5 py-4 text-sm text-[#2c3347]">{l.position}</td>
-                        <td className="px-5 py-4 text-sm text-[#8a9ab5]">
+                        <td className="px-5 py-4 text-sm text-[var(--ink-body)]">{l.position}</td>
+                        <td className="px-5 py-4 text-sm text-[var(--ink-muted)]">
                           {l.practice_areas?.map((area) => area.name).join(", ")}
                         </td>
-                        <td className="px-5 py-4 text-sm font-semibold text-[#0d1f3c]">{active}</td>
+                        <td className="px-5 py-4 text-sm font-semibold text-[var(--ink-strong)]">
+                          {active}
+                        </td>
                         <td className="px-5 py-4">
                           <button
                             onClick={() => onNavigate("lawyers", { lawyer: l.id })}
@@ -4850,7 +4936,9 @@ function AdminPortalView({
         {tab === "documents" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">All Documents</h2>
+              <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">
+                All Documents
+              </h2>
             </div>
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
               <p className="text-xs text-amber-700 leading-relaxed">
@@ -4875,8 +4963,10 @@ function AdminPortalView({
         {tab === "content" && (
           <div className="space-y-5">
             <div>
-              <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">Website Content</h2>
-              <p className="text-sm text-[#8a9ab5] mt-1">
+              <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">
+                Website Content
+              </h2>
+              <p className="text-sm text-[var(--ink-muted)] mt-1">
                 Everything the public site reads. Unpublished rows stay in the database but
                 disappear from the website.
               </p>
@@ -4888,10 +4978,10 @@ function AdminPortalView({
         {tab === "reports" && (
           <div className="space-y-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">Reports</h2>
+              <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">Reports</h2>
               <button
                 onClick={() => void exportReports()}
-                className="bg-[#0d1f3c] hover:bg-[#162d52] text-white text-sm font-semibold px-5 py-2.5 rounded transition-colors flex items-center gap-2"
+                className="bg-[var(--navy-solid)] hover:bg-[#162d52] text-white text-sm font-semibold px-5 py-2.5 rounded transition-colors flex items-center gap-2"
               >
                 <svg
                   width="16"
@@ -4951,10 +5041,15 @@ function AdminPortalView({
                   desc: "Completed matters",
                 },
               ].map((r) => (
-                <div key={r.label} className="bg-white rounded-xl border border-[#e8e4dc] p-6">
-                  <p className="font-serif text-3xl font-bold text-[#0d1f3c] mb-1">{r.value}</p>
-                  <p className="text-sm font-semibold text-[#2c3347] mb-0.5">{r.label}</p>
-                  <p className="text-xs text-[#8a9ab5]">{r.desc}</p>
+                <div
+                  key={r.label}
+                  className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-6"
+                >
+                  <p className="font-serif text-3xl font-bold text-[var(--ink-strong)] mb-1">
+                    {r.value}
+                  </p>
+                  <p className="text-sm font-semibold text-[var(--ink-body)] mb-0.5">{r.label}</p>
+                  <p className="text-xs text-[var(--ink-muted)]">{r.desc}</p>
                 </div>
               ))}
             </div>
@@ -4968,7 +5063,9 @@ function AdminPortalView({
 
         {tab === "settings" && (
           <div className="space-y-6 max-w-2xl">
-            <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">System Settings</h2>
+            <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">
+              System Settings
+            </h2>
             {[
               {
                 title: "General",
@@ -5021,10 +5118,10 @@ function AdminPortalView({
             ].map((section) => (
               <div
                 key={section.title}
-                className="bg-white rounded-xl border border-[#e8e4dc] overflow-hidden"
+                className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] overflow-hidden"
               >
-                <div className="bg-[#f7f5f0] px-6 py-3 border-b border-[#e8e4dc]">
-                  <p className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-wide">
+                <div className="bg-[var(--surface-sunken)] px-6 py-3 border-b border-[var(--line)]">
+                  <p className="text-xs font-semibold text-[var(--ink-muted)] uppercase tracking-wide">
                     {section.title}
                   </p>
                 </div>
@@ -5032,10 +5129,12 @@ function AdminPortalView({
                   {section.items.map((item) => (
                     <div
                       key={item.label}
-                      className="flex justify-between py-2 border-b border-[#f7f5f0] last:border-0"
+                      className="flex justify-between py-2 border-b border-[var(--line)] last:border-0"
                     >
-                      <span className="text-sm text-[#8a9ab5]">{item.label}</span>
-                      <span className="text-sm font-medium text-[#0d1f3c]">{item.value}</span>
+                      <span className="text-sm text-[var(--ink-muted)]">{item.label}</span>
+                      <span className="text-sm font-medium text-[var(--ink-strong)]">
+                        {item.value}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -5053,13 +5152,13 @@ function AdminPortalView({
 
         {tab === "profile" && (
           <div className="space-y-5">
-            <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">My Profile</h2>
+            <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">My Profile</h2>
             <ProfileEditor userId={currentUser.id} onSaved={onUserRefresh} />
           </div>
         )}
         {tab === "audit" && (
           <div className="space-y-4">
-            <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">Audit Logs</h2>
+            <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">Audit Logs</h2>
 
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
               <p className="text-xs text-blue-700 leading-relaxed">
@@ -5072,10 +5171,10 @@ function AdminPortalView({
               </p>
             </div>
 
-            <div className="bg-white rounded-xl border border-[#e8e4dc] overflow-hidden">
+            <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] overflow-hidden">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-[#f7f5f0]">
+                  <tr className="bg-[var(--surface-sunken)]">
                     {[
                       "User",
                       "Role",
@@ -5087,24 +5186,26 @@ function AdminPortalView({
                     ].map((h) => (
                       <th
                         key={h}
-                        className="text-left text-xs font-semibold text-[#8a9ab5] uppercase tracking-wide px-5 py-3"
+                        className="text-left text-xs font-semibold text-[var(--ink-muted)] uppercase tracking-wide px-5 py-3"
                       >
                         {h}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#e8e4dc]">
+                <tbody className="divide-y divide-[var(--line)]">
                   {auditLogs.map((log) => (
-                    <tr key={log.id} className="hover:bg-[#f7f5f0]">
-                      <td className="px-5 py-4 text-sm font-medium text-[#0d1f3c]">
+                    <tr key={log.id} className="hover:bg-[var(--surface-hover)]">
+                      <td className="px-5 py-4 text-sm font-medium text-[var(--ink-strong)]">
                         {log.user_email || "System"}
                       </td>
                       <td className="px-5 py-4">
                         <RoleBadge role={log.user_role || "client"} />
                       </td>
-                      <td className="px-5 py-4 text-sm text-[#2c3347]">{log.event_description}</td>
-                      <td className="px-5 py-4 text-sm text-[#8a9ab5] font-mono">
+                      <td className="px-5 py-4 text-sm text-[var(--ink-body)]">
+                        {log.event_description}
+                      </td>
+                      <td className="px-5 py-4 text-sm text-[var(--ink-muted)] font-mono">
                         {log.resource_type} {log.resource_id ? `#${log.resource_id}` : ""}
                       </td>
                       <td className="px-5 py-4">
@@ -5132,7 +5233,7 @@ function AdminPortalView({
                           {log.source === "trigger" ? "Recorded" : "Reported"}
                         </span>
                       </td>
-                      <td className="px-5 py-4 text-sm text-[#8a9ab5]">
+                      <td className="px-5 py-4 text-sm text-[var(--ink-muted)]">
                         {new Date(log.created_at).toLocaleString()}
                       </td>
                     </tr>
@@ -5179,7 +5280,7 @@ function ViewUserModal({ user, onClose }: { user: Profile; onClose: () => void }
       <ModalHeader title="User Details" titleId="view-user-title" onClose={onClose} />
       <ModalBody className="p-7 space-y-6">
         {/* Profile Header */}
-        <div className="flex items-start gap-4 pb-6 border-b border-[#e8e4dc]">
+        <div className="flex items-start gap-4 pb-6 border-b border-[var(--line)]">
           <Avatar
             name={user.full_name || "U"}
             src={user.profile_image}
@@ -5187,8 +5288,8 @@ function ViewUserModal({ user, onClose }: { user: Profile; onClose: () => void }
             ring={false}
           />
           <div className="flex-1">
-            <h3 className="text-xl font-bold text-[#0d1f3c]">{user.full_name}</h3>
-            <p className="text-sm text-[#8a9ab5] mt-1">{user.email}</p>
+            <h3 className="text-xl font-bold text-[var(--ink-strong)]">{user.full_name}</h3>
+            <p className="text-sm text-[var(--ink-muted)] mt-1">{user.email}</p>
             <div className="mt-2">
               <RoleBadge role={user.role} />
             </div>
@@ -5199,7 +5300,7 @@ function ViewUserModal({ user, onClose }: { user: Profile; onClose: () => void }
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={MODAL_LABEL_CLASS}>User ID</label>
-            <p className="text-sm text-[#0d1f3c] font-mono bg-[#f7f5f0] px-3 py-2 rounded border border-[#e8e4dc]">
+            <p className="text-sm text-[var(--ink-strong)] font-mono bg-[var(--surface-sunken)] px-3 py-2 rounded border border-[var(--line)]">
               {user.id}
             </p>
           </div>
@@ -5211,11 +5312,11 @@ function ViewUserModal({ user, onClose }: { user: Profile; onClose: () => void }
           </div>
           <div>
             <label className={MODAL_LABEL_CLASS}>Phone</label>
-            <p className="text-sm text-[#0d1f3c]">{user.phone || "Not provided"}</p>
+            <p className="text-sm text-[var(--ink-strong)]">{user.phone || "Not provided"}</p>
           </div>
           <div>
             <label className={MODAL_LABEL_CLASS}>City</label>
-            <p className="text-sm text-[#0d1f3c]">{user.city || "Not provided"}</p>
+            <p className="text-sm text-[var(--ink-strong)]">{user.city || "Not provided"}</p>
           </div>
         </div>
 
@@ -5223,7 +5324,7 @@ function ViewUserModal({ user, onClose }: { user: Profile; onClose: () => void }
         {user.address && (
           <div>
             <label className={MODAL_LABEL_CLASS}>Address</label>
-            <p className="text-sm text-[#0d1f3c]">{user.address}</p>
+            <p className="text-sm text-[var(--ink-strong)]">{user.address}</p>
           </div>
         )}
 
@@ -5231,21 +5332,25 @@ function ViewUserModal({ user, onClose }: { user: Profile; onClose: () => void }
         {user.date_of_birth && (
           <div>
             <label className={MODAL_LABEL_CLASS}>Date of Birth</label>
-            <p className="text-sm text-[#0d1f3c]">
+            <p className="text-sm text-[var(--ink-strong)]">
               {new Date(user.date_of_birth).toLocaleDateString()}
             </p>
           </div>
         )}
 
         {/* Timestamps */}
-        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#e8e4dc]">
+        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[var(--line)]">
           <div>
             <label className={MODAL_LABEL_CLASS}>Account Created</label>
-            <p className="text-sm text-[#0d1f3c]">{new Date(user.created_at).toLocaleString()}</p>
+            <p className="text-sm text-[var(--ink-strong)]">
+              {new Date(user.created_at).toLocaleString()}
+            </p>
           </div>
           <div>
             <label className={MODAL_LABEL_CLASS}>Last Updated</label>
-            <p className="text-sm text-[#0d1f3c]">{new Date(user.updated_at).toLocaleString()}</p>
+            <p className="text-sm text-[var(--ink-strong)]">
+              {new Date(user.updated_at).toLocaleString()}
+            </p>
           </div>
         </div>
 
@@ -5423,7 +5528,7 @@ function EditUserModal({
       <form onSubmit={handleSubmit}>
         <ModalBody className="p-6 sm:p-7 space-y-6">
           {/* Photo */}
-          <div className="flex items-center gap-4 pb-5 border-b border-[#e8e4dc]">
+          <div className="flex items-center gap-4 pb-5 border-b border-[var(--line)]">
             <Avatar
               name={user.full_name}
               src={pictureUrl}
@@ -5431,8 +5536,10 @@ function EditUserModal({
               ring={false}
             />
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-[#0d1f3c]">Profile picture</p>
-              <p className="text-xs text-[#8a9ab5] mb-2">A square photo shown across the portal.</p>
+              <p className="text-sm font-semibold text-[var(--ink-strong)]">Profile picture</p>
+              <p className="text-xs text-[var(--ink-muted)] mb-2">
+                A square photo shown across the portal.
+              </p>
               <button
                 type="button"
                 onClick={() => setShowPicture(true)}
@@ -5446,7 +5553,7 @@ function EditUserModal({
 
           {/* Identity */}
           <div>
-            <h3 className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-widest mb-3">
+            <h3 className="text-xs font-semibold text-[var(--ink-muted)] uppercase tracking-widest mb-3">
               Identity
             </h3>
             {/* Name parts — full_name is composed from these by the database,
@@ -5517,14 +5624,15 @@ function EditUserModal({
                 />
               </div>
             </div>
-            <p className="text-xs text-[#8a9ab5] mt-3 bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-3 py-2">
-              Displayed as: <strong className="text-[#0d1f3c]">{composedName || "—"}</strong>
+            <p className="text-xs text-[var(--ink-muted)] mt-3 bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-3 py-2">
+              Displayed as:{" "}
+              <strong className="text-[var(--ink-strong)]">{composedName || "—"}</strong>
             </p>
           </div>
 
           {/* Contact */}
-          <div className="pt-5 border-t border-[#e8e4dc]">
-            <h3 className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-widest mb-3">
+          <div className="pt-5 border-t border-[var(--line)]">
+            <h3 className="text-xs font-semibold text-[var(--ink-muted)] uppercase tracking-widest mb-3">
               Contact
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -5562,8 +5670,8 @@ function EditUserModal({
           </div>
 
           {/* Access */}
-          <div className="pt-5 border-t border-[#e8e4dc]">
-            <h3 className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-widest mb-3">
+          <div className="pt-5 border-t border-[var(--line)]">
+            <h3 className="text-xs font-semibold text-[var(--ink-muted)] uppercase tracking-widest mb-3">
               Access
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -5634,7 +5742,7 @@ function EditUserModal({
         </ModalBody>
 
         {/* Action bar, pinned under the scroll area so Save is always reachable */}
-        <ModalFooter className="border-t border-[#e8e4dc] px-6 py-4 flex gap-3 bg-white">
+        <ModalFooter className="border-t border-[var(--line)] px-6 py-4 flex gap-3 bg-[var(--surface-card)]">
           <button
             type="button"
             onClick={onClose}
@@ -5843,9 +5951,9 @@ function ManageUserModal({
       />
       <ModalBody className="p-7 space-y-6">
         {/* User Info */}
-        <div className="pb-4 border-b border-[#e8e4dc]">
-          <p className="text-lg font-bold text-[#0d1f3c]">{user.full_name}</p>
-          <p className="text-sm text-[#8a9ab5] mt-1">{user.email}</p>
+        <div className="pb-4 border-b border-[var(--line)]">
+          <p className="text-lg font-bold text-[var(--ink-strong)]">{user.full_name}</p>
+          <p className="text-sm text-[var(--ink-muted)] mt-1">{user.email}</p>
           <div className="mt-2">
             <RoleBadge role={user.role} />
           </div>
@@ -5877,7 +5985,7 @@ function ManageUserModal({
               <button
                 onClick={handleRoleChange}
                 disabled={loading || selectedRole === normalizeRole(user.role) || isLastAdmin}
-                className="w-full mt-3 bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] text-sm font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full mt-3 bg-[#c9a84c] hover:bg-[#e2c87a] text-[var(--ink-on-gold)] text-sm font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? "Updating..." : "Update Role"}
               </button>
@@ -5885,16 +5993,16 @@ function ManageUserModal({
 
             {/* Credentials Section (staff only) */}
             {isStaff(normalizeRole(user.role)) && (
-              <div className="pt-4 border-t border-[#e8e4dc]">
+              <div className="pt-4 border-t border-[var(--line)]">
                 <label className={MODAL_LABEL_CLASS}>Login Credentials</label>
-                <p className="text-xs text-[#8a9ab5] mb-3 leading-relaxed">
+                <p className="text-xs text-[var(--ink-muted)] mb-3 leading-relaxed">
                   Send a fresh temporary password. The previous one stops working, and they must
                   choose a new password the next time they sign in.
                 </p>
                 <button
                   onClick={handleResend}
                   disabled={loading || resending}
-                  className="w-full bg-[#0d1f3c] hover:bg-[#162d52] text-white text-sm font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-[var(--navy-solid)] hover:bg-[#162d52] text-white text-sm font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {resending ? "Sending…" : "Resend credentials"}
                 </button>
@@ -5911,7 +6019,7 @@ function ManageUserModal({
             )}
 
             {/* Deactivate Section */}
-            <div className="pt-4 border-t border-[#e8e4dc]">
+            <div className="pt-4 border-t border-[var(--line)]">
               <label className={MODAL_LABEL_CLASS}>Account Actions</label>
               {isInactive ? (
                 <>
@@ -5937,14 +6045,14 @@ function ManageUserModal({
                   >
                     Deactivate Account
                   </button>
-                  <p className="text-xs text-[#8a9ab5] mt-2 leading-relaxed">
+                  <p className="text-xs text-[var(--ink-muted)] mt-2 leading-relaxed">
                     Deactivating prevents login but preserves all user data. You can reactivate it
                     later from this same screen.
                   </p>
                 </>
               )}
               {isSelf && (
-                <p className="text-xs text-[#8a9ab5] mt-2 leading-relaxed">
+                <p className="text-xs text-[var(--ink-muted)] mt-2 leading-relaxed">
                   ℹ️ This is your own account. Changes take effect the next time you sign in.
                 </p>
               )}
@@ -6213,8 +6321,10 @@ function CreateUserModal({
               ✓
             </span>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-[#0d1f3c]">The account is ready.</p>
-              <p className="text-sm text-[#8a9ab5] break-all">{created.email}</p>
+              <p className="text-sm font-semibold text-[var(--ink-strong)]">
+                The account is ready.
+              </p>
+              <p className="text-sm text-[var(--ink-muted)] break-all">{created.email}</p>
             </div>
           </div>
 
@@ -6308,7 +6418,7 @@ function CreateUserModal({
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a9ab5] hover:text-[#0d1f3c] text-sm"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--ink-muted)] hover:text-[var(--ink-strong)] text-sm"
                     tabIndex={-1}
                   >
                     {showPassword ? "Hide" : "Show"}
@@ -6330,7 +6440,7 @@ function CreateUserModal({
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a9ab5] hover:text-[#0d1f3c] text-sm"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--ink-muted)] hover:text-[var(--ink-strong)] text-sm"
                     tabIndex={-1}
                   >
                     {showConfirmPassword ? "Hide" : "Show"}
@@ -6393,7 +6503,7 @@ function CreateUserModal({
                   </option>
                 ))}
               </select>
-              <p className="text-[10px] text-[#8a9ab5] mt-1">
+              <p className="text-[10px] text-[var(--ink-muted)] mt-1">
                 Shown on the public "Our Lawyers" page for lawyers.
               </p>
             </div>
@@ -6462,10 +6572,10 @@ export default function ClientPortal({ onNavigate, savedLawyers }: ClientPortalP
 
   if (loading) {
     return (
-      <div className="bg-[#f7f5f0] min-h-screen flex items-center justify-center px-6 py-12">
+      <div className="bg-[var(--surface-sunken)] min-h-screen flex items-center justify-center px-6 py-12">
         <div className="text-center">
           <div className="w-16 h-16 mx-auto mb-4 border-4 border-[#c9a84c] border-t-transparent rounded-full animate-spin" />
-          <p className="text-[#8a9ab5] text-sm">Loading...</p>
+          <p className="text-[var(--ink-muted)] text-sm">Loading...</p>
         </div>
       </div>
     );
@@ -6475,9 +6585,9 @@ export default function ClientPortal({ onNavigate, savedLawyers }: ClientPortalP
 
   if (!user) {
     return (
-      <div className="bg-[#f7f5f0] min-h-screen flex items-center justify-center px-6 py-12">
+      <div className="bg-[var(--surface-sunken)] min-h-screen flex items-center justify-center px-6 py-12">
         <div className="text-center">
-          <p className="text-[#8a9ab5] text-sm">Redirecting to sign in...</p>
+          <p className="text-[var(--ink-muted)] text-sm">Redirecting to sign in...</p>
         </div>
       </div>
     );

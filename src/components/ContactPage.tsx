@@ -134,11 +134,11 @@ export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) 
   };
 
   const field =
-    "w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-3 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50";
+    "w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-4 py-3 text-sm text-[var(--ink-strong)] placeholder-[var(--ink-muted)] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50";
 
   return (
-    <div className="bg-[#f7f5f0] min-h-screen pt-20">
-      <div className="bg-[#0d1f3c] py-12 relative overflow-hidden">
+    <div className="bg-[var(--surface-sunken)] min-h-screen pt-20">
+      <div className="bg-[var(--navy-solid)] py-12 relative overflow-hidden">
         <div
           className="absolute inset-0 opacity-[0.04]"
           style={{
@@ -163,8 +163,8 @@ export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           {/* Left column — firm info */}
           <div className="lg:col-span-1 space-y-5">
-            <div className="bg-white rounded-xl p-7 border border-[#e8e4dc]">
-              <h3 className="font-serif text-lg font-bold text-[#0d1f3c] mb-6">
+            <div className="bg-[var(--surface-card)] rounded-xl p-7 border border-[var(--line)]">
+              <h3 className="font-serif text-lg font-bold text-[var(--ink-strong)] mb-6">
                 Westwood Law Firm
               </h3>
               <div className="space-y-6">
@@ -196,10 +196,10 @@ export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) 
                   <div key={item.label} className="flex gap-4">
                     <item.icon className="w-4 h-4 text-[#c9a84c] flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-xs text-[#8a9ab5] uppercase tracking-wide font-semibold mb-1">
+                      <p className="text-xs text-[var(--ink-muted)] uppercase tracking-wide font-semibold mb-1">
                         {item.label}
                       </p>
-                      <p className="text-sm text-[#2c3347] whitespace-pre-line leading-relaxed">
+                      <p className="text-sm text-[var(--ink-body)] whitespace-pre-line leading-relaxed">
                         {item.value}
                       </p>
                     </div>
@@ -214,7 +214,7 @@ export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) 
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Open Google Maps directions to Westwood Law Firm in Greenhills, San Juan City"
-              className="group block bg-[#e8e4dc] rounded-xl h-56 overflow-hidden relative focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c] focus-visible:ring-offset-2"
+              className="group block bg-[var(--fill-muted)] rounded-xl h-56 overflow-hidden relative focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c] focus-visible:ring-offset-2"
             >
               <img
                 src="https://images.unsplash.com/photo-1598139384902-5a8217874645?w=600&h=300&fit=crop&auto=format"
@@ -224,7 +224,7 @@ export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) 
                 className="w-full h-full object-cover opacity-40 transition-transform duration-300 group-hover:scale-105"
               />
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="bg-white rounded-lg px-4 py-2.5 text-sm font-medium text-[#0d1f3c] shadow-lg flex items-center gap-2 transition-colors group-hover:bg-[#0d1f3c] group-hover:text-white">
+                <div className="bg-[var(--surface-card)] rounded-lg px-4 py-2.5 text-sm font-medium text-[var(--ink-strong)] shadow-lg flex items-center gap-2 transition-colors group-hover:bg-[var(--navy-solid)] group-hover:text-white">
                   <IconMapPin className="w-4 h-4 text-[#c9a84c] flex-shrink-0" />
                   <span>Greenhills, San Juan City</span>
                   <span className="text-[#c9a84c]">·</span>
@@ -237,11 +237,11 @@ export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) 
           {/* Right column — contact form + info */}
           <div className="lg:col-span-2 space-y-5">
             {/* Contact form */}
-            <div className="bg-white rounded-xl p-7 border border-[#e8e4dc]">
-              <h3 className="font-serif text-xl font-bold text-[#0d1f3c] mb-2">
+            <div className="bg-[var(--surface-card)] rounded-xl p-7 border border-[var(--line)]">
+              <h3 className="font-serif text-xl font-bold text-[var(--ink-strong)] mb-2">
                 Send Us a Message
               </h3>
-              <p className="text-sm text-[#8a9ab5] mb-6 leading-relaxed">
+              <p className="text-sm text-[var(--ink-muted)] mb-6 leading-relaxed">
                 Tell us briefly how we can help. Please do not include confidential details or
                 documents in this form — we will arrange a secure way to send those.
               </p>
@@ -251,13 +251,15 @@ export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) 
                   <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
                     <IconCheck className="w-5 h-5 text-green-700" />
                   </div>
-                  <p className="font-semibold text-[#0d1f3c] mb-2">Your message has been sent.</p>
+                  <p className="font-semibold text-[var(--ink-strong)] mb-2">
+                    Your message has been sent.
+                  </p>
                   {sent && (
-                    <p className="text-sm text-[#2c3347] mb-1">
+                    <p className="text-sm text-[var(--ink-body)] mb-1">
                       Reference number: <span className="font-mono font-semibold">{sent}</span>
                     </p>
                   )}
-                  <p className="text-xs text-[#8a9ab5] mb-5">
+                  <p className="text-xs text-[var(--ink-muted)] mb-5">
                     We reply within one to two business days.
                   </p>
                   <button
@@ -273,7 +275,7 @@ export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) 
                     <div>
                       <label
                         htmlFor="contact-name"
-                        className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5"
+                        className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5"
                       >
                         Full Name *
                       </label>
@@ -290,7 +292,7 @@ export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) 
                     <div>
                       <label
                         htmlFor="contact-email"
-                        className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5"
+                        className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5"
                       >
                         Email Address *
                       </label>
@@ -310,7 +312,7 @@ export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) 
                     <div>
                       <label
                         htmlFor="contact-phone"
-                        className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5"
+                        className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5"
                       >
                         Phone
                       </label>
@@ -327,7 +329,7 @@ export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) 
                     <div>
                       <label
                         htmlFor="contact-subject"
-                        className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5"
+                        className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5"
                       >
                         Subject
                       </label>
@@ -346,7 +348,7 @@ export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) 
                   <div>
                     <label
                       htmlFor="contact-message"
-                      className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5"
+                      className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5"
                     >
                       Message *
                     </label>
@@ -371,12 +373,12 @@ export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) 
                   <button
                     type="submit"
                     disabled={sending}
-                    className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] font-semibold py-3.5 rounded transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] text-[var(--ink-on-gold)] font-semibold py-3.5 rounded transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {sending ? "Sending…" : "Send Message"}
                   </button>
 
-                  <p className="text-xs text-[#8a9ab5] leading-relaxed text-center">
+                  <p className="text-xs text-[var(--ink-muted)] leading-relaxed text-center">
                     Do not send confidential documents through this form. For a scheduled meeting,{" "}
                     {user?.role === "client" && onNavigate ? (
                       <>
@@ -408,17 +410,17 @@ export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) 
             </div>
 
             {/* About the firm */}
-            <div className="bg-white rounded-xl p-7 border border-[#e8e4dc]">
-              <h3 className="font-serif text-xl font-bold text-[#0d1f3c] mb-4">
+            <div className="bg-[var(--surface-card)] rounded-xl p-7 border border-[var(--line)]">
+              <h3 className="font-serif text-xl font-bold text-[var(--ink-strong)] mb-4">
                 About Westwood Law Firm
               </h3>
-              <p className="text-[#2c3347] text-sm leading-relaxed mb-4">
+              <p className="text-[var(--ink-body)] text-sm leading-relaxed mb-4">
                 Westwood Law Firm was established in August 1998 and is located in Greenhills, San
                 Juan City, Metropolitan Manila. The firm provides specialized legal practice,
                 ensuring that every case is handled by lawyers with expertise in the relevant field
                 of law.
               </p>
-              <p className="text-[#2c3347] text-sm leading-relaxed">
+              <p className="text-[var(--ink-body)] text-sm leading-relaxed">
                 Under the management of Atty. Ernesto "Boyet" Tabao, the firm has developed a
                 nationwide network of lawyers to handle different client concerns throughout the
                 Philippines. Westwood covers twelve practice areas ranging from Labor and Industrial
@@ -427,40 +429,42 @@ export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) 
             </div>
 
             {/* How to reach us */}
-            <div className="bg-white rounded-xl p-7 border border-[#e8e4dc]">
-              <h3 className="font-serif text-xl font-bold text-[#0d1f3c] mb-5">How to Reach Us</h3>
+            <div className="bg-[var(--surface-card)] rounded-xl p-7 border border-[var(--line)]">
+              <h3 className="font-serif text-xl font-bold text-[var(--ink-strong)] mb-5">
+                How to Reach Us
+              </h3>
               <div className="space-y-5">
                 <div>
-                  <p className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-wide mb-2">
+                  <p className="text-xs font-semibold text-[var(--ink-muted)] uppercase tracking-wide mb-2">
                     General Inquiries
                   </p>
-                  <p className="text-sm text-[#2c3347]">
+                  <p className="text-sm text-[var(--ink-body)]">
                     Use the form above or email us at{" "}
                     <a
                       href={FIRM_EMAIL_HREF}
-                      className="text-[#0d1f3c] font-medium hover:underline"
+                      className="text-[var(--ink-strong)] font-medium hover:underline"
                     >
                       {FIRM_EMAIL}
                     </a>
                     . Our team responds within 1–2 business days.
                   </p>
                 </div>
-                <div className="h-px bg-[#e8e4dc]" />
+                <div className="h-px bg-[var(--fill-muted)]" />
                 <div>
-                  <p className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-wide mb-2">
+                  <p className="text-xs font-semibold text-[var(--ink-muted)] uppercase tracking-wide mb-2">
                     Scheduling Consultations
                   </p>
-                  <p className="text-sm text-[#2c3347]">
+                  <p className="text-sm text-[var(--ink-body)]">
                     Registered clients can book a consultation through their account. Otherwise,
                     email us and we will arrange a meeting — in-person, by video call, or by phone.
                   </p>
                 </div>
-                <div className="h-px bg-[#e8e4dc]" />
+                <div className="h-px bg-[var(--fill-muted)]" />
                 <div>
-                  <p className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-wide mb-2">
+                  <p className="text-xs font-semibold text-[var(--ink-muted)] uppercase tracking-wide mb-2">
                     Existing Clients
                   </p>
-                  <p className="text-sm text-[#2c3347]">
+                  <p className="text-sm text-[var(--ink-body)]">
                     Existing clients may access their portal using the "Sign In" link in the
                     navigation to track matters, view appointments, and access documents.
                   </p>
@@ -469,12 +473,12 @@ export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) 
             </div>
 
             {/* Disclaimer */}
-            <div className="bg-[#f7f5f0] rounded-xl p-5 border border-[#e8e4dc]">
-              <p className="text-xs text-[#8a9ab5] leading-relaxed">
-                <strong className="text-[#2c3347]">Disclaimer:</strong> Communications through this
-                website do not establish an attorney-client relationship. All inquiries are treated
-                with strict confidentiality. A formal attorney-client relationship is formed only
-                upon execution of a written engagement agreement with Westwood Law Firm.
+            <div className="bg-[var(--surface-sunken)] rounded-xl p-5 border border-[var(--line)]">
+              <p className="text-xs text-[var(--ink-muted)] leading-relaxed">
+                <strong className="text-[var(--ink-body)]">Disclaimer:</strong> Communications
+                through this website do not establish an attorney-client relationship. All inquiries
+                are treated with strict confidentiality. A formal attorney-client relationship is
+                formed only upon execution of a written engagement agreement with Westwood Law Firm.
               </p>
             </div>
           </div>
@@ -502,10 +506,10 @@ export default function ContactPage({ onNavigate }: { onNavigate?: (page: Page) 
           ].map((s) => (
             <div
               key={s.desc}
-              className="bg-white rounded-xl p-5 border border-[#e8e4dc] text-center"
+              className="bg-[var(--surface-card)] rounded-xl p-5 border border-[var(--line)] text-center"
             >
               <p className="font-serif text-3xl font-bold text-[#c9a84c] mb-1">{s.label}</p>
-              <p className="text-xs text-[#8a9ab5] uppercase tracking-widest">{s.desc}</p>
+              <p className="text-xs text-[var(--ink-muted)] uppercase tracking-widest">{s.desc}</p>
             </div>
           ))}
         </div>

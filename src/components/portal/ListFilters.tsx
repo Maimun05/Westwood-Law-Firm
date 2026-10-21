@@ -57,7 +57,7 @@ export default function ListFilters({
   // Compact controls so search + every filter sit on one line instead of
   // wrapping into a ragged second row.
   const inputCls =
-    "bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-2.5 py-1.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c]";
+    "bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-2.5 py-1.5 text-sm text-[var(--ink-strong)] focus:outline-none focus:border-[#c9a84c]";
   const filtering = search.trim() !== "" || Object.values(values).some((v) => v && v !== ALL);
 
   return (
@@ -103,13 +103,13 @@ export default function ListFilters({
             onSearch("");
             for (const f of filters) onFilter(f.key, ALL);
           }}
-          className="text-xs text-[#8a9ab5] hover:text-[#0d1f3c] underline"
+          className="text-xs text-[var(--ink-muted)] hover:text-[var(--ink-strong)] underline"
         >
           Clear
         </button>
       )}
 
-      <span className="text-xs text-[#8a9ab5] ml-auto whitespace-nowrap">
+      <span className="text-xs text-[var(--ink-muted)] ml-auto whitespace-nowrap">
         {filtering ? `${shown} of ${total}` : `${total}`}
       </span>
 

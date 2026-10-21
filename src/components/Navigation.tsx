@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import BrandLogo from "@/components/BrandLogo";
+import ThemeToggle from "@/components/ThemeToggle";
 import type { Page } from "@/types/navigation";
 
 type NavigationProps = {
@@ -45,7 +46,7 @@ export default function Navigation({ currentPage, onNavigate }: NavigationProps)
     <nav
       className={`fixed top-0 left-0 right-0 z-[var(--z-fixed)] transition-all duration-300 ${
         scrolled
-          ? "bg-white/95 backdrop-blur-sm shadow-sm shadow-black/5 border-b border-[var(--color-border-light)]"
+          ? "bg-[var(--surface-glass)] backdrop-blur-sm shadow-sm shadow-black/5 border-b border-[var(--color-border-light)]"
           : "bg-transparent"
       }`}
     >
@@ -66,7 +67,7 @@ export default function Navigation({ currentPage, onNavigate }: NavigationProps)
               <button
                 key={link.page}
                 onClick={() => handleNav(link.page)}
-                className={`px-2.5 xl:px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 whitespace-nowrap ${
+                className={`px-2 xl:px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 whitespace-nowrap ${
                   currentPage === link.page
                     ? overHero
                       ? "text-[var(--color-gold)] bg-white/10"
@@ -84,6 +85,7 @@ export default function Navigation({ currentPage, onNavigate }: NavigationProps)
           {/* Desktop Actions — inquiries are for registered clients; everyone
               else reaches the firm through the Contact link in the nav. */}
           <div className="hidden lg:flex items-center gap-2">
+            <ThemeToggle tone={overHero ? "hero" : "default"} />
             {!loading && (
               <>
                 <button
@@ -107,32 +109,33 @@ export default function Navigation({ currentPage, onNavigate }: NavigationProps)
           </div>
 
           {/* Mobile Menu Toggle */}
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className={`lg:hidden p-2 ${
-              overHero ? "text-white" : "text-[var(--color-text-primary)]"
-            }`}
-            aria-label={mobileOpen ? "Close menu" : "Open menu"}
-            aria-expanded={mobileOpen}
-          >
-            <div className="w-6 h-5 flex flex-col justify-between">
-              <span
-                className={`block h-0.5 bg-current transition-transform origin-left duration-200 ${
-                  mobileOpen ? "rotate-45 translate-y-2" : ""
-                }`}
-              />
-              <span
-                className={`block h-0.5 bg-current transition-opacity duration-100 ${
-                  mobileOpen ? "opacity-0" : ""
-                }`}
-              />
-              <span
-                className={`block h-0.5 bg-current transition-transform origin-left duration-200 ${
-                  mobileOpen ? "-rotate-45 -translate-y-2" : ""
-                }`}
-              />
-            </div>
-          </button>
+          <div className="lg:hidden flex items-center gap-1">
+            <ThemeToggle tone={overHero ? "hero" : "default"} />
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className={`p-2 ${overHero ? "text-white" : "text-[var(--color-text-primary)]"}`}
+              aria-label={mobileOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileOpen}
+            >
+              <div className="w-6 h-5 flex flex-col justify-between">
+                <span
+                  className={`block h-0.5 bg-current transition-transform origin-left duration-200 ${
+                    mobileOpen ? "rotate-45 translate-y-2" : ""
+                  }`}
+                />
+                <span
+                  className={`block h-0.5 bg-current transition-opacity duration-100 ${
+                    mobileOpen ? "opacity-0" : ""
+                  }`}
+                />
+                <span
+                  className={`block h-0.5 bg-current transition-transform origin-left duration-200 ${
+                    mobileOpen ? "-rotate-45 -translate-y-2" : ""
+                  }`}
+                />
+              </div>
+            </button>
+          </div>
         </div>
       </div>
 

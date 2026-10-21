@@ -79,13 +79,13 @@ export default function InquiryInbox({
     await load();
   };
 
-  if (loading) return <p className="text-sm text-[#8a9ab5]">Loading inquiries…</p>;
+  if (loading) return <p className="text-sm text-[var(--ink-muted)]">Loading inquiries…</p>;
 
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">Inquiries</h2>
-        <p className="text-[#8a9ab5] text-sm mt-1">
+        <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">Inquiries</h2>
+        <p className="text-[var(--ink-muted)] text-sm mt-1">
           Inquiries the firm has assigned to you. Reply here and the client sees it in their portal
           immediately.
         </p>
@@ -94,8 +94,8 @@ export default function InquiryInbox({
       {err && <p className="text-sm text-red-600">{err}</p>}
 
       {rows.length === 0 && !err && (
-        <div className="bg-white rounded-xl border border-[#e8e4dc] p-10 text-center">
-          <p className="text-[#8a9ab5] text-sm">
+        <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-10 text-center">
+          <p className="text-[var(--ink-muted)] text-sm">
             No inquiries assigned to you yet. New assignments appear here automatically.
           </p>
         </div>
@@ -107,19 +107,23 @@ export default function InquiryInbox({
             const open = openId === q.id;
             const statuses = Array.from(new Set([q.status, ...LAWYER_INQUIRY_STATUSES]));
             return (
-              <div key={q.id} className="bg-white rounded-xl border border-[#e8e4dc] p-5">
+              <div
+                key={q.id}
+                className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-5"
+              >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono text-sm font-semibold text-[#0d1f3c]">
+                      <span className="font-mono text-sm font-semibold text-[var(--ink-strong)]">
                         {q.inquiry_number}
                       </span>
                       <StatusBadge text={q.status} />
                     </div>
-                    <p className="text-sm font-semibold text-[#0d1f3c] mt-2">
-                      {q.name} <span className="font-normal text-[#8a9ab5]">· {q.email}</span>
+                    <p className="text-sm font-semibold text-[var(--ink-strong)] mt-2">
+                      {q.name}{" "}
+                      <span className="font-normal text-[var(--ink-muted)]">· {q.email}</span>
                     </p>
-                    <p className="text-xs text-[#8a9ab5] mt-0.5">
+                    <p className="text-xs text-[var(--ink-muted)] mt-0.5">
                       {q.practice_area || "General"} ·{" "}
                       {new Date(q.created_at).toLocaleDateString("en-PH", {
                         year: "numeric",
@@ -127,14 +131,16 @@ export default function InquiryInbox({
                         day: "numeric",
                       })}
                     </p>
-                    <p className="text-sm text-[#2c3347] mt-2 font-medium">
+                    <p className="text-sm text-[var(--ink-body)] mt-2 font-medium">
                       {q.subject || "Legal inquiry"}
                     </p>
-                    <p className="text-sm text-[#2c3347] mt-1 whitespace-pre-wrap">{q.message}</p>
+                    <p className="text-sm text-[var(--ink-body)] mt-1 whitespace-pre-wrap">
+                      {q.message}
+                    </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <select
-                      className="bg-[#f7f5f0] border border-[#e8e4dc] rounded px-2 py-1.5 text-xs"
+                      className="bg-[var(--surface-sunken)] border border-[var(--line)] rounded px-2 py-1.5 text-xs"
                       value={q.status}
                       disabled={busyId === q.id}
                       onChange={(e) =>
@@ -147,7 +153,7 @@ export default function InquiryInbox({
                     </select>
                     <button
                       onClick={() => setOpenId(open ? null : q.id)}
-                      className="bg-[#0d1f3c] text-white text-xs font-semibold px-3 py-2 rounded"
+                      className="bg-[var(--navy-solid)] text-white text-xs font-semibold px-3 py-2 rounded"
                     >
                       {open ? "Hide messages" : "Open conversation"}
                     </button>

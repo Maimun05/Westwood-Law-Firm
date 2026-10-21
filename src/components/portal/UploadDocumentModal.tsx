@@ -126,11 +126,11 @@ export default function UploadDocumentModal({
 
       <ModalBody stagger className="space-y-5">
         {levels.length === 0 ? (
-          <p className="text-sm text-[#8a9ab5] text-center py-6">
+          <p className="text-sm text-[var(--ink-muted)] text-center py-6">
             Admins have view-only access to documents. Ask the assigned lawyer to upload it.
           </p>
         ) : matters.length === 0 ? (
-          <p className="text-sm text-[#8a9ab5] text-center py-6">
+          <p className="text-sm text-[var(--ink-muted)] text-center py-6">
             You need a matter before you can upload documents. Submit an inquiry to get started.
           </p>
         ) : (
@@ -171,7 +171,9 @@ export default function UploadDocumentModal({
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-[#8a9ab5] mt-1.5">{ACCESS_LEVEL_HELP[accessLevel]}</p>
+              <p className="text-xs text-[var(--ink-muted)] mt-1.5">
+                {ACCESS_LEVEL_HELP[accessLevel]}
+              </p>
             </div>
 
             <div
@@ -195,11 +197,11 @@ export default function UploadDocumentModal({
               role="button"
               tabIndex={0}
               className={`rounded-xl border-2 border-dashed px-4 py-8 text-center transition-all duration-200 ${
-                uploading ? "cursor-default border-[#e8e4dc] opacity-60" : "cursor-pointer"
+                uploading ? "cursor-default border-[var(--line)] opacity-60" : "cursor-pointer"
               } ${
                 dragging
                   ? "border-[#c9a84c] bg-[#c9a84c]/10 scale-[1.01] shadow-[var(--shadow-gold-sm)]"
-                  : "border-[#e8e4dc] hover:border-[#c9a84c] hover:bg-[#c9a84c]/[0.04]"
+                  : "border-[var(--line)] hover:border-[#c9a84c] hover:bg-[#c9a84c]/[0.04]"
               }`}
             >
               <input
@@ -214,8 +216,10 @@ export default function UploadDocumentModal({
               />
               {file ? (
                 <>
-                  <p className="text-sm font-semibold text-[#0d1f3c] break-all">{file.name}</p>
-                  <p className="text-xs text-[#8a9ab5] mt-1">
+                  <p className="text-sm font-semibold text-[var(--ink-strong)] break-all">
+                    {file.name}
+                  </p>
+                  <p className="text-xs text-[var(--ink-muted)] mt-1">
                     {formatFileSize(file.size)} · click to choose a different file
                   </p>
                 </>
@@ -224,10 +228,10 @@ export default function UploadDocumentModal({
                   <p className="text-2xl mb-1" aria-hidden="true">
                     📎
                   </p>
-                  <p className="text-sm font-medium text-[#0d1f3c]">
+                  <p className="text-sm font-medium text-[var(--ink-strong)]">
                     Drop a file here or click to browse
                   </p>
-                  <p className="text-xs text-[#8a9ab5] mt-1">
+                  <p className="text-xs text-[var(--ink-muted)] mt-1">
                     PDF, Word, Excel, PowerPoint, text or image · up to{" "}
                     {formatFileSize(MAX_UPLOAD_BYTES)}
                   </p>

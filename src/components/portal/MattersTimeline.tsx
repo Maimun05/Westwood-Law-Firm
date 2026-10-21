@@ -95,16 +95,18 @@ export default function MattersTimeline({ matters, practiceAreas }: Props) {
   for (let v = 0; v <= yMax; v += step) gridValues.push(v);
 
   return (
-    <div className="bg-white rounded-xl border border-[#e8e4dc] p-6">
+    <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-6">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-1">
-        <h3 className="font-serif text-lg font-bold text-[#0d1f3c]">Matters Opened per Month</h3>
+        <h3 className="font-serif text-lg font-bold text-[var(--ink-strong)]">
+          Matters Opened per Month
+        </h3>
         <select
           value={area}
           onChange={(e) => {
             setArea(e.target.value);
             setHover(null);
           }}
-          className="bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-3 py-2 text-xs text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c]"
+          className="bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-3 py-2 text-xs text-[var(--ink-strong)] focus:outline-none focus:border-[#c9a84c]"
         >
           <option value="all">All practice areas</option>
           {practiceAreas.map((p) => (
@@ -114,7 +116,7 @@ export default function MattersTimeline({ matters, practiceAreas }: Props) {
           ))}
         </select>
       </div>
-      <p className="text-xs text-[#8a9ab5] mb-4">
+      <p className="text-xs text-[var(--ink-muted)] mb-4">
         {total} matter{total === 1 ? "" : "s"} opened in the last 12 months
         {area !== "all" ? ` · ${practiceAreas.find((p) => p.id === area)?.name ?? area}` : ""}
       </p>
@@ -140,11 +142,11 @@ export default function MattersTimeline({ matters, practiceAreas }: Props) {
               x2={W - PAD.r}
               y1={y(v)}
               y2={y(v)}
-              stroke="#e8e4dc"
+              stroke="var(--line)"
               strokeWidth={1}
               strokeDasharray={v === 0 ? "0" : "3 4"}
             />
-            <text x={PAD.l - 8} y={y(v) + 4} textAnchor="end" fontSize={11} fill="#8a9ab5">
+            <text x={PAD.l - 8} y={y(v) + 4} textAnchor="end" fontSize={11} fill="var(--ink-muted)">
               {v}
             </text>
           </g>
@@ -182,7 +184,7 @@ export default function MattersTimeline({ matters, practiceAreas }: Props) {
             cx={x(i)}
             cy={y(c.count)}
             r={hover === i ? 5.5 : 3.5}
-            fill={hover === i ? "#c9a84c" : "#0d1f3c"}
+            fill={hover === i ? "#c9a84c" : "var(--ink-strong)"}
             stroke="#c9a84c"
             strokeWidth={2}
           />
@@ -196,7 +198,7 @@ export default function MattersTimeline({ matters, practiceAreas }: Props) {
               y={H - 18}
               textAnchor="middle"
               fontSize={11}
-              fill={hover === i ? "#0d1f3c" : "#8a9ab5"}
+              fill={hover === i ? "var(--ink-strong)" : "var(--ink-muted)"}
             >
               {c.label}
             </text>
@@ -222,7 +224,7 @@ export default function MattersTimeline({ matters, practiceAreas }: Props) {
                   width={104}
                   height={30}
                   rx={6}
-                  fill="#0d1f3c"
+                  fill="var(--navy-solid)"
                   opacity={0.94}
                 />
                 <text
@@ -261,16 +263,16 @@ export default function MattersTimeline({ matters, practiceAreas }: Props) {
       </svg>
 
       {total === 0 && (
-        <p className="text-sm text-[#8a9ab5] text-center -mt-24 mb-16 pointer-events-none relative">
+        <p className="text-sm text-[var(--ink-muted)] text-center -mt-24 mb-16 pointer-events-none relative">
           No matters opened in this period.
         </p>
       )}
 
       {/* All-time totals, so the area reading the old bar list provided is not lost */}
       {totalsByArea.length > 0 && (
-        <div className="mt-5 pt-4 border-t border-[#e8e4dc] flex flex-wrap gap-x-5 gap-y-2">
+        <div className="mt-5 pt-4 border-t border-[var(--line)] flex flex-wrap gap-x-5 gap-y-2">
           {totalsByArea.map(([name, n]) => (
-            <span key={name} className="text-xs text-[#2c3347] flex items-center gap-1.5">
+            <span key={name} className="text-xs text-[var(--ink-body)] flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[#c9a84c] inline-block" />
               {name} <span className="font-semibold">{n}</span>
             </span>

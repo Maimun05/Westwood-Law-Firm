@@ -39,7 +39,7 @@ type InquiryStatus = Database["public"]["Enums"]["inquiry_status"];
 type PriorityLevel = Database["public"]["Enums"]["priority_level"];
 const STATUSES: InquiryStatus[] = ["New", "Under Review", "Contacted", "Closed"];
 const PRIORITIES: PriorityLevel[] = ["Low", "Medium", "High"];
-const sel = "bg-[#f7f5f0] border border-[#e8e4dc] rounded px-2 py-1.5 text-xs";
+const sel = "bg-[var(--surface-sunken)] border border-[var(--line)] rounded px-2 py-1.5 text-xs";
 
 // Real inquiries filed by registered clients. Admin reviews them and converts one into
 // a matter (atomic in the database: creates the matter, links the client, marks it
@@ -195,24 +195,24 @@ export default function AdminIntake({
     (i, key) => (key === "status" ? i.status : key === "area" ? i.practice_area : null),
   );
 
-  if (loading) return <p className="text-sm text-[#8a9ab5]">Loading inquiries…</p>;
+  if (loading) return <p className="text-sm text-[var(--ink-muted)]">Loading inquiries…</p>;
   return (
     <div className="space-y-3">
       {msg && <p className={`text-sm ${msg.ok ? "text-green-700" : "text-red-600"}`}>{msg.text}</p>}
 
-      <p className="text-xs text-[#8a9ab5]">
+      <p className="text-xs text-[var(--ink-muted)]">
         Only inquiries filed by registered clients appear here. Inquiries from signed-out visitors
         are emailed to the firm instead.
       </p>
       {readOnly && (
-        <p className="text-xs text-[#8a9ab5]">
+        <p className="text-xs text-[var(--ink-muted)]">
           Read-only: you can review every inquiry and its attachments. Assigning a lawyer, moving
           statuses and converting an inquiry into a matter are handled by the managing partner and
           the lawyers.
         </p>
       )}
 
-      <div className="bg-white rounded-xl border border-[#e8e4dc] p-5">
+      <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-5">
         <ListFilters
           search={search}
           onSearch={setSearch}
@@ -239,24 +239,27 @@ export default function AdminIntake({
       </div>
 
       {rows.length === 0 && (
-        <p className="text-sm text-[#8a9ab5] bg-white rounded-xl border border-[#e8e4dc] p-6">
+        <p className="text-sm text-[var(--ink-muted)] bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-6">
           No inquiries from registered clients yet. Inquiries from signed-out visitors are emailed
           to the firm instead and never appear here.
         </p>
       )}
       {rows.length > 0 && visible.length === 0 && (
-        <p className="text-sm text-[#8a9ab5] bg-white rounded-xl border border-[#e8e4dc] p-6">
+        <p className="text-sm text-[var(--ink-muted)] bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-6">
           No inquiries match that search.
         </p>
       )}
       {visible.map((i) => (
-        <div key={i.id} className="bg-white rounded-xl border border-[#e8e4dc] p-5">
+        <div
+          key={i.id}
+          className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-5"
+        >
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-[#0d1f3c]">
-                {i.name} <span className="font-normal text-[#8a9ab5]">· {i.email}</span>
+              <p className="text-sm font-semibold text-[var(--ink-strong)]">
+                {i.name} <span className="font-normal text-[var(--ink-muted)]">· {i.email}</span>
               </p>
-              <p className="text-xs text-[#8a9ab5]">
+              <p className="text-xs text-[var(--ink-muted)]">
                 {i.inquiry_number} · {i.practice_area} ·{" "}
                 {new Date(i.created_at).toLocaleDateString("en-PH")}
                 {i.preferred_lawyer ? ` · prefers ${i.preferred_lawyer}` : ""}
@@ -270,8 +273,8 @@ export default function AdminIntake({
                       }`
                     : ""}
               </p>
-              <p className="text-sm text-[#2c3347] mt-2 font-medium">{i.subject}</p>
-              <p className="text-sm text-[#2c3347] mt-1 whitespace-pre-wrap">{i.message}</p>
+              <p className="text-sm text-[var(--ink-body)] mt-2 font-medium">{i.subject}</p>
+              <p className="text-sm text-[var(--ink-body)] mt-1 whitespace-pre-wrap">{i.message}</p>
               {(attachments[i.id]?.length ?? 0) > 0 && (
                 <div className="mt-3 flex flex-wrap gap-2">
                   {attachments[i.id].map((a) => (
@@ -279,7 +282,7 @@ export default function AdminIntake({
                       key={a.id}
                       onClick={() => void openAttachment(a)}
                       disabled={openingId === a.id}
-                      className="flex items-center gap-2 bg-[#f7f5f0] hover:bg-[#e8e4dc] border border-[#e8e4dc] rounded-lg px-3 py-1.5 text-xs text-[#0d1f3c] transition-colors disabled:opacity-50"
+                      className="flex items-center gap-2 bg-[var(--surface-sunken)] hover:bg-[var(--fill-muted)] border border-[var(--line)] rounded-lg px-3 py-1.5 text-xs text-[var(--ink-strong)] transition-colors disabled:opacity-50"
                       title={a.storage_path}
                     >
                       <svg
@@ -296,9 +299,9 @@ export default function AdminIntake({
                       </svg>
                       <span className="max-w-[180px] truncate">{a.file_name}</span>
                       {a.size_bytes ? (
-                        <span className="text-[#8a9ab5]">{formatBytes(a.size_bytes)}</span>
+                        <span className="text-[var(--ink-muted)]">{formatBytes(a.size_bytes)}</span>
                       ) : null}
-                      {openingId === a.id && <span className="text-[#8a9ab5]">…</span>}
+                      {openingId === a.id && <span className="text-[var(--ink-muted)]">…</span>}
                     </button>
                   ))}
                 </div>
@@ -306,7 +309,7 @@ export default function AdminIntake({
             </div>
             <div className="flex items-center gap-2">
               {readOnly ? (
-                <span className="text-xs font-semibold text-[#0d1f3c] bg-[#f7f5f0] border border-[#e8e4dc] px-3 py-1.5 rounded">
+                <span className="text-xs font-semibold text-[var(--ink-strong)] bg-[var(--surface-sunken)] border border-[var(--line)] px-3 py-1.5 rounded">
                   {i.status}
                 </span>
               ) : i.status === "Converted" ? (
@@ -326,7 +329,7 @@ export default function AdminIntake({
                   </select>
                   <button
                     onClick={() => setOpen(open === i.id ? null : i.id)}
-                    className="bg-[#0d1f3c] text-white text-xs font-semibold px-3 py-2 rounded"
+                    className="bg-[var(--navy-solid)] text-white text-xs font-semibold px-3 py-2 rounded"
                   >
                     Convert to matter
                   </button>
@@ -335,7 +338,7 @@ export default function AdminIntake({
             </div>
           </div>
           {open === i.id && (
-            <div className="mt-4 pt-4 border-t border-[#e8e4dc] flex flex-wrap items-center gap-2">
+            <div className="mt-4 pt-4 border-t border-[var(--line)] flex flex-wrap items-center gap-2">
               <select
                 className={sel}
                 value={lawyerId}
@@ -359,17 +362,17 @@ export default function AdminIntake({
               </select>
               <button
                 onClick={() => void convert(i)}
-                className="bg-[#c9a84c] text-[#0d1f3c] text-xs font-semibold px-4 py-2 rounded"
+                className="bg-[#c9a84c] text-[var(--ink-on-gold)] text-xs font-semibold px-4 py-2 rounded"
               >
                 Create matter
               </button>
               <button
                 onClick={() => void assign(i)}
-                className="border-2 border-[#0d1f3c] text-[#0d1f3c] text-xs font-semibold px-4 py-2 rounded"
+                className="border-2 border-[var(--line-strong)] text-[var(--ink-strong)] text-xs font-semibold px-4 py-2 rounded"
               >
                 Assign lawyer only
               </button>
-              <span className="text-xs text-[#8a9ab5]">
+              <span className="text-xs text-[var(--ink-muted)]">
                 The client must already have an account with this email.
               </span>
             </div>

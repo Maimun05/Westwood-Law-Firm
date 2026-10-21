@@ -58,10 +58,10 @@ export default function BreakGlassModal({
           <span aria-hidden="true" className="text-lg leading-none">
             ⚠
           </span>
-          <p className="text-sm text-[#2c3347]">
-            <strong className="break-all font-semibold text-[#0d1f3c]">{fileName}</strong> is
-            restricted to the assigned lawyer's team. Opening it is logged and the assigned lawyer
-            is notified immediately.
+          <p className="text-sm text-[var(--ink-body)]">
+            <strong className="break-all font-semibold text-[var(--ink-strong)]">{fileName}</strong>{" "}
+            is restricted to the assigned lawyer's team. Opening it is logged and the assigned
+            lawyer is notified immediately.
           </p>
         </div>
 
@@ -77,7 +77,7 @@ export default function BreakGlassModal({
             className={`${MODAL_INPUT_CLASS} resize-none`}
           />
           <p
-            className={`mt-1.5 text-xs tabular-nums ${ok ? "text-emerald-600" : "text-[#8a9ab5]"}`}
+            className={`mt-1.5 text-xs tabular-nums ${ok ? "text-emerald-600" : "text-[var(--ink-muted)]"}`}
           >
             {reason.trim().length} / 15 characters
           </p>

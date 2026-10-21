@@ -232,7 +232,7 @@ function CreateTaskModal({
                 className={MODAL_INPUT_CLASS}
               />
             </div>
-            <label className="flex items-center gap-2 pt-6 text-sm text-[#2c3347]">
+            <label className="flex items-center gap-2 pt-6 text-sm text-[var(--ink-body)]">
               <input
                 type="checkbox"
                 checked={f.requires_review}
@@ -317,8 +317,8 @@ function ReviewTaskModal({
       />
       <ModalBody className="p-7">
         <form onSubmit={submit} className="space-y-4">
-          <p className="text-sm text-[#2c3347]">
-            <span className="font-semibold text-[#0d1f3c]">{task.title}</span>
+          <p className="text-sm text-[var(--ink-body)]">
+            <span className="font-semibold text-[var(--ink-strong)]">{task.title}</span>
           </p>
           <div>
             <label className={MODAL_LABEL_CLASS}>
@@ -544,14 +544,14 @@ export default function TasksPanel({
   const canCreate =
     matters.length > 0 && (isFirmAdmin(currentUser.role) || isLawyer(currentUser.role));
 
-  if (loading) return <p className="text-sm text-[#8a9ab5]">Loading tasks…</p>;
+  if (loading) return <p className="text-sm text-[var(--ink-muted)]">Loading tasks…</p>;
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">Tasks</h2>
-          <p className="text-[#8a9ab5] text-sm mt-1">
+          <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">Tasks</h2>
+          <p className="text-[var(--ink-muted)] text-sm mt-1">
             Work assigned to the firm&rsquo;s matters. Review-gated tasks complete only through an
             approved review.
           </p>
@@ -559,7 +559,7 @@ export default function TasksPanel({
         {canCreate && (
           <button
             onClick={() => setShowCreate(true)}
-            className="bg-[#0d1f3c] hover:bg-[#162d52] text-white text-sm font-semibold px-5 py-2.5 rounded transition-colors"
+            className="bg-[var(--navy-solid)] hover:bg-[#162d52] text-white text-sm font-semibold px-5 py-2.5 rounded transition-colors"
           >
             + New Task
           </button>
@@ -572,7 +572,7 @@ export default function TasksPanel({
         </p>
       )}
 
-      <div className="bg-white rounded-xl border border-[#e8e4dc] p-5">
+      <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-5">
         <ListFilters
           search={search}
           onSearch={setSearch}
@@ -590,7 +590,7 @@ export default function TasksPanel({
       </div>
 
       {tasks.length === 0 && (
-        <p className="text-sm text-[#8a9ab5] bg-white rounded-xl border border-[#e8e4dc] p-6">
+        <p className="text-sm text-[var(--ink-muted)] bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-6">
           No tasks yet.{" "}
           {canCreate
             ? "Create one to assign work on a matter."
@@ -598,7 +598,7 @@ export default function TasksPanel({
         </p>
       )}
       {tasks.length > 0 && visible.length === 0 && (
-        <p className="text-sm text-[#8a9ab5] bg-white rounded-xl border border-[#e8e4dc] p-6">
+        <p className="text-sm text-[var(--ink-muted)] bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-6">
           No tasks match that search.
         </p>
       )}
@@ -607,11 +607,14 @@ export default function TasksPanel({
         const latest = latestReview(t.id);
         const isOpen = openId === t.id;
         return (
-          <div key={t.id} className="bg-white rounded-xl border border-[#e8e4dc] p-5">
+          <div
+            key={t.id}
+            className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-5"
+          >
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-[#0d1f3c]">{t.title}</p>
-                <p className="text-xs text-[#8a9ab5] mt-0.5">
+                <p className="text-sm font-semibold text-[var(--ink-strong)]">{t.title}</p>
+                <p className="text-xs text-[var(--ink-muted)] mt-0.5">
                   {matterOf(t.matter_id) ? (
                     <>
                       {matterOf(t.matter_id)!.matter_number} · {matterOf(t.matter_id)!.title} ·{" "}
@@ -623,7 +626,9 @@ export default function TasksPanel({
                     : ""}
                 </p>
                 {t.description && (
-                  <p className="text-sm text-[#2c3347] mt-2 whitespace-pre-wrap">{t.description}</p>
+                  <p className="text-sm text-[var(--ink-body)] mt-2 whitespace-pre-wrap">
+                    {t.description}
+                  </p>
                 )}
                 <div className="flex flex-wrap items-center gap-2 mt-2">
                   <StatusBadge status={t.status} />
@@ -644,10 +649,10 @@ export default function TasksPanel({
                     disabled={busyId === t.id}
                     className={
                       a.kind === "primary"
-                        ? "bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] text-xs font-semibold px-3 py-2 rounded disabled:opacity-50"
+                        ? "bg-[#c9a84c] hover:bg-[#e2c87a] text-[var(--ink-on-gold)] text-xs font-semibold px-3 py-2 rounded disabled:opacity-50"
                         : a.kind === "danger"
                           ? "border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold px-3 py-2 rounded disabled:opacity-50"
-                          : "border border-[#e8e4dc] text-[#0d1f3c] hover:bg-[#f7f5f0] text-xs font-semibold px-3 py-2 rounded disabled:opacity-50"
+                          : "border border-[var(--line)] text-[var(--ink-strong)] hover:bg-[var(--surface-hover)] text-xs font-semibold px-3 py-2 rounded disabled:opacity-50"
                     }
                   >
                     {a.label}
@@ -679,7 +684,7 @@ export default function TasksPanel({
             </div>
 
             {isOpen && (
-              <div className="mt-4 pt-4 border-t border-[#e8e4dc] space-y-3">
+              <div className="mt-4 pt-4 border-t border-[var(--line)] space-y-3">
                 {isManagerOf(t) && t.status !== "Completed" && t.status !== "Cancelled" && (
                   <div className="flex items-center gap-2">
                     <select
@@ -702,7 +707,7 @@ export default function TasksPanel({
                 <div className="relative">
                   {(events[t.id] ?? []).length > 0 ? (
                     <>
-                      <div className="absolute left-2 top-0 bottom-0 w-px bg-[#e8e4dc]" />
+                      <div className="absolute left-2 top-0 bottom-0 w-px bg-[var(--fill-muted)]" />
                       <div className="space-y-4">
                         {(events[t.id] ?? []).map((ev) => (
                           <div key={ev.id} className="flex gap-4 pl-8 relative">
@@ -710,15 +715,15 @@ export default function TasksPanel({
                               className={`absolute left-0 top-1 w-4 h-4 rounded-full border-2 flex-shrink-0 ${
                                 ev.event_type === "review"
                                   ? "bg-[#c9a84c]/20 border-[#c9a84c]"
-                                  : "bg-[#0d1f3c]/10 border-[#0d1f3c]/40"
+                                  : "bg-[var(--navy-solid)]/10 border-[var(--line-strong)]/40"
                               }`}
                             />
                             <div>
-                              <p className="text-sm font-medium text-[#0d1f3c]">
+                              <p className="text-sm font-medium text-[var(--ink-strong)]">
                                 {ev.title}
                                 {ev.detail ? ` — ${ev.detail}` : ""}
                               </p>
-                              <p className="text-xs text-[#8a9ab5] mt-0.5">
+                              <p className="text-xs text-[var(--ink-muted)] mt-0.5">
                                 {ev.actor_id ? <Person id={ev.actor_id} /> : "System"} ·{" "}
                                 {new Date(ev.created_at).toLocaleString("en-PH")}
                               </p>
@@ -728,7 +733,7 @@ export default function TasksPanel({
                       </div>
                     </>
                   ) : (
-                    <p className="text-xs text-[#8a9ab5]">No activity recorded yet.</p>
+                    <p className="text-xs text-[var(--ink-muted)]">No activity recorded yet.</p>
                   )}
                 </div>
               </div>

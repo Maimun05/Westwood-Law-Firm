@@ -224,7 +224,7 @@ export default function LawyersPage({
           </select>
         </div>
 
-        <p className="text-muted mb-8">
+        <p className="text-[length:var(--text-body-sm)] text-[var(--color-text-muted)] mb-8">
           {filtered.length} lawyer{filtered.length !== 1 ? "s" : ""} found
         </p>
 
@@ -502,7 +502,7 @@ function LawyerCard({
           className={`absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 ${
             saved
               ? "bg-[var(--color-gold)] text-[var(--color-navy)] shadow-[var(--shadow-gold-sm)]"
-              : "bg-white/90 text-[var(--color-text-muted)] hover:bg-[var(--color-gold)] hover:text-[var(--color-navy)] hover:shadow-[var(--shadow-gold-sm)]"
+              : "bg-[var(--surface-glass)] text-[var(--color-text-muted)] hover:bg-[var(--color-gold)] hover:text-[var(--color-navy)] hover:shadow-[var(--shadow-gold-sm)]"
           }`}
           aria-label={saved ? "Remove from saved" : "Save lawyer"}
         >

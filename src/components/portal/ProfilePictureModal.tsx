@@ -144,7 +144,7 @@ export default function ProfilePictureModal({
 
         {file ? (
           <div>
-            <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wide text-[#8a9ab5]">
+            <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wide text-[var(--ink-muted)]">
               Preview
             </p>
             <SquareCropper ref={cropperRef} file={file} onError={setError} />
@@ -157,7 +157,7 @@ export default function ProfilePictureModal({
               className="h-28 w-28 text-3xl"
               ring={false}
             />
-            <p className="max-w-xs text-center text-sm text-[#2c3347]">
+            <p className="max-w-xs text-center text-sm text-[var(--ink-body)]">
               {currentUrl
                 ? "Choose a new photo to replace this one, or remove it to go back to initials."
                 : `${name} has no photo yet — the initials are shown instead.`}

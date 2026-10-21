@@ -149,7 +149,7 @@ export default forwardRef<SquareCropperHandle, { file: File; onError: (msg: stri
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
-          className="relative mx-auto aspect-square w-full max-w-[320px] touch-none overflow-hidden rounded-xl border border-[#e8e4dc] bg-[#0d1f3c] cursor-grab active:cursor-grabbing select-none"
+          className="relative mx-auto aspect-square w-full max-w-[320px] touch-none overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--navy-solid)] cursor-grab active:cursor-grabbing select-none"
         >
           {img && size > 0 && (
             <img
@@ -169,7 +169,7 @@ export default forwardRef<SquareCropperHandle, { file: File; onError: (msg: stri
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-xs font-medium text-[#8a9ab5]">Zoom</span>
+          <span className="text-xs font-medium text-[var(--ink-muted)]">Zoom</span>
           <input
             type="range"
             min={1}
@@ -181,7 +181,7 @@ export default forwardRef<SquareCropperHandle, { file: File; onError: (msg: stri
             className="flex-1 accent-[var(--color-gold)]"
           />
         </div>
-        <p className="text-center text-xs text-[#8a9ab5]">
+        <p className="text-center text-xs text-[var(--ink-muted)]">
           Drag the photo to reposition it. The circle is how it will appear.
         </p>
       </div>

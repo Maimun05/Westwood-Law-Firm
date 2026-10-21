@@ -149,11 +149,11 @@ export default function MatterTimeline({
         : "Add a note…";
 
   return (
-    <div className="bg-white rounded-xl p-5 border border-[#e8e4dc]">
-      <h3 className="text-sm font-semibold text-[#0d1f3c] mb-3">Messages</h3>
+    <div className="bg-[var(--surface-card)] rounded-xl p-5 border border-[var(--line)]">
+      <h3 className="text-sm font-semibold text-[var(--ink-strong)] mb-3">Messages</h3>
 
       <div ref={listRef} className="max-h-80 overflow-y-auto pr-1 mb-4 space-y-3">
-        {notes.length === 0 && <p className="text-xs text-[#8a9ab5]">No messages yet.</p>}
+        {notes.length === 0 && <p className="text-xs text-[var(--ink-muted)]">No messages yet.</p>}
 
         {notes.map((n) => {
           const mine = n.author_id === userId;
@@ -162,11 +162,11 @@ export default function MatterTimeline({
             <div
               key={n.id}
               className={`pl-3 border-l-2 ${
-                n.visibility === "internal" ? "border-[#8a9ab5]" : "border-[#c9a84c]"
+                n.visibility === "internal" ? "border-[var(--ink-muted)]" : "border-[#c9a84c]"
               }`}
             >
-              <p className="text-sm text-[#0d1f3c] whitespace-pre-wrap">{n.body}</p>
-              <p className="text-xs text-[#8a9ab5]">
+              <p className="text-sm text-[var(--ink-strong)] whitespace-pre-wrap">{n.body}</p>
+              <p className="text-xs text-[var(--ink-muted)]">
                 {who(n.author_id)}
                 {" · "}
                 {new Date(n.created_at).toLocaleString("en-PH")}
@@ -191,21 +191,21 @@ export default function MatterTimeline({
             <select
               value={visibility}
               onChange={(e) => setVisibility(e.target.value as "internal" | "client")}
-              className="text-xs bg-white border border-[#e8e4dc] rounded-lg px-2 py-1.5 text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c]"
+              className="text-xs bg-[var(--surface-card)] border border-[var(--line)] rounded-lg px-2 py-1.5 text-[var(--ink-strong)] focus:outline-none focus:border-[#c9a84c]"
             >
               <option value="internal">Internal (lawyers only)</option>
               <option value="client">Visible to client</option>
             </select>
           )}
           {role === "client" && (
-            <p className="text-[11px] text-[#8a9ab5]">
+            <p className="text-[11px] text-[var(--ink-muted)]">
               Your lawyer and the firm&rsquo;s team can see this.
             </p>
           )}
           <button
             onClick={add}
             disabled={busy || !body.trim()}
-            className="ml-auto bg-[#0d1f3c] text-white text-xs font-semibold px-4 py-2 rounded disabled:opacity-40"
+            className="ml-auto bg-[var(--navy-solid)] text-white text-xs font-semibold px-4 py-2 rounded disabled:opacity-40"
           >
             {busy ? "Sending…" : role === "client" ? "Send message" : "Add note"}
           </button>

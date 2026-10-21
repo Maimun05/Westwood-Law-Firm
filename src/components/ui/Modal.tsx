@@ -52,25 +52,25 @@ const SIZE_CLASS: Record<ModalSize, string> = {
    rather than the `--color-navy` / `--color-gold` theme tokens. */
 
 export const MODAL_PANEL_CLASS =
-  "bg-white rounded-2xl border border-[#e8e4dc] shadow-[var(--shadow-modal)]";
+  "bg-[var(--surface-card)] rounded-2xl border border-[var(--line)] shadow-[var(--shadow-modal)]";
 
 export const MODAL_BODY_CLASS = "px-6 py-5";
 
 export const MODAL_LABEL_CLASS =
-  "block text-xs font-semibold text-[#8a9ab5] uppercase tracking-wide mb-1.5";
+  "block text-xs font-semibold text-[var(--ink-muted)] uppercase tracking-wide mb-1.5";
 
 export const MODAL_INPUT_CLASS =
-  "w-full bg-white border border-[#e8e4dc] rounded-lg px-3 py-2.5 text-sm text-[#0d1f3c] " +
-  "placeholder:text-[#8a9ab5] transition-colors focus:outline-none focus:border-[#c9a84c] " +
-  "focus:ring-2 focus:ring-[#c9a84c]/20 disabled:bg-[#f7f5f0] disabled:text-[#8a9ab5]";
+  "w-full bg-[var(--surface-card)] border border-[var(--line)] rounded-lg px-3 py-2.5 text-sm text-[var(--ink-strong)] " +
+  "placeholder:text-[var(--ink-muted)] transition-colors focus:outline-none focus:border-[#c9a84c] " +
+  "focus:ring-2 focus:ring-[#c9a84c]/20 disabled:bg-[var(--surface-sunken)] disabled:text-[var(--ink-muted)]";
 
 export const MODAL_BUTTON_SECONDARY_CLASS =
-  "inline-flex items-center justify-center gap-2 border border-[#e8e4dc] hover:border-[#0d1f3c] " +
-  "hover:bg-[#f7f5f0] text-[#0d1f3c] text-sm font-semibold py-3 rounded-lg transition-all " +
+  "inline-flex items-center justify-center gap-2 border border-[var(--line)] hover:border-[var(--line-strong)] " +
+  "hover:bg-[var(--surface-hover)] text-[var(--ink-strong)] text-sm font-semibold py-3 rounded-lg transition-all " +
   "duration-200 active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none";
 
 export const MODAL_BUTTON_PRIMARY_CLASS =
-  "inline-flex items-center justify-center gap-2 bg-[#0d1f3c] hover:bg-[#162d52] text-white " +
+  "inline-flex items-center justify-center gap-2 bg-[var(--navy-solid)] hover:bg-[#162d52] text-white " +
   "text-sm font-semibold py-3 rounded-lg transition-all duration-200 " +
   "hover:shadow-[var(--shadow-navy-md)] active:scale-[0.99] disabled:opacity-40 " +
   "disabled:pointer-events-none";
@@ -337,8 +337,8 @@ export function ModalHeader({
     <header
       className={
         navy
-          ? "relative overflow-hidden bg-[#0d1f3c] rounded-t-2xl px-6 py-5 flex items-start justify-between gap-4"
-          : "relative px-6 pt-6 pb-4 flex items-start justify-between gap-4 border-b border-[#e8e4dc]"
+          ? "relative overflow-hidden bg-[var(--navy-solid)] rounded-t-2xl px-6 py-5 flex items-start justify-between gap-4"
+          : "relative px-6 pt-6 pb-4 flex items-start justify-between gap-4 border-b border-[var(--line)]"
       }
     >
       {navy && <span className="modal-sheen" aria-hidden="true" />}
@@ -346,7 +346,7 @@ export function ModalHeader({
         {eyebrow && (
           <p
             className={`text-xs tracking-widest uppercase font-medium mb-1 ${
-              navy ? "text-[#c9a84c]" : "text-[#a8812c]"
+              navy ? "text-[#c9a84c]" : "text-[var(--gold-ink)]"
             }`}
           >
             {eyebrow}
@@ -354,12 +354,12 @@ export function ModalHeader({
         )}
         <h2
           id={titleId}
-          className={`font-serif text-xl font-bold ${navy ? "text-white" : "text-[#0d1f3c]"}`}
+          className={`font-serif text-xl font-bold ${navy ? "text-white" : "text-[var(--ink-strong)]"}`}
         >
           {title}
         </h2>
         {description && (
-          <p className={`text-sm mt-1 ${navy ? "text-white/70" : "text-[#2c3347]"}`}>
+          <p className={`text-sm mt-1 ${navy ? "text-white/70" : "text-[var(--ink-body)]"}`}>
             {description}
           </p>
         )}
@@ -374,7 +374,7 @@ export function ModalHeader({
           className={`relative shrink-0 -mr-1 -mt-1 w-8 h-8 rounded-full grid place-items-center text-xl leading-none transition-colors disabled:opacity-30 disabled:pointer-events-none ${
             navy
               ? "text-white/50 hover:text-white hover:bg-white/10"
-              : "text-[#8a9ab5] hover:text-[#0d1f3c] hover:bg-[#f7f5f0]"
+              : "text-[var(--ink-muted)] hover:text-[var(--ink-strong)] hover:bg-[var(--surface-hover)]"
           }`}
         >
           ×

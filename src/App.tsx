@@ -287,7 +287,7 @@ export default function App() {
       {showFooter && <Footer onNavigate={navigate} />}
 
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#0d1f3c] text-white text-sm font-medium px-5 py-3 rounded-full shadow-lg flex items-center gap-2">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[var(--navy-solid)] text-white text-sm font-medium px-5 py-3 rounded-full shadow-lg flex items-center gap-2">
           <span className="text-[#c9a84c]">✓</span>
           {toast}
         </div>
@@ -297,18 +297,18 @@ export default function App() {
           registered clients; everyone else reaches the firm via the nav
           Contact link. */}
       {showMobileCTA && !loading && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#e8e4dc] px-4 py-3 flex gap-3">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--surface-card)] border-t border-[var(--line)] px-4 py-3 flex gap-3">
           {user?.role === "client" ? (
             <>
               <button
                 onClick={() => navigate("inquiry")}
-                className="flex-1 bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] text-sm font-semibold py-3 rounded transition-colors"
+                className="flex-1 bg-[#c9a84c] hover:bg-[#e2c87a] text-[var(--ink-on-gold)] text-sm font-semibold py-3 rounded transition-colors"
               >
                 Start a Legal Inquiry
               </button>
               <button
                 onClick={() => navigate("portal")}
-                className="bg-[#0d1f3c] text-white text-sm font-semibold px-4 py-3 rounded transition-colors"
+                className="bg-[var(--navy-solid)] text-white text-sm font-semibold px-4 py-3 rounded transition-colors"
               >
                 Account
               </button>
@@ -316,14 +316,14 @@ export default function App() {
           ) : user ? (
             <button
               onClick={() => navigate("portal")}
-              className="flex-1 bg-[#0d1f3c] text-white text-sm font-semibold py-3 rounded transition-colors"
+              className="flex-1 bg-[var(--navy-solid)] text-white text-sm font-semibold py-3 rounded transition-colors"
             >
               Account
             </button>
           ) : (
             <button
               onClick={() => navigate("auth")}
-              className="flex-1 bg-[#0d1f3c] text-white text-sm font-semibold py-3 rounded transition-colors"
+              className="flex-1 bg-[var(--navy-solid)] text-white text-sm font-semibold py-3 rounded transition-colors"
             >
               Sign In
             </button>

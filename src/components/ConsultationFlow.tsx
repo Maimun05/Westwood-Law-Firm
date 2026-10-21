@@ -87,20 +87,20 @@ function SignInGate({ onSignedIn, onBack }: { onSignedIn: () => void; onBack: ()
 
   if (signedIn) {
     return (
-      <div className="bg-[#f7f5f0] min-h-screen pt-20 flex items-center justify-center px-4">
+      <div className="bg-[var(--surface-sunken)] min-h-screen pt-20 flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           {stuck ? (
-            <div className="bg-white rounded-2xl border border-[#e8e4dc] p-8">
-              <p className="text-[#0d1f3c] font-semibold mb-2">
+            <div className="bg-[var(--surface-card)] rounded-2xl border border-[var(--line)] p-8">
+              <p className="text-[var(--ink-strong)] font-semibold mb-2">
                 We signed you in, but could not load your profile.
               </p>
-              <p className="text-[#8a9ab5] text-sm mb-6 leading-relaxed">
+              <p className="text-[var(--ink-muted)] text-sm mb-6 leading-relaxed">
                 This usually means the account was deactivated. Please contact the firm, or try
                 again.
               </p>
               <button
                 onClick={onBack}
-                className="w-full bg-[#0d1f3c] hover:bg-[#162d52] text-white text-sm font-semibold py-3 rounded transition-colors"
+                className="w-full bg-[var(--navy-solid)] hover:bg-[#162d52] text-white text-sm font-semibold py-3 rounded transition-colors"
               >
                 Back to Home
               </button>
@@ -108,7 +108,7 @@ function SignInGate({ onSignedIn, onBack }: { onSignedIn: () => void; onBack: ()
           ) : (
             <>
               <div className="w-16 h-16 border-4 border-[#c9a84c] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-[#8a9ab5] text-sm">Signed in — loading your details…</p>
+              <p className="text-[var(--ink-muted)] text-sm">Signed in — loading your details…</p>
             </>
           )}
         </div>
@@ -117,20 +117,24 @@ function SignInGate({ onSignedIn, onBack }: { onSignedIn: () => void; onBack: ()
   }
 
   return (
-    <div className="bg-[#f7f5f0] min-h-screen pt-20 flex items-center justify-center px-4 py-12">
+    <div className="bg-[var(--surface-sunken)] min-h-screen pt-20 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <p className="text-[#c9a84c] text-xs tracking-[0.2em] uppercase font-medium mb-3">
             Westwood Law Firm
           </p>
-          <h1 className="font-serif text-3xl font-bold text-[#0d1f3c] mb-2">Sign In to Continue</h1>
-          <p className="text-[#8a9ab5] text-sm">Please sign in to schedule a consultation.</p>
+          <h1 className="font-serif text-3xl font-bold text-[var(--ink-strong)] mb-2">
+            Sign In to Continue
+          </h1>
+          <p className="text-[var(--ink-muted)] text-sm">
+            Please sign in to schedule a consultation.
+          </p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-[#e8e4dc] p-8 shadow-sm mb-4">
+        <div className="bg-[var(--surface-card)] rounded-2xl border border-[var(--line)] p-8 shadow-sm mb-4">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+              <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5">
                 Email Address
               </label>
               <input
@@ -142,11 +146,11 @@ function SignInGate({ onSignedIn, onBack }: { onSignedIn: () => void; onBack: ()
                 }}
                 placeholder="your@email.com"
                 disabled={loading}
-                className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-3 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                className="w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-4 py-3 text-sm text-[var(--ink-strong)] placeholder-[var(--ink-muted)] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+              <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5">
                 Password
               </label>
               <input
@@ -158,7 +162,7 @@ function SignInGate({ onSignedIn, onBack }: { onSignedIn: () => void; onBack: ()
                 }}
                 placeholder="••••••••"
                 disabled={loading}
-                className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-3 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                className="w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-4 py-3 text-sm text-[var(--ink-strong)] placeholder-[var(--ink-muted)] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
               />
             </div>
             {error && (
@@ -170,13 +174,13 @@ function SignInGate({ onSignedIn, onBack }: { onSignedIn: () => void; onBack: ()
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#0d1f3c] hover:bg-[#162d52] text-white font-semibold py-3 rounded transition-colors text-sm disabled:opacity-50"
+              className="w-full bg-[var(--navy-solid)] hover:bg-[#162d52] text-white font-semibold py-3 rounded transition-colors text-sm disabled:opacity-50"
             >
               {loading ? "Signing In..." : "Sign In"}
             </button>
           </form>
 
-          <p className="text-xs text-[#8a9ab5] text-center mt-6">
+          <p className="text-xs text-[var(--ink-muted)] text-center mt-6">
             {"Don't have an account? "}
             <button onClick={() => onBack()} className="text-[#c9a84c] hover:underline font-medium">
               Return to create one
@@ -186,7 +190,7 @@ function SignInGate({ onSignedIn, onBack }: { onSignedIn: () => void; onBack: ()
 
         <button
           onClick={onBack}
-          className="w-full text-center text-[#8a9ab5] hover:text-[#0d1f3c] text-sm transition-colors py-2"
+          className="w-full text-center text-[var(--ink-muted)] hover:text-[var(--ink-strong)] text-sm transition-colors py-2"
         >
           ← Back to Consultation
         </button>
@@ -204,7 +208,7 @@ function StepBar({ current, total }: { current: number; total: number }) {
         <div
           key={i}
           className={`h-1 flex-1 rounded-full transition-all ${
-            i < current ? "bg-[#c9a84c]" : "bg-[#e8e4dc]"
+            i < current ? "bg-[#c9a84c]" : "bg-[var(--fill-muted)]"
           }`}
         />
       ))}
@@ -274,7 +278,7 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
 
   if (loading) {
     return (
-      <div className="bg-[#f7f5f0] min-h-screen pt-20 flex items-center justify-center">
+      <div className="bg-[var(--surface-sunken)] min-h-screen pt-20 flex items-center justify-center">
         <div className="w-16 h-16 border-4 border-[#c9a84c] border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -381,10 +385,10 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
 
   if (confirmed) {
     return (
-      <div className="bg-[#f7f5f0] min-h-screen pt-20 flex items-center justify-center px-4 py-12">
+      <div className="bg-[var(--surface-sunken)] min-h-screen pt-20 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-lg">
-          <div className="bg-white rounded-2xl border border-[#e8e4dc] overflow-hidden shadow-sm">
-            <div className="bg-[#0d1f3c] p-8 text-center relative overflow-hidden">
+          <div className="bg-[var(--surface-card)] rounded-2xl border border-[var(--line)] overflow-hidden shadow-sm">
+            <div className="bg-[var(--navy-solid)] p-8 text-center relative overflow-hidden">
               <div
                 className="absolute inset-0 opacity-[0.04]"
                 style={{
@@ -406,7 +410,7 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
               </div>
             </div>
             <div className="p-8">
-              <div className="bg-[#f7f5f0] rounded-xl p-5 space-y-3 mb-6">
+              <div className="bg-[var(--surface-sunken)] rounded-xl p-5 space-y-3 mb-6">
                 {[
                   ["Reference Number", refNumber],
                   ["Practice Area", selectedPA?.name ?? practiceArea],
@@ -421,12 +425,12 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
                 ].map(([label, value]) => (
                   <div
                     key={label}
-                    className="flex justify-between items-start gap-4 text-sm border-b border-[#e8e4dc] pb-3 last:border-0 last:pb-0"
+                    className="flex justify-between items-start gap-4 text-sm border-b border-[var(--line)] pb-3 last:border-0 last:pb-0"
                   >
-                    <span className="text-[#8a9ab5] flex-shrink-0">{label}</span>
+                    <span className="text-[var(--ink-muted)] flex-shrink-0">{label}</span>
                     <span
                       className={`font-medium text-right ${
-                        label === "Status" ? "text-amber-600" : "text-[#0d1f3c]"
+                        label === "Status" ? "text-amber-600" : "text-[var(--ink-strong)]"
                       }`}
                     >
                       {value}
@@ -439,20 +443,20 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
                   <p className="text-xs text-amber-700 leading-relaxed">{bookingNote}</p>
                 </div>
               )}
-              <p className="text-xs text-[#8a9ab5] leading-relaxed mb-6 text-center">
+              <p className="text-xs text-[var(--ink-muted)] leading-relaxed mb-6 text-center">
                 A confirmation will be sent to{" "}
-                <strong className="text-[#0d1f3c]">{client.email}</strong>
+                <strong className="text-[var(--ink-strong)]">{client.email}</strong>
               </p>
               <div className="flex flex-col gap-3">
                 <button
                   onClick={() => onNavigate("portal")}
-                  className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] font-semibold py-3 rounded transition-colors text-sm"
+                  className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] text-[var(--ink-on-gold)] font-semibold py-3 rounded transition-colors text-sm"
                 >
                   Go to Client Portal
                 </button>
                 <button
                   onClick={() => onNavigate("home")}
-                  className="w-full border border-[#e8e4dc] hover:border-[#c9a84c] text-[#0d1f3c] font-medium py-3 rounded transition-colors text-sm"
+                  className="w-full border border-[var(--line)] hover:border-[#c9a84c] text-[var(--ink-strong)] font-medium py-3 rounded transition-colors text-sm"
                 >
                   Return to Home
                 </button>
@@ -467,8 +471,8 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
   const TOTAL = 7;
 
   return (
-    <div className="bg-[#f7f5f0] min-h-screen pt-20">
-      <div className="bg-[#0d1f3c] py-10">
+    <div className="bg-[var(--surface-sunken)] min-h-screen pt-20">
+      <div className="bg-[var(--navy-solid)] py-10">
         <div className="max-w-3xl mx-auto px-6 lg:px-8">
           <p className="text-[#c9a84c] text-xs tracking-[0.2em] uppercase font-medium mb-3">
             Schedule a Consultation
@@ -478,7 +482,7 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
       </div>
 
       <div className="max-w-3xl mx-auto px-6 lg:px-8 py-12">
-        <div className="bg-white rounded-2xl border border-[#e8e4dc] p-8 shadow-sm">
+        <div className="bg-[var(--surface-card)] rounded-2xl border border-[var(--line)] p-8 shadow-sm">
           <StepBar current={step} total={TOTAL} />
           <p className="text-[#c9a84c] text-xs tracking-widest uppercase font-medium mb-2">
             Step {step} of {TOTAL}
@@ -486,7 +490,7 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
 
           {step === 1 && (
             <div>
-              <h2 className="font-serif text-2xl font-bold text-[#0d1f3c] mb-8">
+              <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)] mb-8">
                 Select a Practice Area
               </h2>
               <div className="space-y-2">
@@ -500,17 +504,19 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
                     className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all group ${
                       practiceArea === pa.id
                         ? "border-[#c9a84c] bg-[#c9a84c]/5"
-                        : "border-[#e8e4dc] hover:border-[#c9a84c]"
+                        : "border-[var(--line)] hover:border-[#c9a84c]"
                     }`}
                   >
                     <PracticeAreaIcon id={pa.id} className="w-5 h-5 text-[#c9a84c] flex-shrink-0" />
                     <div className="flex-1">
-                      <p className="font-semibold text-[#0d1f3c] group-hover:text-[#c9a84c] transition-colors">
+                      <p className="font-semibold text-[var(--ink-strong)] group-hover:text-[#c9a84c] transition-colors">
                         {pa.name}
                       </p>
-                      <p className="text-xs text-[#8a9ab5] mt-0.5 line-clamp-1">{pa.description}</p>
+                      <p className="text-xs text-[var(--ink-muted)] mt-0.5 line-clamp-1">
+                        {pa.description}
+                      </p>
                     </div>
-                    <IconArrowRight className="w-4 h-4 text-[#8a9ab5] group-hover:text-[#c9a84c] transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100" />
+                    <IconArrowRight className="w-4 h-4 text-[var(--ink-muted)] group-hover:text-[#c9a84c] transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100" />
                   </button>
                 ))}
               </div>
@@ -519,10 +525,10 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
 
           {step === 2 && (
             <div>
-              <h2 className="font-serif text-2xl font-bold text-[#0d1f3c] mb-2">
+              <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)] mb-2">
                 Type of Assistance
               </h2>
-              <p className="text-[#8a9ab5] text-sm mb-8">
+              <p className="text-[var(--ink-muted)] text-sm mb-8">
                 What kind of legal assistance do you need?
               </p>
               <div className="space-y-2">
@@ -535,8 +541,8 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
                     }}
                     className={`w-full p-4 rounded-xl border-2 text-left font-medium transition-all ${
                       assistance === t
-                        ? "border-[#c9a84c] bg-[#c9a84c]/5 text-[#0d1f3c]"
-                        : "border-[#e8e4dc] text-[#0d1f3c] hover:border-[#c9a84c] hover:text-[#c9a84c]"
+                        ? "border-[#c9a84c] bg-[#c9a84c]/5 text-[var(--ink-on-gold)]"
+                        : "border-[var(--line)] text-[var(--ink-strong)] hover:border-[#c9a84c] hover:text-[#c9a84c]"
                     }`}
                   >
                     {t}
@@ -548,8 +554,10 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
 
           {step === 3 && (
             <div>
-              <h2 className="font-serif text-2xl font-bold text-[#0d1f3c] mb-2">Select a Lawyer</h2>
-              <p className="text-[#8a9ab5] text-sm mb-6">
+              <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)] mb-2">
+                Select a Lawyer
+              </h2>
+              <p className="text-[var(--ink-muted)] text-sm mb-6">
                 Choose a lawyer or let us recommend the best match.
               </p>
               <div className="space-y-3">
@@ -564,8 +572,8 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
                     ✦
                   </div>
                   <div>
-                    <p className="font-semibold text-[#0d1f3c]">Let Westwood Recommend</p>
-                    <p className="text-xs text-[#8a9ab5]">
+                    <p className="font-semibold text-[var(--ink-strong)]">Let Westwood Recommend</p>
+                    <p className="text-xs text-[var(--ink-muted)]">
                       {"We'll assign the best available lawyer for your concern."}
                     </p>
                   </div>
@@ -580,7 +588,7 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
                     className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all ${
                       lawyerId === l.id
                         ? "border-[#c9a84c] bg-[#c9a84c]/5"
-                        : "border-[#e8e4dc] hover:border-[#c9a84c]"
+                        : "border-[var(--line)] hover:border-[#c9a84c]"
                     }`}
                   >
                     <img
@@ -592,7 +600,7 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
                       className="w-10 h-10 rounded-full object-cover object-top flex-shrink-0"
                     />
                     <div className="flex-1">
-                      <p className="font-semibold text-[#0d1f3c]">{l.full_name}</p>
+                      <p className="font-semibold text-[var(--ink-strong)]">{l.full_name}</p>
                       <p className="text-xs text-[#c9a84c] font-medium">{l.position || "Lawyer"}</p>
                     </div>
                     {lawyerId === l.id && (
@@ -606,10 +614,10 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
 
           {step === 4 && (
             <div>
-              <h2 className="font-serif text-2xl font-bold text-[#0d1f3c] mb-2">
+              <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)] mb-2">
                 Consultation Method
               </h2>
-              <p className="text-[#8a9ab5] text-sm mb-8">How would you prefer to meet?</p>
+              <p className="text-[var(--ink-muted)] text-sm mb-8">How would you prefer to meet?</p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {[
                   {
@@ -637,12 +645,12 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
                     className={`p-6 rounded-xl border-2 text-center transition-all ${
                       method === m.value
                         ? "border-[#c9a84c] bg-[#c9a84c]/5"
-                        : "border-[#e8e4dc] hover:border-[#c9a84c]"
+                        : "border-[var(--line)] hover:border-[#c9a84c]"
                     }`}
                   >
                     <div className="text-3xl mb-3">{m.icon}</div>
-                    <p className="font-semibold text-[#0d1f3c] mb-1">{m.value}</p>
-                    <p className="text-xs text-[#8a9ab5]">{m.desc}</p>
+                    <p className="font-semibold text-[var(--ink-strong)] mb-1">{m.value}</p>
+                    <p className="text-xs text-[var(--ink-muted)]">{m.desc}</p>
                   </button>
                 ))}
               </div>
@@ -651,15 +659,15 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
 
           {step === 5 && (
             <div>
-              <h2 className="font-serif text-2xl font-bold text-[#0d1f3c] mb-2">
+              <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)] mb-2">
                 Choose Date & Time
               </h2>
-              <p className="text-[#8a9ab5] text-sm mb-8">
+              <p className="text-[var(--ink-muted)] text-sm mb-8">
                 Select your preferred date and time slot.
               </p>
               <div className="space-y-5">
                 <div>
-                  <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-2">
+                  <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-2">
                     Date
                   </label>
                   <input
@@ -667,11 +675,11 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
                     value={date}
                     min={new Date(Date.now() + 86400000).toISOString().split("T")[0]}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-3 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c]"
+                    className="w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-4 py-3 text-sm text-[var(--ink-strong)] focus:outline-none focus:border-[#c9a84c]"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-2">
+                  <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-2">
                     Available Time Slots
                   </label>
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
@@ -681,8 +689,8 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
                         onClick={() => setTime(slot)}
                         className={`py-3 rounded-lg border-2 text-sm font-medium transition-all ${
                           time === slot
-                            ? "border-[#c9a84c] bg-[#c9a84c]/10 text-[#0d1f3c]"
-                            : "border-[#e8e4dc] text-[#2c3347] hover:border-[#c9a84c]"
+                            ? "border-[#c9a84c] bg-[#c9a84c]/10 text-[var(--ink-on-gold)]"
+                            : "border-[var(--line)] text-[var(--ink-body)] hover:border-[#c9a84c]"
                         }`}
                       >
                         {slot}
@@ -695,7 +703,7 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
                     if (date && time) setStep(6);
                   }}
                   disabled={!date || !time}
-                  className="bg-[#0d1f3c] hover:bg-[#162d52] disabled:opacity-40 text-white font-semibold px-8 py-3 rounded transition-colors text-sm"
+                  className="bg-[var(--navy-solid)] hover:bg-[#162d52] disabled:opacity-40 text-white font-semibold px-8 py-3 rounded transition-colors text-sm"
                 >
                   Continue
                 </button>
@@ -705,10 +713,10 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
 
           {step === 6 && (
             <div>
-              <h2 className="font-serif text-2xl font-bold text-[#0d1f3c] mb-2">
+              <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)] mb-2">
                 Your Information
               </h2>
-              <p className="text-[#8a9ab5] text-sm mb-8">Confirm your contact details.</p>
+              <p className="text-[var(--ink-muted)] text-sm mb-8">Confirm your contact details.</p>
               <div className="space-y-4">
                 {[
                   { key: "name", label: "Full Name", type: "text", required: true },
@@ -716,7 +724,7 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
                   { key: "phone", label: "Phone Number", type: "tel", required: true },
                 ].map((f) => (
                   <div key={f.key}>
-                    <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                    <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5">
                       {f.label} {f.required && <span className="text-red-400">*</span>}
                     </label>
                     <input
@@ -724,27 +732,29 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
                       required={f.required}
                       value={(client as Record<string, string>)[f.key]}
                       onChange={(e) => setClient({ ...client, [f.key]: e.target.value })}
-                      className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-3 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c]"
+                      className="w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-4 py-3 text-sm text-[var(--ink-strong)] focus:outline-none focus:border-[#c9a84c]"
                     />
                   </div>
                 ))}
                 <div>
-                  <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                  <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5">
                     Additional Notes{" "}
-                    <span className="text-[#8a9ab5] font-normal normal-case">(optional)</span>
+                    <span className="text-[var(--ink-muted)] font-normal normal-case">
+                      (optional)
+                    </span>
                   </label>
                   <textarea
                     rows={3}
                     value={client.notes}
                     onChange={(e) => setClient({ ...client, notes: e.target.value })}
                     placeholder="Any additional details about your concern..."
-                    className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-3 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] focus:outline-none focus:border-[#c9a84c] resize-none"
+                    className="w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-4 py-3 text-sm text-[var(--ink-strong)] placeholder-[var(--ink-muted)] focus:outline-none focus:border-[#c9a84c] resize-none"
                   />
                 </div>
                 <button
                   onClick={() => setStep(7)}
                   disabled={!client.name.trim() || !client.email.trim() || !client.phone.trim()}
-                  className="bg-[#0d1f3c] hover:bg-[#162d52] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold px-8 py-3 rounded transition-colors text-sm"
+                  className="bg-[var(--navy-solid)] hover:bg-[#162d52] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold px-8 py-3 rounded transition-colors text-sm"
                 >
                   Review Booking
                 </button>
@@ -754,10 +764,10 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
 
           {step === 7 && (
             <div>
-              <h2 className="font-serif text-2xl font-bold text-[#0d1f3c] mb-8">
+              <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)] mb-8">
                 Review & Confirm
               </h2>
-              <div className="bg-[#f7f5f0] rounded-xl p-6 space-y-3 mb-6">
+              <div className="bg-[var(--surface-sunken)] rounded-xl p-6 space-y-3 mb-6">
                 {[
                   ["Practice Area", selectedPA?.name ?? practiceArea],
                   ["Type of Assistance", assistance],
@@ -771,14 +781,14 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
                 ].map(([label, value]) => (
                   <div
                     key={label}
-                    className="flex justify-between items-start gap-4 text-sm border-b border-[#e8e4dc] pb-3 last:border-0 last:pb-0"
+                    className="flex justify-between items-start gap-4 text-sm border-b border-[var(--line)] pb-3 last:border-0 last:pb-0"
                   >
-                    <span className="text-[#8a9ab5] flex-shrink-0">{label}</span>
-                    <span className="font-medium text-[#0d1f3c] text-right">{value}</span>
+                    <span className="text-[var(--ink-muted)] flex-shrink-0">{label}</span>
+                    <span className="font-medium text-[var(--ink-strong)] text-right">{value}</span>
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-[#8a9ab5] leading-relaxed mb-6">
+              <p className="text-xs text-[var(--ink-muted)] leading-relaxed mb-6">
                 By confirming, you agree that submitting this request does not establish an
                 attorney-client relationship. Westwood Law Firm will confirm the appointment by
                 email.
@@ -792,7 +802,7 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
               <button
                 onClick={handleConfirm}
                 disabled={submitting}
-                className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] font-semibold py-4 rounded transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] text-[var(--ink-on-gold)] font-semibold py-4 rounded transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? "Submitting…" : "Confirm Consultation Request"}
               </button>
@@ -802,7 +812,7 @@ function BookingFlow({ onNavigate, prefilledAreaId, prefilledLawyerId }: Consult
           {step > 1 && (
             <button
               onClick={() => setStep(step - 1)}
-              className="mt-6 text-[#8a9ab5] hover:text-[#0d1f3c] text-sm transition-colors"
+              className="mt-6 text-[var(--ink-muted)] hover:text-[var(--ink-strong)] text-sm transition-colors"
             >
               ← Back
             </button>
@@ -829,7 +839,7 @@ export default function ConsultationFlow({
 
   if (loading) {
     return (
-      <div className="bg-[#f7f5f0] min-h-screen pt-20 flex items-center justify-center">
+      <div className="bg-[var(--surface-sunken)] min-h-screen pt-20 flex items-center justify-center">
         <div className="w-16 h-16 border-4 border-[#c9a84c] border-t-transparent rounded-full animate-spin" />
       </div>
     );

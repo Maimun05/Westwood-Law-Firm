@@ -394,8 +394,8 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
 
   if (step === "success") {
     return (
-      <div className="bg-[#f7f5f0] min-h-screen pt-20 flex items-center justify-center px-6">
-        <div className="bg-white rounded-2xl border border-[#e8e4dc] p-10 max-w-lg w-full text-center">
+      <div className="bg-[var(--surface-sunken)] min-h-screen pt-20 flex items-center justify-center px-6">
+        <div className="bg-[var(--surface-card)] rounded-2xl border border-[var(--line)] p-10 max-w-lg w-full text-center">
           <div className="w-16 h-16 rounded-full bg-[#c9a84c]/15 flex items-center justify-center mx-auto mb-6">
             <svg
               className="w-7 h-7 text-[#c9a84c]"
@@ -414,38 +414,42 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
           <p className="text-[#c9a84c] text-xs tracking-[0.2em] uppercase font-medium mb-3">
             Submitted
           </p>
-          <h2 className="font-serif text-3xl font-bold text-[#0d1f3c] mb-3">
+          <h2 className="font-serif text-3xl font-bold text-[var(--ink-strong)] mb-3">
             Your legal inquiry has been submitted successfully.
           </h2>
-          <p className="text-[#8a9ab5] text-sm mb-8 leading-relaxed">
+          <p className="text-[var(--ink-muted)] text-sm mb-8 leading-relaxed">
             A Westwood team member will review your inquiry and contact you within one to two
             business days.
           </p>
 
-          <div className="bg-[#f7f5f0] rounded-xl p-6 text-left space-y-3 mb-8">
+          <div className="bg-[var(--surface-sunken)] rounded-xl p-6 text-left space-y-3 mb-8">
             <div className="flex justify-between text-sm">
-              <span className="text-[#8a9ab5]">Reference No.</span>
-              <span className="font-mono font-semibold text-[#0d1f3c] text-base">{refNumber}</span>
+              <span className="text-[var(--ink-muted)]">Reference No.</span>
+              <span className="font-mono font-semibold text-[var(--ink-strong)] text-base">
+                {refNumber}
+              </span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-[#8a9ab5]">Inquiry Type</span>
-              <span className="text-[#0d1f3c] font-medium text-right max-w-[220px]">
+              <span className="text-[var(--ink-muted)]">Inquiry Type</span>
+              <span className="text-[var(--ink-strong)] font-medium text-right max-w-[220px]">
                 {inquiryTypes.find((t) => t.id === inquiryType)?.label}
               </span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-[#8a9ab5]">Contact Method</span>
-              <span className="text-[#0d1f3c] font-medium">{form.contactMethod}</span>
+              <span className="text-[var(--ink-muted)]">Contact Method</span>
+              <span className="text-[var(--ink-strong)] font-medium">{form.contactMethod}</span>
             </div>
             {attachedSummary && (
               <div className="flex justify-between text-sm gap-4">
-                <span className="text-[#8a9ab5] flex-shrink-0">Attachments</span>
-                <span className="text-[#0d1f3c] font-medium text-right">{attachedSummary}</span>
+                <span className="text-[var(--ink-muted)] flex-shrink-0">Attachments</span>
+                <span className="text-[var(--ink-strong)] font-medium text-right">
+                  {attachedSummary}
+                </span>
               </div>
             )}
             <div className="flex justify-between text-sm">
-              <span className="text-[#8a9ab5]">Date</span>
-              <span className="text-[#0d1f3c] font-medium">
+              <span className="text-[var(--ink-muted)]">Date</span>
+              <span className="text-[var(--ink-strong)] font-medium">
                 {new Date().toLocaleDateString("en-PH", {
                   year: "numeric",
                   month: "long",
@@ -455,7 +459,7 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
             </div>
           </div>
 
-          <p className="text-xs text-[#8a9ab5] mb-6 leading-relaxed">
+          <p className="text-xs text-[var(--ink-muted)] mb-6 leading-relaxed">
             Submitting this inquiry does not establish an attorney-client relationship. All
             communications are treated with strict confidentiality.
           </p>
@@ -463,13 +467,13 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
           <div className="flex flex-col gap-3">
             <button
               onClick={() => onNavigate("portal")}
-              className="bg-[#0d1f3c] hover:bg-[#162d52] text-white font-semibold py-3 px-6 rounded text-sm transition-colors"
+              className="bg-[var(--navy-solid)] hover:bg-[#162d52] text-white font-semibold py-3 px-6 rounded text-sm transition-colors"
             >
               Track It in Your Account
             </button>
             <button
               onClick={() => onNavigate("home")}
-              className="text-[#8a9ab5] hover:text-[#0d1f3c] text-sm transition-colors py-2"
+              className="text-[var(--ink-muted)] hover:text-[var(--ink-strong)] text-sm transition-colors py-2"
             >
               Return to Home
             </button>
@@ -481,8 +485,8 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
 
   if (step === "type") {
     return (
-      <div className="bg-[#f7f5f0] min-h-screen pt-20">
-        <div className="bg-[#0d1f3c] py-12">
+      <div className="bg-[var(--surface-sunken)] min-h-screen pt-20">
+        <div className="bg-[var(--navy-solid)] py-12">
           <div className="max-w-3xl mx-auto px-6 lg:px-8 text-center">
             <p className="text-[#c9a84c] text-xs tracking-[0.2em] uppercase font-medium mb-4">
               Get Started
@@ -495,10 +499,10 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
         </div>
 
         <div className="max-w-3xl mx-auto px-6 lg:px-8 py-14">
-          <h2 className="font-serif text-2xl font-bold text-[#0d1f3c] mb-2 text-center">
+          <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)] mb-2 text-center">
             What brings you to Westwood?
           </h2>
-          <p className="text-[#8a9ab5] text-sm text-center mb-10">
+          <p className="text-[var(--ink-muted)] text-sm text-center mb-10">
             Select the option that best describes your situation.
           </p>
 
@@ -512,28 +516,30 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
                 }}
                 className={`w-full p-5 rounded-xl border-2 text-left transition-all flex items-center gap-5 ${
                   inquiryType === t.id
-                    ? "border-[#c9a84c] bg-[#0d1f3c] text-white"
-                    : "border-[#e8e4dc] bg-white hover:border-[#c9a84c]/50 text-[#0d1f3c]"
+                    ? "border-[#c9a84c] bg-[var(--navy-solid)] text-white"
+                    : "border-[var(--line)] bg-[var(--surface-card)] hover:border-[#c9a84c]/50 text-[var(--ink-strong)]"
                 }`}
               >
                 <div
                   className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
-                    inquiryType === t.id ? "border-[#c9a84c] bg-[#c9a84c]" : "border-[#e8e4dc]"
+                    inquiryType === t.id ? "border-[#c9a84c] bg-[#c9a84c]" : "border-[var(--line)]"
                   }`}
                 >
-                  {inquiryType === t.id && <div className="w-2 h-2 rounded-full bg-[#0d1f3c]" />}
+                  {inquiryType === t.id && (
+                    <div className="w-2 h-2 rounded-full bg-[var(--navy-solid)]" />
+                  )}
                 </div>
                 <div>
                   <p
                     className={`font-semibold ${
-                      inquiryType === t.id ? "text-white" : "text-[#0d1f3c]"
+                      inquiryType === t.id ? "text-white" : "text-[var(--ink-strong)]"
                     }`}
                   >
                     {t.label}
                   </p>
                   <p
                     className={`text-xs mt-0.5 ${
-                      inquiryType === t.id ? "text-white/60" : "text-[#8a9ab5]"
+                      inquiryType === t.id ? "text-white/60" : "text-[var(--ink-muted)]"
                     }`}
                   >
                     {t.desc}
@@ -550,8 +556,8 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
   // step === "form"
 
   return (
-    <div className="bg-[#f7f5f0] min-h-screen pt-20">
-      <div className="bg-[#0d1f3c] py-10">
+    <div className="bg-[var(--surface-sunken)] min-h-screen pt-20">
+      <div className="bg-[var(--navy-solid)] py-10">
         <div className="max-w-3xl mx-auto px-6 lg:px-8">
           <button
             onClick={() => setStep("type")}
@@ -569,10 +575,10 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
       </div>
 
       <div className="max-w-3xl mx-auto px-6 lg:px-8 py-12">
-        <div className="bg-white rounded-2xl border border-[#e8e4dc] p-8">
+        <div className="bg-[var(--surface-card)] rounded-2xl border border-[var(--line)] p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Contact details come from the signed-in account — nothing to type. */}
-            <div className="flex items-start gap-3 rounded-xl bg-[#f7f5f0] border border-[#e8e4dc] px-4 py-3.5">
+            <div className="flex items-start gap-3 rounded-xl bg-[var(--surface-sunken)] border border-[var(--line)] px-4 py-3.5">
               <svg
                 className="w-5 h-5 text-[#c9a84c] flex-shrink-0 mt-0.5"
                 viewBox="0 0 24 24"
@@ -587,14 +593,14 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
                 <circle cx="12" cy="7" r="4" />
               </svg>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-[#0d1f3c] truncate">
+                <p className="text-sm font-semibold text-[var(--ink-strong)] truncate">
                   {form.fullName || "Your account"}
                 </p>
-                <p className="text-xs text-[#8a9ab5] truncate">
+                <p className="text-xs text-[var(--ink-muted)] truncate">
                   {form.email}
                   {form.phone ? ` · ${form.phone}` : ""}
                 </p>
-                <p className="text-xs text-[#8a9ab5] mt-1">
+                <p className="text-xs text-[var(--ink-muted)] mt-1">
                   We&rsquo;ll contact you using the details on your account.
                 </p>
               </div>
@@ -602,10 +608,12 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
 
             {/* Inquiry details */}
             <div>
-              <h3 className="font-serif text-lg font-bold text-[#0d1f3c] mb-4">Inquiry Details</h3>
+              <h3 className="font-serif text-lg font-bold text-[var(--ink-strong)] mb-4">
+                Inquiry Details
+              </h3>
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                  <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5">
                     Practice Area
                   </label>
                   <select
@@ -628,7 +636,7 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
                         };
                       });
                     }}
-                    className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-3 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c]"
+                    className="w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-4 py-3 text-sm text-[var(--ink-strong)] focus:outline-none focus:border-[#c9a84c]"
                   >
                     <option value="">Not sure / General</option>
                     {practiceAreas.map((pa) => (
@@ -641,13 +649,13 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
 
                 {inquiryType === "specific" && (
                   <div>
-                    <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                    <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5">
                       Preferred Lawyer
                     </label>
                     <select
                       value={form.lawyerId}
                       onChange={(e) => setForm({ ...form, lawyerId: e.target.value })}
-                      className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-3 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c]"
+                      className="w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-4 py-3 text-sm text-[var(--ink-strong)] focus:outline-none focus:border-[#c9a84c]"
                     >
                       <option value="">Select a lawyer (optional)</option>
                       {eligibleLawyers.map((l) => (
@@ -657,7 +665,7 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
                       ))}
                     </select>
                     {form.practiceArea && eligibleLawyers.length === 0 && (
-                      <p className="text-xs text-[#8a9ab5] mt-1.5">
+                      <p className="text-xs text-[var(--ink-muted)] mt-1.5">
                         No lawyer lists that practice area yet — leave this blank and the firm will
                         assign the right lawyer.
                       </p>
@@ -666,7 +674,7 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
                 )}
 
                 <div>
-                  <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                  <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5">
                     Brief Description <span className="text-red-400">*</span>
                   </label>
                   <textarea
@@ -675,12 +683,12 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
                     placeholder="Describe your legal concern or question. The more detail you provide, the better we can assist you."
                     value={form.description}
                     onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-3 text-sm text-[#0d1f3c] placeholder-[#8a9ab5] focus:outline-none focus:border-[#c9a84c] resize-none"
+                    className="w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-4 py-3 text-sm text-[var(--ink-strong)] placeholder-[var(--ink-muted)] focus:outline-none focus:border-[#c9a84c] resize-none"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                  <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5">
                     Attach File / Photo / Video
                   </label>
                   <div
@@ -698,7 +706,7 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
                     className={`rounded-xl border-2 border-dashed px-5 py-6 text-center cursor-pointer transition-colors ${
                       dragOver
                         ? "border-[#c9a84c] bg-[#c9a84c]/5"
-                        : "border-[#e8e4dc] hover:border-[#c9a84c]/60"
+                        : "border-[var(--line)] hover:border-[#c9a84c]/60"
                     }`}
                   >
                     <input
@@ -726,10 +734,10 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
                       <polyline points="7 9 12 4 17 9" />
                       <line x1="12" y1="4" x2="12" y2="16" />
                     </svg>
-                    <p className="text-sm font-medium text-[#0d1f3c]">
+                    <p className="text-sm font-medium text-[var(--ink-strong)]">
                       Click to attach, or drag files here
                     </p>
-                    <p className="text-xs text-[#8a9ab5] mt-1">
+                    <p className="text-xs text-[var(--ink-muted)] mt-1">
                       Photos, videos, PDF or office documents — up to {MAX_FILES} files, 25 MB each.
                       Evidence and documents help us understand your concern faster.
                     </p>
@@ -740,25 +748,25 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
                       {files.map((f, i) => (
                         <li
                           key={`${f.name}-${i}`}
-                          className="flex items-center gap-3 bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-3 py-2"
+                          className="flex items-center gap-3 bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-3 py-2"
                         >
                           <span className="text-[#c9a84c] flex-shrink-0">
                             <FileKindIcon kind={fileKind(f)} />
                           </span>
                           <span
-                            className="flex-1 min-w-0 text-sm text-[#0d1f3c] truncate"
+                            className="flex-1 min-w-0 text-sm text-[var(--ink-strong)] truncate"
                             title={f.name}
                           >
                             {f.name}
                           </span>
-                          <span className="text-xs text-[#8a9ab5] flex-shrink-0">
+                          <span className="text-xs text-[var(--ink-muted)] flex-shrink-0">
                             {formatFileSize(f.size)}
                           </span>
                           <button
                             type="button"
                             onClick={() => removeFile(i)}
                             aria-label={`Remove ${f.name}`}
-                            className="text-[#8a9ab5] hover:text-red-500 text-lg leading-none flex-shrink-0"
+                            className="text-[var(--ink-muted)] hover:text-red-500 text-lg leading-none flex-shrink-0"
                           >
                             ×
                           </button>
@@ -769,7 +777,7 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                  <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5">
                     Preferred Contact Method
                   </label>
                   <div className="flex gap-3">
@@ -780,8 +788,8 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
                         onClick={() => setForm({ ...form, contactMethod: m })}
                         className={`flex-1 py-3 rounded-lg border text-sm font-medium transition-all ${
                           form.contactMethod === m
-                            ? "border-[#c9a84c] bg-[#0d1f3c] text-white"
-                            : "border-[#e8e4dc] text-[#2c3347] hover:border-[#c9a84c]/50"
+                            ? "border-[#c9a84c] bg-[var(--navy-solid)] text-white"
+                            : "border-[var(--line)] text-[var(--ink-body)] hover:border-[#c9a84c]/50"
                         }`}
                       >
                         {m}
@@ -793,7 +801,7 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
             </div>
 
             <div className="pt-2">
-              <p className="text-xs text-[#8a9ab5] leading-relaxed mb-4">
+              <p className="text-xs text-[var(--ink-muted)] leading-relaxed mb-4">
                 Submitting this inquiry does not establish an attorney-client relationship. All
                 information is treated with strict confidentiality. A reference number will be
                 generated upon submission.
@@ -802,7 +810,7 @@ function InquiryForm({ onNavigate, prefilledLawyerId, prefilledAreaId }: Inquiry
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] disabled:opacity-60 text-[#0d1f3c] font-semibold py-4 rounded transition-colors text-sm"
+                className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] disabled:opacity-60 text-[var(--ink-on-gold)] font-semibold py-4 rounded transition-colors text-sm"
               >
                 {submitting ? (uploadNote ?? "Submitting…") : "Submit Legal Inquiry"}
               </button>
@@ -832,7 +840,7 @@ export default function InquiryFlow({
 
   if (loading) {
     return (
-      <div className="bg-[#f7f5f0] min-h-screen pt-20 flex items-center justify-center">
+      <div className="bg-[var(--surface-sunken)] min-h-screen pt-20 flex items-center justify-center">
         <div className="w-16 h-16 border-4 border-[#c9a84c] border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -840,8 +848,8 @@ export default function InquiryFlow({
 
   if (!user) {
     return (
-      <div className="bg-[#f7f5f0] min-h-screen pt-20 flex items-center justify-center px-6 py-12">
-        <div className="bg-white rounded-2xl border border-[#e8e4dc] p-10 max-w-lg w-full">
+      <div className="bg-[var(--surface-sunken)] min-h-screen pt-20 flex items-center justify-center px-6 py-12">
+        <div className="bg-[var(--surface-card)] rounded-2xl border border-[var(--line)] p-10 max-w-lg w-full">
           <p className="text-[#c9a84c] text-xs tracking-[0.2em] uppercase font-medium mb-3">
             Get Started
           </p>

@@ -310,7 +310,7 @@ export default function AuthPage({ onNavigate, initialMode = "login" }: AuthPage
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0d1f3c] via-[#162d52] to-[#0d1f3c] flex items-center justify-center px-6 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-[var(--navy-solid)] via-[#162d52] to-[var(--navy-solid)] flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-md">
         {/* Logo/Header */}
         <div className="text-center mb-8">
@@ -331,14 +331,14 @@ export default function AuthPage({ onNavigate, initialMode = "login" }: AuthPage
         </div>
 
         {/* Auth Form */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
+        <div className="bg-[var(--surface-card)] rounded-2xl shadow-2xl p-8">
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Name parts (Register Only) */}
             {mode === "register" && (
               <>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                    <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5">
                       First Name *
                     </label>
                     <input
@@ -346,12 +346,12 @@ export default function AuthPage({ onNavigate, initialMode = "login" }: AuthPage
                       value={formData.firstName}
                       onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                       disabled={loading}
-                      className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                      className="w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-4 py-2.5 text-sm text-[var(--ink-strong)] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
                       placeholder="Juan"
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                    <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5">
                       Last Name *
                     </label>
                     <input
@@ -359,14 +359,14 @@ export default function AuthPage({ onNavigate, initialMode = "login" }: AuthPage
                       value={formData.lastName}
                       onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                       disabled={loading}
-                      className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                      className="w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-4 py-2.5 text-sm text-[var(--ink-strong)] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
                       placeholder="Dela Cruz"
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                    <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5">
                       Middle Name
                     </label>
                     <input
@@ -374,12 +374,12 @@ export default function AuthPage({ onNavigate, initialMode = "login" }: AuthPage
                       value={formData.middleName}
                       onChange={(e) => setFormData({ ...formData, middleName: e.target.value })}
                       disabled={loading}
-                      className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                      className="w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-4 py-2.5 text-sm text-[var(--ink-strong)] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
                       placeholder="Optional"
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                    <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5">
                       Suffix
                     </label>
                     <input
@@ -387,14 +387,14 @@ export default function AuthPage({ onNavigate, initialMode = "login" }: AuthPage
                       value={formData.suffix}
                       onChange={(e) => setFormData({ ...formData, suffix: e.target.value })}
                       disabled={loading}
-                      className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                      className="w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-4 py-2.5 text-sm text-[var(--ink-strong)] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
                       placeholder="Jr., III (optional)"
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                    <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5">
                       Birthday
                     </label>
                     <input
@@ -407,13 +407,13 @@ export default function AuthPage({ onNavigate, initialMode = "login" }: AuthPage
                         })
                       }
                       disabled={loading}
-                      className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                      className="w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-4 py-2.5 text-sm text-[var(--ink-strong)] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
                       placeholder=""
                       max={new Date().toISOString().slice(0, 10)}
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                    <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5">
                       City
                     </label>
                     <input
@@ -421,7 +421,7 @@ export default function AuthPage({ onNavigate, initialMode = "login" }: AuthPage
                       value={formData.city}
                       onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                       disabled={loading}
-                      className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                      className="w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-4 py-2.5 text-sm text-[var(--ink-strong)] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
                       placeholder="e.g. San Juan City"
                     />
                   </div>
@@ -431,7 +431,7 @@ export default function AuthPage({ onNavigate, initialMode = "login" }: AuthPage
 
             {/* Email */}
             <div>
-              <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+              <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5">
                 Email Address *
               </label>
               <input
@@ -439,7 +439,7 @@ export default function AuthPage({ onNavigate, initialMode = "login" }: AuthPage
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 disabled={loading}
-                className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                className="w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-4 py-2.5 text-sm text-[var(--ink-strong)] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
                 placeholder="you@example.com"
               />
             </div>
@@ -447,7 +447,7 @@ export default function AuthPage({ onNavigate, initialMode = "login" }: AuthPage
             {/* Phone (Register Only) */}
             {mode === "register" && (
               <div>
-                <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5">
                   Phone *
                 </label>
                 <input
@@ -455,7 +455,7 @@ export default function AuthPage({ onNavigate, initialMode = "login" }: AuthPage
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   disabled={loading}
-                  className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                  className="w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-4 py-2.5 text-sm text-[var(--ink-strong)] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50"
                   placeholder="+63 9XX XXX XXXX"
                 />
               </div>
@@ -463,7 +463,7 @@ export default function AuthPage({ onNavigate, initialMode = "login" }: AuthPage
 
             {/* Password */}
             <div>
-              <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+              <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5">
                 Password *
               </label>
               <div className="relative">
@@ -472,13 +472,13 @@ export default function AuthPage({ onNavigate, initialMode = "login" }: AuthPage
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   disabled={loading}
-                  className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50 pr-10"
+                  className="w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-4 py-2.5 text-sm text-[var(--ink-strong)] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50 pr-10"
                   placeholder={mode === "login" ? "Enter your password" : "Minimum 6 characters"}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a9ab5] hover:text-[#0d1f3c] text-sm"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--ink-muted)] hover:text-[var(--ink-strong)] text-sm"
                   tabIndex={-1}
                 >
                   {showPassword ? "Hide" : "Show"}
@@ -489,7 +489,7 @@ export default function AuthPage({ onNavigate, initialMode = "login" }: AuthPage
             {/* Confirm Password (Register Only) */}
             {mode === "register" && (
               <div>
-                <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5">
                   Confirm Password *
                 </label>
                 <div className="relative">
@@ -503,13 +503,13 @@ export default function AuthPage({ onNavigate, initialMode = "login" }: AuthPage
                       })
                     }
                     disabled={loading}
-                    className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50 pr-10"
+                    className="w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-4 py-2.5 text-sm text-[var(--ink-strong)] focus:outline-none focus:border-[#c9a84c] disabled:opacity-50 pr-10"
                     placeholder="Re-enter your password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a9ab5] hover:text-[#0d1f3c] text-sm"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--ink-muted)] hover:text-[var(--ink-strong)] text-sm"
                     tabIndex={-1}
                   >
                     {showConfirmPassword ? "Hide" : "Show"}
@@ -540,7 +540,7 @@ export default function AuthPage({ onNavigate, initialMode = "login" }: AuthPage
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] text-[var(--ink-on-gold)] font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading
                 ? mode === "login"
@@ -557,7 +557,7 @@ export default function AuthPage({ onNavigate, initialMode = "login" }: AuthPage
             <div className="mt-4 text-center">
               <button
                 onClick={() => onNavigate("forgot-password")}
-                className="text-sm text-[#8a9ab5] hover:text-[#0d1f3c] hover:underline"
+                className="text-sm text-[var(--ink-muted)] hover:text-[var(--ink-strong)] hover:underline"
               >
                 Forgot your password?
               </button>
@@ -565,8 +565,8 @@ export default function AuthPage({ onNavigate, initialMode = "login" }: AuthPage
           )}
 
           {/* Mode Switch */}
-          <div className="mt-6 pt-6 border-t border-[#e8e4dc] text-center">
-            <p className="text-sm text-[#8a9ab5]">
+          <div className="mt-6 pt-6 border-t border-[var(--line)] text-center">
+            <p className="text-sm text-[var(--ink-muted)]">
               {mode === "login" ? "Don't have an account?" : "Already have an account?"}{" "}
               <button onClick={switchMode} className="text-[#c9a84c] hover:underline font-semibold">
                 {mode === "login" ? "Create Account" : "Sign In"}

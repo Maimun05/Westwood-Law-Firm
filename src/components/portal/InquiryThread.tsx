@@ -112,22 +112,22 @@ export default function InquiryThread({
       : "Reply to the client…";
 
   return (
-    <div className="bg-[#f7f5f0] rounded-xl border border-[#e8e4dc] p-4">
+    <div className="bg-[var(--surface-sunken)] rounded-xl border border-[var(--line)] p-4">
       <div className="flex items-baseline justify-between gap-3 mb-3">
-        <h4 className="text-xs font-semibold text-[#0d1f3c] uppercase tracking-wide">
+        <h4 className="text-xs font-semibold text-[var(--ink-strong)] uppercase tracking-wide">
           Conversation
         </h4>
         {counterpartLabel && (
-          <p className="text-xs text-[#8a9ab5] truncate">with {counterpartLabel}</p>
+          <p className="text-xs text-[var(--ink-muted)] truncate">with {counterpartLabel}</p>
         )}
       </div>
 
       <div ref={listRef} className="max-h-72 overflow-y-auto pr-1 mb-3 space-y-3">
         {loading && messages.length === 0 && (
-          <p className="text-xs text-[#8a9ab5]">Loading conversation…</p>
+          <p className="text-xs text-[var(--ink-muted)]">Loading conversation…</p>
         )}
         {!loading && messages.length === 0 && !err && (
-          <p className="text-xs text-[#8a9ab5]">
+          <p className="text-xs text-[var(--ink-muted)]">
             No messages yet. {role === "client" ? "Ask a question about this inquiry." : ""}
           </p>
         )}
@@ -137,10 +137,10 @@ export default function InquiryThread({
           return (
             <div
               key={m.id}
-              className={`pl-3 border-l-2 ${mine ? "border-[#c9a84c]" : "border-[#0d1f3c]"}`}
+              className={`pl-3 border-l-2 ${mine ? "border-[#c9a84c]" : "border-[var(--line-strong)]"}`}
             >
-              <p className="text-sm text-[#0d1f3c] whitespace-pre-wrap">{m.body}</p>
-              <p className="text-xs text-[#8a9ab5]">
+              <p className="text-sm text-[var(--ink-strong)] whitespace-pre-wrap">{m.body}</p>
+              <p className="text-xs text-[var(--ink-muted)]">
                 {who(m.author_id)}
                 {" · "}
                 {new Date(m.created_at).toLocaleString("en-PH")}
@@ -153,7 +153,7 @@ export default function InquiryThread({
       </div>
 
       {isFirmAdmin(role) ? (
-        <p className="text-[11px] text-[#8a9ab5]">
+        <p className="text-[11px] text-[var(--ink-muted)]">
           Admins can review this conversation but not post to it.
         </p>
       ) : (
@@ -169,14 +169,14 @@ export default function InquiryThread({
             }}
           />
           <div className="flex items-center gap-2">
-            <p className="text-[11px] text-[#8a9ab5]">
+            <p className="text-[11px] text-[var(--ink-muted)]">
               Encrypted at rest. Only you and the {role === "client" ? "firm" : "client"} can read
               this.
             </p>
             <button
               onClick={() => void send()}
               disabled={sending || !body.trim()}
-              className="ml-auto bg-[#0d1f3c] text-white text-xs font-semibold px-4 py-2 rounded disabled:opacity-40"
+              className="ml-auto bg-[var(--navy-solid)] text-white text-xs font-semibold px-4 py-2 rounded disabled:opacity-40"
             >
               {sending ? "Sending…" : "Send"}
             </button>

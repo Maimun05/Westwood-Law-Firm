@@ -9,10 +9,10 @@
 
 export default function PageLoader() {
   return (
-    <div className="bg-[#f7f5f0] min-h-screen flex items-center justify-center px-6 py-12">
+    <div className="bg-[var(--surface-sunken)] min-h-screen flex items-center justify-center px-6 py-12">
       <div className="text-center">
         <div className="w-16 h-16 mx-auto mb-4 border-4 border-[#c9a84c] border-t-transparent rounded-full animate-spin" />
-        <p className="text-[#8a9ab5] text-sm">Loading...</p>
+        <p className="text-[var(--ink-muted)] text-sm">Loading...</p>
       </div>
     </div>
   );

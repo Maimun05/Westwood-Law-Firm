@@ -146,16 +146,16 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
 
   if (loading) {
     return (
-      <div className="bg-[#f7f5f0] min-h-screen pt-20 flex items-center justify-center">
+      <div className="bg-[var(--surface-sunken)] min-h-screen pt-20 flex items-center justify-center">
         <div className="w-16 h-16 border-4 border-[#c9a84c] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="bg-[#f7f5f0] min-h-screen pt-20">
+    <div className="bg-[var(--surface-sunken)] min-h-screen pt-20">
       {/* Hero */}
-      <div className="bg-[#0d1f3c] py-12 relative overflow-hidden">
+      <div className="bg-[var(--navy-solid)] py-12 relative overflow-hidden">
         <div
           className="absolute inset-0 opacity-[0.04]"
           style={{
@@ -179,7 +179,7 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
       </div>
 
       {/* Section navigation */}
-      <div className="sticky top-[64px] z-30 bg-white border-b border-[#e8e4dc] shadow-sm">
+      <div className="sticky top-[64px] z-30 bg-[var(--surface-card)] border-b border-[var(--line)] shadow-sm">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex gap-1 overflow-x-auto no-scrollbar py-1">
             {navItems.map((item) => (
@@ -189,7 +189,7 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
                 className={`flex-shrink-0 px-4 py-3 text-xs font-semibold tracking-wide transition-colors whitespace-nowrap rounded-sm ${
                   activeSection === item.id
                     ? "text-[#c9a84c] border-b-2 border-[#c9a84c]"
-                    : "text-[#8a9ab5] hover:text-[#0d1f3c]"
+                    : "text-[var(--ink-muted)] hover:text-[var(--ink-strong)]"
                 }`}
               >
                 {item.label}
@@ -208,8 +208,10 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
                 <p className="text-[#c9a84c] text-xs tracking-widest uppercase font-medium mb-3">
                   Established 1998
                 </p>
-                <h2 className="font-serif text-4xl font-bold text-[#0d1f3c] mb-6">Firm Profile</h2>
-                <div className="space-y-4 text-[#2c3347] leading-relaxed text-sm">
+                <h2 className="font-serif text-4xl font-bold text-[var(--ink-strong)] mb-6">
+                  Firm Profile
+                </h2>
+                <div className="space-y-4 text-[var(--ink-body)] leading-relaxed text-sm">
                   <p>
                     Westwood Law Firm was established in August 1998 by founding partners coming
                     from four different law firms of their own, with varied law practice
@@ -231,7 +233,7 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
                   </p>
                 </div>
               </div>
-              <div className="bg-[#0d1f3c] rounded-2xl overflow-hidden h-72 lg:h-auto relative">
+              <div className="bg-[var(--navy-solid)] rounded-2xl overflow-hidden h-72 lg:h-auto relative">
                 <img
                   src="/lawyers/atty-tabao-secondary.jpg"
                   alt="Atty. Ernesto Tabao — Managing Partner"
@@ -240,7 +242,7 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
                   className="w-full h-full object-cover object-top"
                   style={{ minHeight: "280px" }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0d1f3c]/80 to-transparent flex items-end p-8">
+                <div className="absolute inset-0 bg-gradient-to-t from-[var(--navy-solid)]/80 to-transparent flex items-end p-8">
                   <div>
                     <p className="text-[#c9a84c] text-xs tracking-widest uppercase font-semibold mb-1">
                       Managing Partner
@@ -255,7 +257,9 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
             {/* Lawyers */}
             <div>
               <div className="flex items-center justify-between mb-6">
-                <h3 className="font-serif text-2xl font-bold text-[#0d1f3c]">Our Lawyers</h3>
+                <h3 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">
+                  Our Lawyers
+                </h3>
                 <button
                   onClick={() => onNavigate("lawyers")}
                   className="text-sm text-[#c9a84c] font-semibold hover:underline"
@@ -268,9 +272,9 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
                   <button
                     key={l.id}
                     onClick={() => onNavigate("lawyers", { lawyer: l.id })}
-                    className="group bg-white rounded-xl overflow-hidden border border-[#e8e4dc] hover:border-[#c9a84c] transition-all text-left"
+                    className="group bg-[var(--surface-card)] rounded-xl overflow-hidden border border-[var(--line)] hover:border-[#c9a84c] transition-all text-left"
                   >
-                    <div className="bg-[#8a9ab5] overflow-hidden">
+                    <div className="bg-[var(--placeholder)] overflow-hidden">
                       {/* h-60, not h-44: the portraits are 4:5 and object-top
                           anchors to the top edge, so a 176px box showed only
                           the top ~49% of the frame — on a tightly-framed
@@ -286,7 +290,7 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
                       />
                     </div>
                     <div className="p-4">
-                      <p className="font-serif text-sm font-bold text-[#0d1f3c] group-hover:text-[#c9a84c] transition-colors leading-snug">
+                      <p className="font-serif text-sm font-bold text-[var(--ink-strong)] group-hover:text-[#c9a84c] transition-colors leading-snug">
                         {l.full_name}
                       </p>
                       <p className="text-[#c9a84c] text-xs mt-1">{l.position || "Lawyer"}</p>
@@ -305,10 +309,10 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
               <p className="text-[#c9a84c] text-xs tracking-widest uppercase font-medium mb-3">
                 Established August 1998
               </p>
-              <h2 className="font-serif text-4xl font-bold text-[#0d1f3c] mb-4">
+              <h2 className="font-serif text-4xl font-bold text-[var(--ink-strong)] mb-4">
                 Founding Partners
               </h2>
-              <p className="text-[#8a9ab5] text-sm max-w-2xl leading-relaxed">
+              <p className="text-[var(--ink-muted)] text-sm max-w-2xl leading-relaxed">
                 Westwood Law Firm was founded by partners from four different law firms, each with
                 distinct areas of expertise. Many founding partners have since moved to government,
                 judicial, or other professional positions.
@@ -318,29 +322,31 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
               {foundingPartners.map((p) => (
                 <div
                   key={p.name}
-                  className={`bg-white rounded-xl p-6 border ${
-                    p.status === "current" ? "border-[#c9a84c]" : "border-[#e8e4dc]"
+                  className={`bg-[var(--surface-card)] rounded-xl p-6 border ${
+                    p.status === "current" ? "border-[#c9a84c]" : "border-[var(--line)]"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div>
-                      <p className="font-serif text-base font-bold text-[#0d1f3c]">{p.name}</p>
+                      <p className="font-serif text-base font-bold text-[var(--ink-strong)]">
+                        {p.name}
+                      </p>
                       <p className="text-[#c9a84c] text-xs font-semibold mt-0.5">{p.role}</p>
                     </div>
                     <span
                       className={`flex-shrink-0 px-2.5 py-1 text-xs font-semibold rounded-full ${
                         p.status === "current"
                           ? "bg-[#c9a84c]/10 text-[#c9a84c]"
-                          : "bg-[#f7f5f0] text-[#8a9ab5]"
+                          : "bg-[var(--surface-sunken)] text-[var(--ink-muted)]"
                       }`}
                     >
                       {p.status === "current" ? "Managing Partner" : "Founding Partner"}
                     </span>
                   </div>
-                  <p className="text-xs text-[#8a9ab5] font-medium uppercase tracking-wide mb-2">
+                  <p className="text-xs text-[var(--ink-muted)] font-medium uppercase tracking-wide mb-2">
                     {p.specialty}
                   </p>
-                  <p className="text-sm text-[#2c3347] leading-relaxed">{p.note}</p>
+                  <p className="text-sm text-[var(--ink-body)] leading-relaxed">{p.note}</p>
                 </div>
               ))}
             </div>
@@ -354,12 +360,12 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
               <p className="text-[#c9a84c] text-xs tracking-widest uppercase font-medium mb-3">
                 Our Purpose
               </p>
-              <h2 className="font-serif text-4xl font-bold text-[#0d1f3c] mb-6">
+              <h2 className="font-serif text-4xl font-bold text-[var(--ink-strong)] mb-6">
                 Mission & Vision
               </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-[#0d1f3c] rounded-2xl p-8 relative overflow-hidden">
+              <div className="bg-[var(--navy-solid)] rounded-2xl p-8 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-[#c9a84c]/5 rounded-full -translate-y-8 translate-x-8" />
                 <p className="text-[#c9a84c] text-xs tracking-widest uppercase font-semibold mb-4">
                   Mission
@@ -371,17 +377,19 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
               </div>
               <div className="bg-[#c9a84c] rounded-2xl p-8 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-8 translate-x-8" />
-                <p className="text-[#0d1f3c] text-xs tracking-widest uppercase font-semibold mb-4">
+                <p className="text-[var(--ink-strong)] text-xs tracking-widest uppercase font-semibold mb-4">
                   Vision
                 </p>
-                <p className="font-serif text-xl text-[#0d1f3c] leading-relaxed">
+                <p className="font-serif text-xl text-[var(--ink-strong)] leading-relaxed">
                   "To be the best lawyer that our client deserves"
                 </p>
               </div>
             </div>
-            <div className="bg-white rounded-xl p-7 border border-[#e8e4dc]">
-              <h3 className="font-serif text-xl font-bold text-[#0d1f3c] mb-4">Our Approach</h3>
-              <p className="text-sm text-[#2c3347] leading-relaxed">
+            <div className="bg-[var(--surface-card)] rounded-xl p-7 border border-[var(--line)]">
+              <h3 className="font-serif text-xl font-bold text-[var(--ink-strong)] mb-4">
+                Our Approach
+              </h3>
+              <p className="text-sm text-[var(--ink-body)] leading-relaxed">
                 Westwood Law Firm is built on the principle that legal matters are best handled by
                 lawyers who specialize in the relevant field. Each client engagement is treated with
                 dedicated focus — we do not believe in a one-size-fits-all approach to legal
@@ -398,8 +406,10 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
               <p className="text-[#c9a84c] text-xs tracking-widest uppercase font-medium mb-3">
                 Professional Network
               </p>
-              <h2 className="font-serif text-4xl font-bold text-[#0d1f3c] mb-4">Partner Network</h2>
-              <p className="text-[#8a9ab5] text-sm max-w-2xl leading-relaxed">
+              <h2 className="font-serif text-4xl font-bold text-[var(--ink-strong)] mb-4">
+                Partner Network
+              </h2>
+              <p className="text-[var(--ink-muted)] text-sm max-w-2xl leading-relaxed">
                 Westwood Law Firm partners with non-legal professional organizations to extend
                 services to clients — from manpower and accounting to marketing and business
                 innovation.
@@ -407,24 +417,31 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {specialists.map((s) => (
-                <div key={s.id} className="bg-white rounded-xl p-7 border border-[#e8e4dc]">
+                <div
+                  key={s.id}
+                  className="bg-[var(--surface-card)] rounded-xl p-7 border border-[var(--line)]"
+                >
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div>
-                      <p className="font-serif text-lg font-bold text-[#0d1f3c]">{s.name}</p>
+                      <p className="font-serif text-lg font-bold text-[var(--ink-strong)]">
+                        {s.name}
+                      </p>
                       <p className="text-[#c9a84c] text-xs font-semibold mt-0.5">
                         {s.specialist_type}
                       </p>
                     </div>
-                    <span className="bg-[#f7f5f0] text-[#8a9ab5] text-xs px-2.5 py-1 rounded-full font-medium flex-shrink-0">
+                    <span className="bg-[var(--surface-sunken)] text-[var(--ink-muted)] text-xs px-2.5 py-1 rounded-full font-medium flex-shrink-0">
                       {s.industry}
                     </span>
                   </div>
-                  <p className="text-sm text-[#2c3347] leading-relaxed mb-4">{s.description}</p>
+                  <p className="text-sm text-[var(--ink-body)] leading-relaxed mb-4">
+                    {s.description}
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {(s.services_supported || []).slice(0, 3).map((svc) => (
                       <span
                         key={svc}
-                        className="bg-[#f7f5f0] text-[#2c3347] text-xs px-2.5 py-1 rounded-full"
+                        className="bg-[var(--surface-sunken)] text-[var(--ink-body)] text-xs px-2.5 py-1 rounded-full"
                       >
                         {svc}
                       </span>
@@ -443,24 +460,26 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
               <p className="text-[#c9a84c] text-xs tracking-widest uppercase font-medium mb-3">
                 Our Clients
               </p>
-              <h2 className="font-serif text-4xl font-bold text-[#0d1f3c] mb-4">
+              <h2 className="font-serif text-4xl font-bold text-[var(--ink-strong)] mb-4">
                 Corporate Clients
               </h2>
-              <p className="text-[#8a9ab5] text-sm max-w-2xl leading-relaxed">
+              <p className="text-[var(--ink-muted)] text-sm max-w-2xl leading-relaxed">
                 Westwood Law Firm has served a wide range of corporate clients across various
                 industries — from cooperatives and financial institutions to manufacturing,
                 services, and technology.
               </p>
             </div>
-            <div className="bg-white rounded-2xl border border-[#e8e4dc] p-8">
+            <div className="bg-[var(--surface-card)] rounded-2xl border border-[var(--line)] p-8">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-6 gap-y-3">
                 {corporateClients.map((client) => (
                   <div
                     key={client.id}
-                    className="flex items-center gap-2 py-2 border-b border-[#f7f5f0]"
+                    className="flex items-center gap-2 py-2 border-b border-[var(--line)]"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-[#c9a84c] flex-shrink-0" />
-                    <span className="text-sm text-[#2c3347] leading-snug">{client.name}</span>
+                    <span className="text-sm text-[var(--ink-body)] leading-snug">
+                      {client.name}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -475,11 +494,11 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
               <p className="text-[#c9a84c] text-xs tracking-widest uppercase font-medium mb-3">
                 Get in Touch
               </p>
-              <h2 className="font-serif text-4xl font-bold text-[#0d1f3c] mb-4">
+              <h2 className="font-serif text-4xl font-bold text-[var(--ink-strong)] mb-4">
                 Contact Information
               </h2>
             </div>
-            <div className="bg-white rounded-2xl border border-[#e8e4dc] p-8 space-y-6">
+            <div className="bg-[var(--surface-card)] rounded-2xl border border-[var(--line)] p-8 space-y-6">
               {[
                 {
                   Icon: IconMapPin,
@@ -506,10 +525,10 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
                 <div key={item.label} className="flex gap-4">
                   <item.Icon className="w-4 h-4 text-[#c9a84c] flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-xs text-[#8a9ab5] uppercase tracking-wide font-semibold mb-1">
+                    <p className="text-xs text-[var(--ink-muted)] uppercase tracking-wide font-semibold mb-1">
                       {item.label}
                     </p>
-                    <p className="text-sm text-[#2c3347] whitespace-pre-line leading-relaxed">
+                    <p className="text-sm text-[var(--ink-body)] whitespace-pre-line leading-relaxed">
                       {item.value}
                     </p>
                   </div>
@@ -520,14 +539,14 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
               {user?.role === "client" && (
                 <button
                   onClick={() => onNavigate("inquiry")}
-                  className="bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] font-semibold px-8 py-3.5 rounded transition-colors text-sm"
+                  className="bg-[#c9a84c] hover:bg-[#e2c87a] text-[var(--ink-on-gold)] font-semibold px-8 py-3.5 rounded transition-colors text-sm"
                 >
                   Start a Legal Inquiry
                 </button>
               )}
               <button
                 onClick={() => onNavigate("contact")}
-                className="border-2 border-[#0d1f3c] text-[#0d1f3c] hover:bg-[#0d1f3c] hover:text-white font-semibold px-8 py-3.5 rounded transition-colors text-sm"
+                className="border-2 border-[var(--line-strong)] text-[var(--ink-strong)] hover:bg-[var(--navy-solid)] hover:text-white font-semibold px-8 py-3.5 rounded transition-colors text-sm"
               >
                 Contact Page
               </button>

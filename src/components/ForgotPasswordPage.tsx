@@ -89,7 +89,7 @@ export default function ForgotPasswordPage({ onNavigate }: ForgotPasswordPagePro
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0d1f3c] via-[#162d52] to-[#0d1f3c] flex items-center justify-center px-6 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-[var(--navy-solid)] via-[#162d52] to-[var(--navy-solid)] flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
@@ -101,23 +101,26 @@ export default function ForgotPasswordPage({ onNavigate }: ForgotPasswordPagePro
         </div>
 
         {/* Form */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
+        <div className="bg-[var(--surface-card)] rounded-2xl shadow-2xl p-8">
           {success ? (
             <div className="text-center py-4">
               <div className="w-16 h-16 mx-auto mb-4 bg-green-50 rounded-full flex items-center justify-center">
                 <span className="text-3xl">📧</span>
               </div>
-              <h2 className="text-xl font-semibold text-[#0d1f3c] mb-2">Check Your Email</h2>
-              <p className="text-sm text-[#8a9ab5] mb-6">
-                If an account exists with <strong className="text-[#0d1f3c]">{email}</strong>,
-                you'll receive password reset instructions shortly.
+              <h2 className="text-xl font-semibold text-[var(--ink-strong)] mb-2">
+                Check Your Email
+              </h2>
+              <p className="text-sm text-[var(--ink-muted)] mb-6">
+                If an account exists with{" "}
+                <strong className="text-[var(--ink-strong)]">{email}</strong>, you'll receive
+                password reset instructions shortly.
               </p>
-              <p className="text-xs text-[#8a9ab5] mb-6">
+              <p className="text-xs text-[var(--ink-muted)] mb-6">
                 Don't see the email? Check your spam folder or try again.
               </p>
               <button
                 onClick={() => onNavigate("auth")}
-                className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] font-semibold py-3 rounded-lg transition-colors"
+                className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] text-[var(--ink-on-gold)] font-semibold py-3 rounded-lg transition-colors"
               >
                 Back to Login
               </button>
@@ -142,7 +145,7 @@ export default function ForgotPasswordPage({ onNavigate }: ForgotPasswordPagePro
 
               {/* Email Input */}
               <div>
-                <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5">
                   Email Address *
                 </label>
                 <input
@@ -151,7 +154,7 @@ export default function ForgotPasswordPage({ onNavigate }: ForgotPasswordPagePro
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={loading}
-                  className="w-full px-4 py-2.5 border border-[#e8e4dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c9a84c] transition-all text-sm disabled:bg-gray-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-2.5 border border-[var(--line)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c9a84c] transition-all text-sm disabled:bg-gray-50 disabled:cursor-not-allowed"
                   placeholder="Enter your email address"
                 />
               </div>
@@ -160,17 +163,17 @@ export default function ForgotPasswordPage({ onNavigate }: ForgotPasswordPagePro
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] text-[var(--ink-on-gold)] font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? "Sending..." : "Send Reset Link"}
               </button>
 
               {/* Back to Login */}
-              <div className="text-center pt-4 border-t border-[#e8e4dc]">
+              <div className="text-center pt-4 border-t border-[var(--line)]">
                 <button
                   type="button"
                   onClick={() => onNavigate("auth")}
-                  className="text-sm text-[#8a9ab5] hover:text-[#0d1f3c] hover:underline"
+                  className="text-sm text-[var(--ink-muted)] hover:text-[var(--ink-strong)] hover:underline"
                 >
                   ← Back to Login
                 </button>

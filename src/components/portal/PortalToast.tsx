@@ -24,7 +24,7 @@ export default function PortalToast({
       role="status"
       aria-live="polite"
       className={`fixed top-24 left-1/2 -translate-x-1/2 z-[60] text-white text-sm font-medium px-5 py-3 rounded-full shadow-lg flex items-center gap-2 ${
-        tone === "error" ? "bg-red-600" : "bg-[#0d1f3c]"
+        tone === "error" ? "bg-red-600" : "bg-[var(--navy-solid)]"
       }`}
     >
       <span className={tone === "error" ? "text-white" : "text-[#c9a84c]"}>

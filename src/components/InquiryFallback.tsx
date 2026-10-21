@@ -21,12 +21,14 @@ export default function InquiryFallback({ tone = "light", title, message, classN
     <div className={className}>
       {title && (
         <h3
-          className={`font-serif text-lg font-bold mb-2 ${dark ? "text-white" : "text-[#0d1f3c]"}`}
+          className={`font-serif text-lg font-bold mb-2 ${dark ? "text-white" : "text-[var(--ink-strong)]"}`}
         >
           {title}
         </h3>
       )}
-      <p className={`text-sm leading-relaxed ${dark ? "text-white/60" : "text-[#8a9ab5]"}`}>
+      <p
+        className={`text-sm leading-relaxed ${dark ? "text-white/60" : "text-[var(--ink-muted)]"}`}
+      >
         {message ?? (
           <>
             Legal inquiries are submitted by registered clients. You can reach us directly — we
@@ -34,7 +36,7 @@ export default function InquiryFallback({ tone = "light", title, message, classN
             <a
               href={FIRM_EMAIL_HREF}
               className={`font-medium hover:underline ${
-                dark ? "text-[#e2c87a]" : "text-[#0d1f3c]"
+                dark ? "text-[#e2c87a]" : "text-[var(--ink-strong)]"
               }`}
             >
               {FIRM_EMAIL}

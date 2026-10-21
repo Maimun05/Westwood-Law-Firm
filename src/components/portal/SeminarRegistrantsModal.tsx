@@ -196,12 +196,12 @@ export default function SeminarRegistrantsModal({
 
       <ModalBody className="p-6 space-y-5">
         {/* ── Who registered ─────────────────────────────────────────────── */}
-        <div className="rounded-xl border border-[#e8e4dc] overflow-hidden">
-          <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-[#f7f5f0] border-b border-[#e8e4dc]">
-            <p className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-wide">
+        <div className="rounded-xl border border-[var(--line)] overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-[var(--surface-sunken)] border-b border-[var(--line)]">
+            <p className="text-xs font-semibold text-[var(--ink-muted)] uppercase tracking-wide">
               Registrants
             </p>
-            <p className="text-xs text-[#8a9ab5]">
+            <p className="text-xs text-[var(--ink-muted)]">
               {registrants === null
                 ? "Loading…"
                 : `${registrants.length} registration${registrants.length === 1 ? "" : "s"} · ${recipients} email address${recipients === 1 ? "" : "es"}`}
@@ -211,22 +211,22 @@ export default function SeminarRegistrantsModal({
           {loadError ? (
             <p className="px-4 py-5 text-sm text-red-600">{loadError}</p>
           ) : registrants === null ? null : registrants.length === 0 ? (
-            <p className="px-4 py-5 text-sm text-[#8a9ab5] text-center">
+            <p className="px-4 py-5 text-sm text-[var(--ink-muted)] text-center">
               No one has registered for this seminar yet. Registrations from the public page appear
               here as soon as they are submitted.
             </p>
           ) : (
-            <ul className="divide-y divide-[#e8e4dc]">
+            <ul className="divide-y divide-[var(--line)]">
               {registrants.map((r) => (
                 <li key={r.id} className="flex items-baseline gap-3 px-4 py-2.5">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm text-[#0d1f3c] truncate">{r.name || "—"}</p>
-                    <p className="text-xs text-[#8a9ab5] truncate">
+                    <p className="text-sm text-[var(--ink-strong)] truncate">{r.name || "—"}</p>
+                    <p className="text-xs text-[var(--ink-muted)] truncate">
                       {r.email}
                       {r.phone ? ` · ${r.phone}` : ""}
                     </p>
                   </div>
-                  <span className="shrink-0 text-[11px] text-[#8a9ab5] tabular-nums">
+                  <span className="shrink-0 text-[11px] text-[var(--ink-muted)] tabular-nums">
                     {formatDay(r.created_at)}
                   </span>
                 </li>
@@ -265,10 +265,10 @@ export default function SeminarRegistrantsModal({
                 maxLength={5000}
                 className={`${MODAL_INPUT_CLASS} resize-y`}
               />
-              <p className="mt-1.5 text-xs text-[#8a9ab5] leading-relaxed">
-                Use <span className="font-mono text-[#0d1f3c]">{"{name}"}</span> to greet each
-                registrant by name. Plain text — a blank line starts a new paragraph. Replies go to
-                the firm's inbox.
+              <p className="mt-1.5 text-xs text-[var(--ink-muted)] leading-relaxed">
+                Use <span className="font-mono text-[var(--ink-strong)]">{"{name}"}</span> to greet
+                each registrant by name. Plain text — a blank line starts a new paragraph. Replies
+                go to the firm's inbox.
               </p>
             </div>
           </div>
@@ -288,7 +288,7 @@ export default function SeminarRegistrantsModal({
                 : "border-emerald-200 bg-emerald-50/70"
             }`}
           >
-            <p className="text-sm text-[#0d1f3c]">
+            <p className="text-sm text-[var(--ink-strong)]">
               {result.failed === 0
                 ? `Sent to ${result.sent} registrant${result.sent === 1 ? "" : "s"}.`
                 : `Sent to ${result.sent} — ${result.failed} could not be delivered.`}
@@ -308,12 +308,12 @@ export default function SeminarRegistrantsModal({
         {/* ── What was sent before ───────────────────────────────────────── */}
         {log.length > 0 && (
           <div>
-            <p className="text-xs font-semibold text-[#8a9ab5] uppercase tracking-wide mb-2">
+            <p className="text-xs font-semibold text-[var(--ink-muted)] uppercase tracking-wide mb-2">
               Recent sends
             </p>
             <ul className="space-y-1.5">
               {log.map((entry) => (
-                <li key={entry.id} className="text-xs text-[#8a9ab5]">
+                <li key={entry.id} className="text-xs text-[var(--ink-muted)]">
                   {formatStamp(entry.created_at)} · “{entry.subject}” · sent {entry.sent_count} of{" "}
                   {entry.recipient_count}
                   {entry.failed_count > 0 ? ` · ${entry.failed_count} failed` : ""}
@@ -327,7 +327,7 @@ export default function SeminarRegistrantsModal({
       {confirming ? (
         <ModalFooter className="px-6 pb-6 pt-1">
           <div className="w-full space-y-3">
-            <p className="text-center text-sm text-[#2c3347]">
+            <p className="text-center text-sm text-[var(--ink-body)]">
               Send “{subject.trim()}” to {recipients} email address{recipients === 1 ? "" : "es"}?
               This cannot be unsent.
             </p>

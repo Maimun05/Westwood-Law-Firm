@@ -105,7 +105,7 @@ export default function ExpertisePage({ onNavigate, selectedArea }: ExpertisePag
 
   if (loading) {
     return (
-      <div className="bg-[#f7f5f0] min-h-screen pt-20 flex items-center justify-center">
+      <div className="bg-[var(--surface-sunken)] min-h-screen pt-20 flex items-center justify-center">
         <div className="w-16 h-16 border-4 border-[#c9a84c] border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -113,8 +113,8 @@ export default function ExpertisePage({ onNavigate, selectedArea }: ExpertisePag
 
   if (detail) {
     return (
-      <div className="bg-[#f7f5f0] min-h-screen pt-20">
-        <div className="bg-[#0d1f3c] py-12 relative overflow-hidden">
+      <div className="bg-[var(--surface-sunken)] min-h-screen pt-20">
+        <div className="bg-[var(--navy-solid)] py-12 relative overflow-hidden">
           <div
             className="absolute inset-0 opacity-[0.04]"
             style={{
@@ -140,46 +140,53 @@ export default function ExpertisePage({ onNavigate, selectedArea }: ExpertisePag
 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12 grid grid-cols-1 lg:grid-cols-3 gap-10">
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-xl p-8 border border-[#e8e4dc]">
-              <h2 className="font-serif text-2xl font-bold text-[#0d1f3c] mb-4">Overview</h2>
-              <p className="text-[#2c3347] leading-relaxed">{detail.description}</p>
+            <div className="bg-[var(--surface-card)] rounded-xl p-8 border border-[var(--line)]">
+              <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)] mb-4">
+                Overview
+              </h2>
+              <p className="text-[var(--ink-body)] leading-relaxed">{detail.description}</p>
             </div>
 
-            <div className="bg-white rounded-xl p-8 border border-[#e8e4dc]">
-              <h2 className="font-serif text-2xl font-bold text-[#0d1f3c] mb-6">Services</h2>
+            <div className="bg-[var(--surface-card)] rounded-xl p-8 border border-[var(--line)]">
+              <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)] mb-6">
+                Services
+              </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {(detail.services || []).map((s) => (
-                  <div key={s} className="flex items-start gap-3 p-3 rounded-lg bg-[#f7f5f0]">
+                  <div
+                    key={s}
+                    className="flex items-start gap-3 p-3 rounded-lg bg-[var(--surface-sunken)]"
+                  >
                     <span className="w-px h-5 bg-[#c9a84c] mt-0.5 flex-shrink-0" />
-                    <span className="text-sm text-[#2c3347]">{s}</span>
+                    <span className="text-sm text-[var(--ink-body)]">{s}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-8 border border-[#e8e4dc]">
-              <h2 className="font-serif text-2xl font-bold text-[#0d1f3c] mb-5">
+            <div className="bg-[var(--surface-card)] rounded-xl p-8 border border-[var(--line)]">
+              <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)] mb-5">
                 Client Needs We Address
               </h2>
               <ul className="space-y-3">
                 {(detail.client_needs || []).map((need) => (
                   <li key={need} className="flex items-start gap-3">
                     <IconCheck className="w-4 h-4 text-[#c9a84c] mt-0.5 flex-shrink-0" />
-                    <span className="text-[#2c3347] text-sm">{need}</span>
+                    <span className="text-[var(--ink-body)] text-sm">{need}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="bg-white rounded-xl p-8 border border-[#e8e4dc]">
-              <h2 className="font-serif text-2xl font-bold text-[#0d1f3c] mb-5">
+            <div className="bg-[var(--surface-card)] rounded-xl p-8 border border-[var(--line)]">
+              <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)] mb-5">
                 Related Legal Matters
               </h2>
               <div className="flex flex-wrap gap-2">
                 {(detail.related_matters || []).map((m) => (
                   <span
                     key={m}
-                    className="px-4 py-2 border border-[#e8e4dc] rounded-lg text-sm text-[#2c3347] hover:border-[#c9a84c] cursor-default transition-colors"
+                    className="px-4 py-2 border border-[var(--line)] rounded-lg text-sm text-[var(--ink-body)] hover:border-[#c9a84c] cursor-default transition-colors"
                   >
                     {m}
                   </span>
@@ -188,8 +195,8 @@ export default function ExpertisePage({ onNavigate, selectedArea }: ExpertisePag
             </div>
 
             {areaArticles.length > 0 && (
-              <div className="bg-white rounded-xl p-8 border border-[#e8e4dc]">
-                <h2 className="font-serif text-2xl font-bold text-[#0d1f3c] mb-5">
+              <div className="bg-[var(--surface-card)] rounded-xl p-8 border border-[var(--line)]">
+                <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)] mb-5">
                   Related Insights
                 </h2>
                 <div className="space-y-3">
@@ -197,10 +204,10 @@ export default function ExpertisePage({ onNavigate, selectedArea }: ExpertisePag
                     <button
                       key={a.id}
                       onClick={() => onNavigate("insights-resources", { article: a.id })}
-                      className="w-full text-left p-4 bg-[#f7f5f0] rounded-lg border border-[#e8e4dc] hover:border-[#c9a84c] transition-all group"
+                      className="w-full text-left p-4 bg-[var(--surface-sunken)] rounded-lg border border-[var(--line)] hover:border-[#c9a84c] transition-all group"
                     >
                       <span className="text-xs text-[#c9a84c] font-medium">{a.category}</span>
-                      <p className="text-sm font-semibold text-[#0d1f3c] group-hover:text-[#c9a84c] transition-colors mt-1">
+                      <p className="text-sm font-semibold text-[var(--ink-strong)] group-hover:text-[#c9a84c] transition-colors mt-1">
                         {a.title}
                       </p>
                     </button>
@@ -211,8 +218,8 @@ export default function ExpertisePage({ onNavigate, selectedArea }: ExpertisePag
           </div>
 
           <div className="lg:col-span-1 space-y-5">
-            <div className="bg-white rounded-xl p-6 border border-[#e8e4dc]">
-              <h3 className="font-serif text-lg font-bold text-[#0d1f3c] mb-5">
+            <div className="bg-[var(--surface-card)] rounded-xl p-6 border border-[var(--line)]">
+              <h3 className="font-serif text-lg font-bold text-[var(--ink-strong)] mb-5">
                 Lawyers in This Practice
               </h3>
               <div className="space-y-4">
@@ -231,15 +238,17 @@ export default function ExpertisePage({ onNavigate, selectedArea }: ExpertisePag
                       className="w-11 h-11 rounded-full object-cover object-top flex-shrink-0"
                     />
                     <div className="text-left">
-                      <div className="text-sm font-semibold text-[#0d1f3c] group-hover:text-[#c9a84c] transition-colors">
+                      <div className="text-sm font-semibold text-[var(--ink-strong)] group-hover:text-[#c9a84c] transition-colors">
                         {l.full_name}
                       </div>
-                      <div className="text-xs text-[#8a9ab5]">{l.position || "Lawyer"}</div>
+                      <div className="text-xs text-[var(--ink-muted)]">
+                        {l.position || "Lawyer"}
+                      </div>
                     </div>
                   </button>
                 ))}
                 {areaLawyers.length === 0 && (
-                  <p className="text-[#8a9ab5] text-sm text-center py-4">
+                  <p className="text-[var(--ink-muted)] text-sm text-center py-4">
                     No lawyers assigned to this practice area yet.
                   </p>
                 )}
@@ -247,7 +256,7 @@ export default function ExpertisePage({ onNavigate, selectedArea }: ExpertisePag
             </div>
 
             {canInquire && (
-              <div className="bg-[#0d1f3c] rounded-xl p-6">
+              <div className="bg-[var(--navy-solid)] rounded-xl p-6">
                 <h3 className="font-serif text-base font-bold text-white mb-2">
                   Ready to discuss your matter?
                 </h3>
@@ -256,7 +265,7 @@ export default function ExpertisePage({ onNavigate, selectedArea }: ExpertisePag
                 </p>
                 <button
                   onClick={() => onNavigate("consultation")}
-                  className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] text-sm font-semibold py-3 rounded transition-colors"
+                  className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] text-[var(--ink-on-gold)] text-sm font-semibold py-3 rounded transition-colors"
                 >
                   Schedule Consultation
                 </button>
@@ -269,8 +278,8 @@ export default function ExpertisePage({ onNavigate, selectedArea }: ExpertisePag
   }
 
   return (
-    <div className="bg-[#f7f5f0] min-h-screen pt-20">
-      <div className="bg-[#0d1f3c] py-12 relative overflow-hidden">
+    <div className="bg-[var(--surface-sunken)] min-h-screen pt-20">
+      <div className="bg-[var(--navy-solid)] py-12 relative overflow-hidden">
         <div
           className="absolute inset-0 opacity-[0.04]"
           style={{
@@ -301,15 +310,17 @@ export default function ExpertisePage({ onNavigate, selectedArea }: ExpertisePag
               <button
                 key={pa.id}
                 onClick={() => openArea(pa.id)}
-                className="group bg-white rounded-xl p-8 text-left border border-[#e8e4dc] hover:border-[#c9a84c] transition-all hover:shadow-xl hover:shadow-[#0d1f3c]/5"
+                className="group bg-[var(--surface-card)] rounded-xl p-8 text-left border border-[var(--line)] hover:border-[#c9a84c] transition-all hover:shadow-xl hover:shadow-[#0d1f3c]/5"
               >
                 <PracticeAreaIcon id={pa.id} className="w-8 h-8 text-[#c9a84c] mb-5" />
-                <h3 className="font-serif text-xl font-bold text-[#0d1f3c] mb-3 group-hover:text-[#c9a84c] transition-colors">
+                <h3 className="font-serif text-xl font-bold text-[var(--ink-strong)] mb-3 group-hover:text-[#c9a84c] transition-colors">
                   {pa.name}
                 </h3>
-                <p className="text-[#8a9ab5] text-sm leading-relaxed mb-6">{pa.description}</p>
-                <div className="border-t border-[#e8e4dc] pt-4 flex items-center justify-between">
-                  <div className="text-xs text-[#8a9ab5]">
+                <p className="text-[var(--ink-muted)] text-sm leading-relaxed mb-6">
+                  {pa.description}
+                </p>
+                <div className="border-t border-[var(--line)] pt-4 flex items-center justify-between">
+                  <div className="text-xs text-[var(--ink-muted)]">
                     {(pa.services || []).length} services · {paLawyers.length} lawyer
                     {paLawyers.length !== 1 ? "s" : ""}
                   </div>
@@ -322,7 +333,7 @@ export default function ExpertisePage({ onNavigate, selectedArea }: ExpertisePag
           })}
         </div>
 
-        <div className="mt-14 bg-[#0d1f3c] rounded-xl p-10 text-center">
+        <div className="mt-14 bg-[var(--navy-solid)] rounded-xl p-10 text-center">
           <h2 className="font-serif text-3xl font-bold text-white mb-3">
             Not sure which practice area applies?
           </h2>
@@ -332,7 +343,7 @@ export default function ExpertisePage({ onNavigate, selectedArea }: ExpertisePag
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={() => onNavigate("lawyers")}
-              className="bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] font-semibold px-8 py-3 rounded transition-colors text-sm"
+              className="bg-[#c9a84c] hover:bg-[#e2c87a] text-[var(--ink-on-gold)] font-semibold px-8 py-3 rounded transition-colors text-sm"
             >
               Browse Our Lawyers
             </button>

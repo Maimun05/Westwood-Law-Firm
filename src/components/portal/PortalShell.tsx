@@ -13,6 +13,8 @@ import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "
 
 import BrandLogo, { BrandMark } from "@/components/BrandLogo";
 
+import ThemeToggle from "@/components/ThemeToggle";
+
 import {
   IconBell,
   IconBriefcase,
@@ -137,9 +139,9 @@ function SearchBox({
   const showResults = open && q.trim().length > 0;
 
   const resultsList = showResults && (
-    <div className="absolute left-0 right-0 top-full mt-2 z-[450] bg-white rounded-xl border border-[#e8e4dc] shadow-[var(--shadow-modal)] overflow-hidden">
+    <div className="absolute left-0 right-0 top-full mt-2 z-[450] bg-[var(--surface-card)] rounded-xl border border-[var(--line)] shadow-[var(--shadow-modal)] overflow-hidden">
       {results.length === 0 ? (
-        <p className="px-4 py-3 text-sm text-[#8a9ab5]">No matches for “{q.trim()}”.</p>
+        <p className="px-4 py-3 text-sm text-[var(--ink-muted)]">No matches for “{q.trim()}”.</p>
       ) : (
         <ul role="listbox">
           {results.map((it, i) => (
@@ -149,15 +151,17 @@ function SearchBox({
                 onMouseEnter={() => setActive(i)}
                 onClick={() => choose(it)}
                 className={`w-full text-left px-4 py-2.5 flex items-center gap-3 ${
-                  i === active ? "bg-[#f7f5f0]" : "bg-white"
+                  i === active ? "bg-[var(--surface-sunken)]" : "bg-[var(--surface-card)]"
                 }`}
               >
                 <span className="min-w-0">
-                  <span className="block text-sm font-medium text-[#0d1f3c] truncate">
+                  <span className="block text-sm font-medium text-[var(--ink-strong)] truncate">
                     {it.title}
                   </span>
                   {it.subtitle && (
-                    <span className="block text-xs text-[#8a9ab5] truncate">{it.subtitle}</span>
+                    <span className="block text-xs text-[var(--ink-muted)] truncate">
+                      {it.subtitle}
+                    </span>
                   )}
                 </span>
               </button>
@@ -170,7 +174,7 @@ function SearchBox({
 
   const inputEl = (
     <div className="relative">
-      <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8a9ab5]" />
+      <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--ink-muted)]" />
       <input
         value={q}
         onChange={(e) => {
@@ -182,7 +186,7 @@ function SearchBox({
         onKeyDown={onKeyDown}
         placeholder={placeholder}
         aria-label={placeholder}
-        className="w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg pl-9 pr-9 py-2 text-sm text-[#0d1f3c] focus:outline-none focus:border-[var(--color-gold)]"
+        className="w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg pl-9 pr-9 py-2 text-sm text-[var(--ink-strong)] focus:outline-none focus:border-[var(--color-gold)]"
       />
       {q && (
         <button
@@ -192,7 +196,7 @@ function SearchBox({
             setOpen(false);
           }}
           aria-label="Clear search"
-          className="absolute right-2 top-1/2 -translate-y-1/2 text-[#8a9ab5] hover:text-[#0d1f3c] p-1"
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--ink-muted)] hover:text-[var(--ink-strong)] p-1"
         >
           <IconX className="h-4 w-4" />
         </button>
@@ -214,12 +218,12 @@ function SearchBox({
         onClick={() => setMobileOpen((o) => !o)}
         aria-label={placeholder}
         aria-expanded={mobileOpen}
-        className="md:hidden p-2 rounded-lg text-[#8a9ab5] hover:text-[#0d1f3c] hover:bg-[#f7f5f0]"
+        className="md:hidden p-2 rounded-lg text-[var(--ink-muted)] hover:text-[var(--ink-strong)] hover:bg-[var(--surface-hover)]"
       >
         <IconSearch className="h-5 w-5" />
       </button>
       {mobileOpen && (
-        <div className="md:hidden fixed left-0 right-0 top-16 z-[450] px-4 py-3 bg-white border-b border-[#e8e4dc] shadow-[var(--shadow-lg)]">
+        <div className="md:hidden fixed left-0 right-0 top-16 z-[450] px-4 py-3 bg-[var(--surface-card)] border-b border-[var(--line)] shadow-[var(--shadow-lg)]">
           {inputEl}
           {resultsList}
         </div>
@@ -264,7 +268,7 @@ function UserMenu({
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-2 rounded-full pl-0.5 pr-1 py-0.5 hover:bg-[#f7f5f0] transition-colors"
+        className="flex items-center gap-2 rounded-full pl-0.5 pr-1 py-0.5 hover:bg-[var(--surface-hover)] transition-colors"
       >
         <Avatar
           name={user.fullName}
@@ -273,21 +277,23 @@ function UserMenu({
           ring={false}
         />
         <span className="hidden lg:block text-left leading-tight">
-          <span className="block text-sm font-semibold text-[#0d1f3c] truncate max-w-[150px]">
+          <span className="block text-sm font-semibold text-[var(--ink-strong)] truncate max-w-[150px]">
             {user.fullName}
           </span>
-          <span className="block text-[11px] text-[#8a9ab5]">{roleLabel(user.role)}</span>
+          <span className="block text-[11px] text-[var(--ink-muted)]">{roleLabel(user.role)}</span>
         </span>
-        <IconChevronDown className="h-4 w-4 text-[#8a9ab5] hidden lg:block" />
+        <IconChevronDown className="h-4 w-4 text-[var(--ink-muted)] hidden lg:block" />
       </button>
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full mt-2 w-60 z-[450] bg-white rounded-xl border border-[#e8e4dc] shadow-[var(--shadow-modal)] py-2"
+          className="absolute right-0 top-full mt-2 w-60 z-[450] bg-[var(--surface-card)] rounded-xl border border-[var(--line)] shadow-[var(--shadow-modal)] py-2"
         >
-          <div className="px-4 py-2 border-b border-[#e8e4dc]">
-            <p className="text-sm font-semibold text-[#0d1f3c] truncate">{user.fullName}</p>
-            <p className="text-xs text-[#8a9ab5] truncate">{user.email}</p>
+          <div className="px-4 py-2 border-b border-[var(--line)]">
+            <p className="text-sm font-semibold text-[var(--ink-strong)] truncate">
+              {user.fullName}
+            </p>
+            <p className="text-xs text-[var(--ink-muted)] truncate">{user.email}</p>
           </div>
           {onProfile && (
             <button
@@ -297,7 +303,7 @@ function UserMenu({
                 onProfile();
                 setOpen(false);
               }}
-              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-[#2c3347] hover:bg-[#f7f5f0]"
+              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-[var(--ink-body)] hover:bg-[var(--surface-hover)]"
             >
               <IconUser className="h-4 w-4" />
               My Profile
@@ -353,7 +359,7 @@ export default function PortalShell({
   const hasProfileTab = tabs.some((t) => t.key === "profile");
 
   return (
-    <div className="min-h-screen bg-[#f7f5f0]">
+    <div className="min-h-screen bg-[var(--surface-sunken)]">
       {/* Sidebar */}
       <aside className="fixed inset-y-0 left-0 z-[300] flex w-16 lg:w-64 flex-col bg-[var(--color-navy)]">
         <div className="h-16 flex items-center justify-center lg:justify-start lg:px-5 border-b border-white/10 flex-shrink-0">
@@ -420,9 +426,9 @@ export default function PortalShell({
 
       {/* Main column */}
       <div className="pl-16 lg:pl-64 flex min-h-screen flex-col">
-        <header className="sticky top-0 z-[200] h-16 bg-white/95 backdrop-blur border-b border-[#e8e4dc] flex items-center gap-3 px-4 lg:px-8">
+        <header className="sticky top-0 z-[200] h-16 bg-[var(--surface-glass)] backdrop-blur border-b border-[var(--line)] flex items-center gap-3 px-4 lg:px-8">
           <div className="min-w-0 flex-1">
-            <h1 className="font-serif text-base lg:text-lg font-bold text-[#0d1f3c] truncate leading-tight">
+            <h1 className="font-serif text-base lg:text-lg font-bold text-[var(--ink-strong)] truncate leading-tight">
               {activeLabel}
             </h1>
             <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--color-gold)] font-medium truncate">
@@ -438,6 +444,8 @@ export default function PortalShell({
             />
           )}
 
+          <ThemeToggle />
+
           {onOpenNotifications && (
             <button
               type="button"
@@ -445,7 +453,7 @@ export default function PortalShell({
               aria-label={
                 unreadCount > 0 ? `Notifications (${unreadCount} unread)` : "Notifications"
               }
-              className="relative p-2 rounded-lg text-[#8a9ab5] hover:text-[#0d1f3c] hover:bg-[#f7f5f0] transition-colors"
+              className="relative p-2 rounded-lg text-[var(--ink-muted)] hover:text-[var(--ink-strong)] hover:bg-[var(--surface-hover)] transition-colors"
             >
               <IconBell className="h-5 w-5" />
               {unreadCount > 0 && (

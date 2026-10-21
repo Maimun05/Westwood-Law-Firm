@@ -30,7 +30,9 @@ export default function StatusBreakdown({ items }: { items: BreakdownItem[] }) {
   const total = present.reduce((sum, i) => sum + i.value, 0);
 
   if (total === 0) {
-    return <p className="text-sm text-[#8a9ab5] py-4 text-center">No matters to show yet.</p>;
+    return (
+      <p className="text-sm text-[var(--ink-muted)] py-4 text-center">No matters to show yet.</p>
+    );
   }
 
   let cursor = 0;
@@ -43,7 +45,7 @@ export default function StatusBreakdown({ items }: { items: BreakdownItem[] }) {
 
   return (
     <div>
-      <div className="h-3 w-full overflow-hidden rounded-full bg-[#f7f5f0]">
+      <div className="h-3 w-full overflow-hidden rounded-full bg-[var(--surface-sunken)]">
         <svg viewBox="0 0 100 1" preserveAspectRatio="none" className="block h-3 w-full">
           {segments.map((s) => (
             <rect key={s.label} x={s.offset} y={0} width={s.width} height={1} fill={s.fill} />
@@ -58,9 +60,9 @@ export default function StatusBreakdown({ items }: { items: BreakdownItem[] }) {
                 className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
                 style={{ background: s.fill }}
               />
-              <span className="truncate text-[#2c3347]">{s.label}</span>
+              <span className="truncate text-[var(--ink-body)]">{s.label}</span>
             </span>
-            <span className="font-semibold text-[#0d1f3c]">{s.value}</span>
+            <span className="font-semibold text-[var(--ink-strong)]">{s.value}</span>
           </li>
         ))}
       </ul>

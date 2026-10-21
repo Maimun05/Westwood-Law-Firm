@@ -34,8 +34,8 @@ type Change = {
 };
 
 const input =
-  "w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-3 py-2 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c] disabled:opacity-60";
-const label = "text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1";
+  "w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-3 py-2 text-sm text-[var(--ink-strong)] focus:outline-none focus:border-[#c9a84c] disabled:opacity-60";
+const label = "text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1";
 const FIELD_LABELS: Record<string, string> = {
   first_name: "First name",
   middle_name: "Middle name",
@@ -132,7 +132,8 @@ export default function ProfileEditor({
     void load();
   }, [userId]);
 
-  if (!row) return <p className="text-sm text-[#8a9ab5]">{msg?.text ?? "Loading profile…"}</p>;
+  if (!row)
+    return <p className="text-sm text-[var(--ink-muted)]">{msg?.text ?? "Loading profile…"}</p>;
   const isLawyer = normalizeRole(row.role) === "lawyer";
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setF({ ...f, [k]: e.target.value });
@@ -217,8 +218,10 @@ export default function ProfileEditor({
 
   return (
     <form onSubmit={save} className="max-w-2xl space-y-5">
-      <div className="bg-white rounded-xl border border-[#e8e4dc] p-6">
-        <h3 className="font-serif text-lg font-bold text-[#0d1f3c] mb-4">Profile picture</h3>
+      <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-6">
+        <h3 className="font-serif text-lg font-bold text-[var(--ink-strong)] mb-4">
+          Profile picture
+        </h3>
         <div className="flex items-center gap-5">
           <Avatar
             name={row.full_name}
@@ -231,7 +234,7 @@ export default function ProfileEditor({
               <button
                 type="button"
                 onClick={() => setShowPicture(true)}
-                className="border border-[#e8e4dc] hover:border-[#0d1f3c] hover:bg-[#f7f5f0] text-[#0d1f3c] text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+                className="border border-[var(--line)] hover:border-[var(--line-strong)] hover:bg-[var(--surface-hover)] text-[var(--ink-strong)] text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
               >
                 {row.profile_image ? "Change photo" : "Add photo"}
               </button>
@@ -246,7 +249,7 @@ export default function ProfileEditor({
                 </button>
               )}
             </div>
-            <p className="text-xs text-[#8a9ab5] mt-2">
+            <p className="text-xs text-[var(--ink-muted)] mt-2">
               A square JPG, PNG or WEBP up to 5 MB. Shown on your account, and on the public site
               for lawyers.
             </p>
@@ -254,8 +257,10 @@ export default function ProfileEditor({
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-[#e8e4dc] p-6 space-y-4">
-        <h3 className="font-serif text-lg font-bold text-[#0d1f3c]">Personal information</h3>
+      <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-6 space-y-4">
+        <h3 className="font-serif text-lg font-bold text-[var(--ink-strong)]">
+          Personal information
+        </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className={label}>First name *</label>
@@ -306,9 +311,9 @@ export default function ProfileEditor({
             <input className={input} value={f.city} onChange={set("city")} />
           </div>
         </div>
-        <p className="text-xs text-[#8a9ab5]">
+        <p className="text-xs text-[var(--ink-muted)]">
           Displayed as:{" "}
-          <strong className="text-[#0d1f3c]">
+          <strong className="text-[var(--ink-strong)]">
             {[
               row.honorific,
               f.first_name,
@@ -324,8 +329,10 @@ export default function ProfileEditor({
       </div>
 
       {isLawyer && (
-        <div className="bg-white rounded-xl border border-[#e8e4dc] p-6 space-y-4">
-          <h3 className="font-serif text-lg font-bold text-[#0d1f3c]">Public lawyer profile</h3>
+        <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-6 space-y-4">
+          <h3 className="font-serif text-lg font-bold text-[var(--ink-strong)]">
+            Public lawyer profile
+          </h3>
           <div>
             <label className={label}>Bio</label>
             <textarea rows={4} className={input} value={f.bio} onChange={set("bio")} />
@@ -378,17 +385,17 @@ export default function ProfileEditor({
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-[#e8e4dc] p-6">
+      <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-6">
         {readOnly.map(([k, v]) => (
           <div
             key={k}
-            className="flex justify-between py-2.5 border-b border-[#f7f5f0] last:border-0"
+            className="flex justify-between py-2.5 border-b border-[var(--line)] last:border-0"
           >
-            <span className="text-sm text-[#8a9ab5]">{k}</span>
-            <span className="text-sm font-medium text-[#0d1f3c]">{v}</span>
+            <span className="text-sm text-[var(--ink-muted)]">{k}</span>
+            <span className="text-sm font-medium text-[var(--ink-strong)]">{v}</span>
           </div>
         ))}
-        <p className="text-xs text-[#8a9ab5] mt-3">
+        <p className="text-xs text-[var(--ink-muted)] mt-3">
           To change your email or role, please contact the firm.
         </p>
       </div>
@@ -396,15 +403,15 @@ export default function ProfileEditor({
       {msg && <p className={`text-sm ${msg.ok ? "text-green-700" : "text-red-600"}`}>{msg.text}</p>}
       <button
         disabled={busy}
-        className="bg-[#c9a84c] hover:bg-[#e2c87a] disabled:opacity-60 text-[#0d1f3c] font-semibold px-6 py-2.5 rounded text-sm"
+        className="bg-[#c9a84c] hover:bg-[#e2c87a] disabled:opacity-60 text-[var(--ink-on-gold)] font-semibold px-6 py-2.5 rounded text-sm"
       >
         {busy ? "Saving…" : "Save changes"}
       </button>
 
-      <div className="bg-white rounded-xl border border-[#e8e4dc] p-6 space-y-4">
+      <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-6 space-y-4">
         <div>
-          <h3 className="font-serif text-lg font-bold text-[#0d1f3c]">Password</h3>
-          <p className="text-xs text-[#8a9ab5] mt-1">
+          <h3 className="font-serif text-lg font-bold text-[var(--ink-strong)]">Password</h3>
+          <p className="text-xs text-[var(--ink-muted)] mt-1">
             Choose a new password for your account. It must be at least 6 characters.
           </p>
         </div>
@@ -437,21 +444,21 @@ export default function ProfileEditor({
           type="button"
           onClick={changePassword}
           disabled={pwBusy}
-          className="bg-[#0d1f3c] hover:bg-[#162d52] disabled:opacity-60 text-white font-semibold px-5 py-2.5 rounded text-sm"
+          className="bg-[var(--navy-solid)] hover:bg-[#162d52] disabled:opacity-60 text-white font-semibold px-5 py-2.5 rounded text-sm"
         >
           {pwBusy ? "Updating…" : "Update password"}
         </button>
       </div>
 
       {changes.length > 0 && (
-        <div className="bg-white rounded-xl border border-[#e8e4dc] p-6">
-          <h3 className="font-serif text-lg font-bold text-[#0d1f3c] mb-3">
+        <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-6">
+          <h3 className="font-serif text-lg font-bold text-[var(--ink-strong)] mb-3">
             Recent changes to your profile
           </h3>
           <ul className="space-y-2">
             {changes.map((c) => (
-              <li key={c.id} className="text-sm text-[#2c3347]">
-                <span className="text-[#8a9ab5]">
+              <li key={c.id} className="text-sm text-[var(--ink-body)]">
+                <span className="text-[var(--ink-muted)]">
                   {new Date(c.created_at).toLocaleString("en-PH")}
                 </span>
                 {" — "}

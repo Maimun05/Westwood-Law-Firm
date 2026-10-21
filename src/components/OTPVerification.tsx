@@ -247,14 +247,16 @@ export default function OTPVerification({
       onPaste={index === 0 ? handlePaste : undefined}
       disabled={loading}
       className={`w-11 h-13 text-center text-2xl font-bold border-2 rounded-lg transition-all ${
-        otp[index] ? "border-[#c9a84c] bg-[#c9a84c]/5" : "border-[#e8e4dc] bg-[#f7f5f0]"
+        otp[index]
+          ? "border-[#c9a84c] bg-[#c9a84c]/5"
+          : "border-[var(--line)] bg-[var(--surface-sunken)]"
       } focus:outline-none focus:border-[#c9a84c] focus:ring-2 focus:ring-[#c9a84c]/20 disabled:opacity-50 disabled:cursor-not-allowed`}
       aria-label={`Digit ${index + 1} of ${otp.length}`}
     />
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0d1f3c] via-[#162d52] to-[#0d1f3c] flex items-center justify-center px-6 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-[var(--navy-solid)] via-[#162d52] to-[var(--navy-solid)] flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
@@ -269,15 +271,15 @@ export default function OTPVerification({
         </div>
 
         {/* Verification Form */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
-          <p className="text-center text-sm text-[#2c3347] mb-6">
+        <div className="bg-[var(--surface-card)] rounded-2xl shadow-2xl p-8">
+          <p className="text-center text-sm text-[var(--ink-body)] mb-6">
             Enter the unique code below to complete your registration.
           </p>
 
           {/* OTP Input */}
           <div className="flex justify-center gap-2 mb-6 flex-wrap">
             {otp.slice(0, splitAt).map((_, index) => renderBox(index))}
-            <span className="text-2xl text-[#e8e4dc] flex items-center px-1">-</span>
+            <span className="text-2xl text-[var(--divider)] flex items-center px-1">-</span>
             {otp.slice(splitAt).map((_, index) => renderBox(index + splitAt))}
           </div>
 
@@ -301,14 +303,14 @@ export default function OTPVerification({
           <button
             onClick={handleSubmit}
             disabled={!isComplete || loading}
-            className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-4"
+            className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] text-[var(--ink-on-gold)] font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-4"
           >
             {loading ? "Verifying..." : "Verify Email"}
           </button>
 
           {/* Resend Section */}
-          <div className="text-center pt-4 border-t border-[#e8e4dc]">
-            <p className="text-sm text-[#8a9ab5] mb-3">Didn't receive the code?</p>
+          <div className="text-center pt-4 border-t border-[var(--line)]">
+            <p className="text-sm text-[var(--ink-muted)] mb-3">Didn't receive the code?</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={handleResend}
@@ -317,10 +319,10 @@ export default function OTPVerification({
               >
                 {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : "Resend Code"}
               </button>
-              <span className="hidden sm:inline text-[#e8e4dc]">|</span>
+              <span className="hidden sm:inline text-[var(--divider)]">|</span>
               <button
                 onClick={onChangeEmail}
-                className="text-sm text-[#8a9ab5] hover:text-[#0d1f3c] hover:underline"
+                className="text-sm text-[var(--ink-muted)] hover:text-[var(--ink-strong)] hover:underline"
               >
                 Change Email
               </button>
@@ -328,8 +330,8 @@ export default function OTPVerification({
           </div>
 
           {/* Security Note */}
-          <div className="mt-6 pt-6 border-t border-[#e8e4dc]">
-            <p className="text-xs text-[#8a9ab5] text-center leading-relaxed">
+          <div className="mt-6 pt-6 border-t border-[var(--line)]">
+            <p className="text-xs text-[var(--ink-muted)] text-center leading-relaxed">
               🔒 <strong>Security Notice:</strong> Each verification code is unique to your account
               and expires after 60 minutes. Never share this code with anyone, including Westwood
               Law Firm staff.

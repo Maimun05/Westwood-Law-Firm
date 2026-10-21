@@ -16,9 +16,9 @@ import { useState } from "react";
 import { changeOwnPassword } from "@/lib/auth";
 
 const input =
-  "w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-4 py-2.5 text-sm text-[#0d1f3c] " +
+  "w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-4 py-2.5 text-sm text-[var(--ink-strong)] " +
   "focus:outline-none focus:border-[#c9a84c] disabled:opacity-50 pr-16";
-const label = "text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5";
+const label = "text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5";
 
 export default function ForcePasswordChange({
   name,
@@ -63,7 +63,7 @@ export default function ForcePasswordChange({
   };
 
   return (
-    <div className="min-h-screen bg-[#0d1f3c] flex items-center justify-center px-6 py-12">
+    <div className="min-h-screen bg-[var(--navy-solid)] flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-md">
         <div className="mb-6 text-center">
           <p className="text-xs font-medium uppercase tracking-[0.25em] text-[#c9a84c]">
@@ -72,18 +72,20 @@ export default function ForcePasswordChange({
           <p className="mt-1 text-sm text-white/60">Secure Client Portal</p>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-[#e8e4dc] bg-white shadow-[var(--shadow-modal)]">
-          <div className="border-b border-[#e8e4dc] bg-[#f7f5f0] px-6 py-5">
-            <h1 className="font-serif text-xl font-bold text-[#0d1f3c]">Set a new password</h1>
-            <p className="mt-1 text-sm text-[#2c3347]">
+        <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface-card)] shadow-[var(--shadow-modal)]">
+          <div className="border-b border-[var(--line)] bg-[var(--surface-sunken)] px-6 py-5">
+            <h1 className="font-serif text-xl font-bold text-[var(--ink-strong)]">
+              Set a new password
+            </h1>
+            <p className="mt-1 text-sm text-[var(--ink-body)]">
               {name ? `Welcome, ${name}. ` : ""}Your account was created with a temporary password.
               For your security, please choose a new one before continuing.
             </p>
           </div>
 
           <form onSubmit={submit} className="space-y-4 px-6 py-5">
-            <p className="text-xs text-[#8a9ab5]">
-              Signing in as <strong className="text-[#0d1f3c]">{email}</strong>
+            <p className="text-xs text-[var(--ink-muted)]">
+              Signing in as <strong className="text-[var(--ink-strong)]">{email}</strong>
             </p>
 
             <div>
@@ -106,7 +108,7 @@ export default function ForcePasswordChange({
                   type="button"
                   onClick={() => setShow((v) => !v)}
                   tabIndex={-1}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[#8a9ab5] hover:text-[#0d1f3c]"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[var(--ink-muted)] hover:text-[var(--ink-strong)]"
                 >
                   {show ? "Hide" : "Show"}
                 </button>
@@ -141,7 +143,7 @@ export default function ForcePasswordChange({
             <button
               type="submit"
               disabled={busy}
-              className="w-full rounded-lg bg-[#c9a84c] px-6 py-3 text-sm font-semibold text-[#0d1f3c] transition-colors hover:bg-[#e2c87a] disabled:opacity-60"
+              className="w-full rounded-lg bg-[#c9a84c] px-6 py-3 text-sm font-semibold text-[var(--ink-on-gold)] transition-colors hover:bg-[#e2c87a] disabled:opacity-60"
             >
               {busy ? "Saving…" : "Save new password"}
             </button>

@@ -169,13 +169,13 @@ export default function SeminarRegistrationModal({
             <button
               type="submit"
               disabled={sending}
-              className="flex-1 bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] font-semibold py-3 rounded-lg transition-all text-sm active:scale-[0.99] disabled:opacity-40 disabled:pointer-events-none"
+              className="flex-1 bg-[#c9a84c] hover:bg-[#e2c87a] text-[var(--ink-on-gold)] font-semibold py-3 rounded-lg transition-all text-sm active:scale-[0.99] disabled:opacity-40 disabled:pointer-events-none"
             >
               {sending ? "Registering…" : "Confirm Registration"}
             </button>
           </div>
 
-          <p className="text-xs text-[#8a9ab5] leading-relaxed text-center">
+          <p className="text-xs text-[var(--ink-muted)] leading-relaxed text-center">
             The firm will confirm your slot by email. Seats are subject to availability.
           </p>
         </form>

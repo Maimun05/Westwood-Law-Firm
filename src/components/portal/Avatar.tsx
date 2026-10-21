@@ -38,7 +38,9 @@ export default function Avatar({
   // A new picture must get a fresh chance to load, even if the last one failed.
   useEffect(() => setErrored(false), [src]);
 
-  const ringClass = ring ? "ring-2 ring-[var(--color-gold)] ring-offset-2 ring-offset-white" : "";
+  const ringClass = ring
+    ? "ring-2 ring-[var(--color-gold)] ring-offset-2 ring-offset-[var(--surface-card)]"
+    : "";
 
   if (src && !errored) {
     return (
@@ -46,7 +48,7 @@ export default function Avatar({
         src={src}
         alt=""
         onError={() => setErrored(true)}
-        className={`${className} ${rounded} ${ringClass} flex-shrink-0 object-cover bg-[#f7f5f0]`}
+        className={`${className} ${rounded} ${ringClass} flex-shrink-0 object-cover bg-[var(--surface-sunken)]`}
       />
     );
   }

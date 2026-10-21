@@ -95,7 +95,7 @@ export default function LawLibraryPage({ onNavigate, selectedDecisionId }: LawLi
 
   if (loading) {
     return (
-      <div className="bg-[#f7f5f0] min-h-screen pt-20 flex items-center justify-center">
+      <div className="bg-[var(--surface-sunken)] min-h-screen pt-20 flex items-center justify-center">
         <div className="w-16 h-16 border-4 border-[#c9a84c] border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -103,16 +103,16 @@ export default function LawLibraryPage({ onNavigate, selectedDecisionId }: LawLi
 
   if (decision) {
     return (
-      <div className="bg-[#f7f5f0] min-h-screen pt-20">
+      <div className="bg-[var(--surface-sunken)] min-h-screen pt-20">
         <div className="max-w-4xl mx-auto px-6 lg:px-8 py-12">
           <button
             onClick={() => openDecision(null)}
-            className="flex items-center gap-2 text-[#8a9ab5] hover:text-[#0d1f3c] text-sm mb-8 transition-colors"
+            className="flex items-center gap-2 text-[var(--ink-muted)] hover:text-[var(--ink-strong)] text-sm mb-8 transition-colors"
           >
             ← Back to Law Library
           </button>
-          <article className="bg-white rounded-2xl border border-[#e8e4dc] overflow-hidden">
-            <div className="bg-[#0d1f3c] p-10 relative overflow-hidden">
+          <article className="bg-[var(--surface-card)] rounded-2xl border border-[var(--line)] overflow-hidden">
+            <div className="bg-[var(--navy-solid)] p-10 relative overflow-hidden">
               <div
                 className="absolute inset-0 opacity-[0.04]"
                 style={{
@@ -123,7 +123,7 @@ export default function LawLibraryPage({ onNavigate, selectedDecisionId }: LawLi
               />
               <div className="relative">
                 {decision.category && (
-                  <span className="bg-[#c9a84c] text-[#0d1f3c] text-xs font-semibold px-3 py-1.5 rounded mb-6 inline-block">
+                  <span className="bg-[#c9a84c] text-[var(--ink-on-gold)] text-xs font-semibold px-3 py-1.5 rounded mb-6 inline-block">
                     {decision.category}
                   </span>
                 )}
@@ -148,7 +148,7 @@ export default function LawLibraryPage({ onNavigate, selectedDecisionId }: LawLi
               </div>
             </div>
             <div className="p-10">
-              <p className="text-[#2c3347] leading-relaxed text-lg">{decision.summary}</p>
+              <p className="text-[var(--ink-body)] leading-relaxed text-lg">{decision.summary}</p>
               {decision.full_text?.trim() ? (
                 <div className="mt-8 space-y-5">
                   {decision.full_text
@@ -156,13 +156,13 @@ export default function LawLibraryPage({ onNavigate, selectedDecisionId }: LawLi
                     .map((para) => para.trim())
                     .filter(Boolean)
                     .map((para, i) => (
-                      <p key={i} className="text-[#2c3347] leading-relaxed">
+                      <p key={i} className="text-[var(--ink-body)] leading-relaxed">
                         {para}
                       </p>
                     ))}
                 </div>
               ) : (
-                <div className="mt-8 p-5 bg-[#f7f5f0] rounded-xl border border-[#e8e4dc] text-sm text-[#8a9ab5]">
+                <div className="mt-8 p-5 bg-[var(--surface-sunken)] rounded-xl border border-[var(--line)] text-sm text-[var(--ink-muted)]">
                   The full text of this decision has not been added to the library yet. It is
                   available in the Supreme Court E-Library.
                 </div>
@@ -192,8 +192,8 @@ export default function LawLibraryPage({ onNavigate, selectedDecisionId }: LawLi
   const divisions = [ALL_DIVISIONS, ...distinct(decisions.map((d) => d.division))];
 
   return (
-    <div className="bg-[#f7f5f0] min-h-screen pt-20">
-      <div className="bg-[#0d1f3c] py-12">
+    <div className="bg-[var(--surface-sunken)] min-h-screen pt-20">
+      <div className="bg-[var(--navy-solid)] py-12">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <p className="text-[#c9a84c] text-xs tracking-widest uppercase font-medium mb-3">
             Jurisprudence
@@ -209,20 +209,20 @@ export default function LawLibraryPage({ onNavigate, selectedDecisionId }: LawLi
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
         <div className="flex flex-col md:flex-row gap-4 mb-10">
           <div className="flex-1 relative">
-            <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8a9ab5]" />
+            <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ink-muted)]" />
             <input
               type="text"
               placeholder="Search by title, G.R. number, or topic..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-white border border-[#e8e4dc] rounded-lg pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-[#c9a84c]"
+              className="w-full bg-[var(--surface-card)] border border-[var(--line)] rounded-lg pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-[#c9a84c]"
             />
           </div>
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             aria-label="Filter by topic"
-            className="bg-white border border-[#e8e4dc] rounded-lg px-4 py-3 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c]"
+            className="bg-[var(--surface-card)] border border-[var(--line)] rounded-lg px-4 py-3 text-sm text-[var(--ink-strong)] focus:outline-none focus:border-[#c9a84c]"
           >
             {categories.map((c) => (
               <option key={c}>{c}</option>
@@ -232,7 +232,7 @@ export default function LawLibraryPage({ onNavigate, selectedDecisionId }: LawLi
             value={division}
             onChange={(e) => setDivision(e.target.value)}
             aria-label="Filter by division"
-            className="bg-white border border-[#e8e4dc] rounded-lg px-4 py-3 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c]"
+            className="bg-[var(--surface-card)] border border-[var(--line)] rounded-lg px-4 py-3 text-sm text-[var(--ink-strong)] focus:outline-none focus:border-[#c9a84c]"
           >
             {divisions.map((d) => (
               <option key={d}>{d}</option>
@@ -241,11 +241,11 @@ export default function LawLibraryPage({ onNavigate, selectedDecisionId }: LawLi
         </div>
 
         {filtered.length === 0 ? (
-          <div className="bg-white rounded-xl border border-[#e8e4dc] p-10 text-center">
-            <p className="font-serif text-lg font-bold text-[#0d1f3c] mb-2">
+          <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-10 text-center">
+            <p className="font-serif text-lg font-bold text-[var(--ink-strong)] mb-2">
               {decisions.length === 0 ? "No decisions yet" : "No decisions match that filter"}
             </p>
-            <p className="text-[#8a9ab5] text-sm">
+            <p className="text-[var(--ink-muted)] text-sm">
               {decisions.length === 0
                 ? "Decisions added from the portal will appear here."
                 : "Try a different category or clear the search."}
@@ -259,20 +259,20 @@ export default function LawLibraryPage({ onNavigate, selectedDecisionId }: LawLi
                 onClick={() => openDecision(d.id)}
                 className="group text-left h-full"
               >
-                <div className="bg-white rounded-xl p-6 border border-[#e8e4dc] hover:border-[#c9a84c] transition-all hover:shadow-lg h-full flex flex-col">
+                <div className="bg-[var(--surface-card)] rounded-xl p-6 border border-[var(--line)] hover:border-[#c9a84c] transition-all hover:shadow-lg h-full flex flex-col">
                   {d.category && (
-                    <span className="self-start bg-[#f7f5f0] text-[#0d1f3c] text-xs font-semibold px-2.5 py-1 rounded mb-4">
+                    <span className="self-start bg-[var(--surface-sunken)] text-[var(--ink-strong)] text-xs font-semibold px-2.5 py-1 rounded mb-4">
                       {d.category}
                     </span>
                   )}
-                  <h3 className="font-serif text-lg font-bold text-[#0d1f3c] mb-2 leading-snug group-hover:text-[#c9a84c] transition-colors">
+                  <h3 className="font-serif text-lg font-bold text-[var(--ink-strong)] mb-2 leading-snug group-hover:text-[#c9a84c] transition-colors">
                     {d.title}
                   </h3>
                   <p className="text-xs font-medium text-[#c9a84c] mb-3">{citationLine(d)}</p>
-                  <p className="text-sm text-[#8a9ab5] leading-relaxed mb-4 flex-1 line-clamp-4">
+                  <p className="text-sm text-[var(--ink-muted)] leading-relaxed mb-4 flex-1 line-clamp-4">
                     {d.summary}
                   </p>
-                  <span className="text-xs text-[#0d1f3c] font-medium group-hover:text-[#c9a84c] transition-colors">
+                  <span className="text-xs text-[var(--ink-strong)] font-medium group-hover:text-[#c9a84c] transition-colors">
                     Read decision →
                   </span>
                 </div>
@@ -281,7 +281,7 @@ export default function LawLibraryPage({ onNavigate, selectedDecisionId }: LawLi
           </div>
         )}
 
-        <p className="text-xs text-[#8a9ab5] leading-relaxed mt-10 max-w-3xl">
+        <p className="text-xs text-[var(--ink-muted)] leading-relaxed mt-10 max-w-3xl">
           Citations are provided for reference. The official text of every decision is published by
           the Supreme Court of the Philippines in the Supreme Court E-Library.
         </p>

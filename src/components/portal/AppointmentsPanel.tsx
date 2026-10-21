@@ -40,7 +40,8 @@ const tone: Record<string, string> = {
   Completed: "bg-blue-50 text-blue-700",
   Cancelled: "bg-gray-100 text-gray-500",
 };
-const field = "bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-3 py-2 text-sm text-[#0d1f3c]";
+const field =
+  "bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-3 py-2 text-sm text-[var(--ink-strong)]";
 
 // One appointments screen for the client, lawyer and managing-partner portals.
 // The database decides what each may do: clients request (Pending) and may
@@ -173,19 +174,19 @@ export default function AppointmentsPanel({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="font-serif text-2xl font-bold text-[#0d1f3c]">Appointments</h2>
+        <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">Appointments</h2>
         {role === "client" && (
           <button
             onClick={() => setShow(!show)}
             disabled={!bookable.length}
-            className="bg-[#c9a84c] text-[#0d1f3c] text-sm font-semibold px-5 py-2.5 rounded disabled:opacity-40"
+            className="bg-[#c9a84c] text-[var(--ink-on-gold)] text-sm font-semibold px-5 py-2.5 rounded disabled:opacity-40"
           >
             Request appointment
           </button>
         )}
       </div>
       {role === "client" && !bookable.length && (
-        <p className="text-xs text-[#8a9ab5]">
+        <p className="text-xs text-[var(--ink-muted)]">
           You can book once the firm assigns a lawyer to your matter.
         </p>
       )}
@@ -194,7 +195,7 @@ export default function AppointmentsPanel({
       {show && (
         <form
           onSubmit={book}
-          className="bg-white rounded-xl border border-[#e8e4dc] p-5 grid grid-cols-1 sm:grid-cols-2 gap-3"
+          className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-5 grid grid-cols-1 sm:grid-cols-2 gap-3"
         >
           <select
             required
@@ -250,16 +251,16 @@ export default function AppointmentsPanel({
             value={f.notes}
             onChange={(e) => setF({ ...f, notes: e.target.value })}
           />
-          <button className="sm:col-span-2 bg-[#0d1f3c] text-white text-sm font-semibold py-2.5 rounded">
+          <button className="sm:col-span-2 bg-[var(--navy-solid)] text-white text-sm font-semibold py-2.5 rounded">
             Send request
           </button>
         </form>
       )}
 
-      <div className="bg-white rounded-xl border border-[#e8e4dc] overflow-x-auto">
+      <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="bg-[#f7f5f0]">
+            <tr className="bg-[var(--surface-sunken)]">
               {[
                 "Matter",
                 role === "client" ? "Lawyer" : "Client",
@@ -271,17 +272,17 @@ export default function AppointmentsPanel({
               ].map((h) => (
                 <th
                   key={h}
-                  className="text-left text-xs font-semibold text-[#8a9ab5] uppercase px-5 py-3"
+                  className="text-left text-xs font-semibold text-[var(--ink-muted)] uppercase px-5 py-3"
                 >
                   {h}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#e8e4dc]">
+          <tbody className="divide-y divide-[var(--line)]">
             {rows.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-5 py-8 text-center text-sm text-[#8a9ab5]">
+                <td colSpan={7} className="px-5 py-8 text-center text-sm text-[var(--ink-muted)]">
                   No appointments yet.
                 </td>
               </tr>
@@ -289,18 +290,18 @@ export default function AppointmentsPanel({
             {rows.map((a) => (
               <Fragment key={a.id}>
                 <tr>
-                  <td className="px-5 py-4 text-sm font-mono text-[#0d1f3c]">
+                  <td className="px-5 py-4 text-sm font-mono text-[var(--ink-strong)]">
                     {a.matter_id ? (
                       matterNo(a.matter_id)
                     ) : (
-                      <span className="font-sans text-[#8a9ab5]">Consultation</span>
+                      <span className="font-sans text-[var(--ink-muted)]">Consultation</span>
                     )}
                   </td>
-                  <td className="px-5 py-4 text-sm text-[#2c3347]">
+                  <td className="px-5 py-4 text-sm text-[var(--ink-body)]">
                     <Person id={role === "client" ? a.lawyer_id : a.client_id} />
                   </td>
-                  <td className="px-5 py-4 text-sm text-[#2c3347]">{a.appointment_type}</td>
-                  <td className="px-5 py-4 text-sm text-[#2c3347]">
+                  <td className="px-5 py-4 text-sm text-[var(--ink-body)]">{a.appointment_type}</td>
+                  <td className="px-5 py-4 text-sm text-[var(--ink-body)]">
                     {new Date(a.date + "T00:00").toLocaleDateString("en-PH", {
                       month: "short",
                       day: "numeric",
@@ -308,10 +309,10 @@ export default function AppointmentsPanel({
                     })}{" "}
                     · {a.time}
                     {a.rescheduled_at && (
-                      <span className="text-[10px] text-[#a8863a]"> · rescheduled</span>
+                      <span className="text-[10px] text-[var(--gold-ink)]"> · rescheduled</span>
                     )}
                   </td>
-                  <td className="px-5 py-4 text-sm text-[#2c3347]">{a.mode}</td>
+                  <td className="px-5 py-4 text-sm text-[var(--ink-body)]">{a.mode}</td>
                   <td className="px-5 py-4">
                     <span
                       className={`text-xs font-semibold px-2.5 py-1 rounded-full ${tone[a.status] ?? ""}`}
@@ -343,7 +344,7 @@ export default function AppointmentsPanel({
                             resched?.id === a.id ? null : { id: a.id, date: a.date, time: a.time },
                           )
                         }
-                        className="text-xs font-semibold text-[#a8863a]"
+                        className="text-xs font-semibold text-[var(--gold-ink)]"
                       >
                         Reschedule
                       </button>
@@ -360,17 +361,17 @@ export default function AppointmentsPanel({
                 </tr>
                 {resched?.id === a.id && (
                   <tr>
-                    <td colSpan={7} className="px-5 py-3 bg-[#f7f5f0]">
+                    <td colSpan={7} className="px-5 py-3 bg-[var(--surface-sunken)]">
                       <div className="flex flex-wrap items-center gap-2">
                         <input
                           type="date"
                           min={tomorrow}
-                          className="bg-white border border-[#e8e4dc] rounded-lg px-3 py-2 text-sm text-[#0d1f3c]"
+                          className="bg-[var(--surface-card)] border border-[var(--line)] rounded-lg px-3 py-2 text-sm text-[var(--ink-strong)]"
                           value={resched.date}
                           onChange={(e) => setResched({ ...resched, date: e.target.value })}
                         />
                         <select
-                          className="bg-white border border-[#e8e4dc] rounded-lg px-3 py-2 text-sm text-[#0d1f3c]"
+                          className="bg-[var(--surface-card)] border border-[var(--line)] rounded-lg px-3 py-2 text-sm text-[var(--ink-strong)]"
                           value={resched.time}
                           onChange={(e) => setResched({ ...resched, time: e.target.value })}
                         >
@@ -380,17 +381,17 @@ export default function AppointmentsPanel({
                         </select>
                         <button
                           onClick={() => void saveReschedule()}
-                          className="bg-[#0d1f3c] text-white text-xs font-semibold px-4 py-2 rounded"
+                          className="bg-[var(--navy-solid)] text-white text-xs font-semibold px-4 py-2 rounded"
                         >
                           Save new time
                         </button>
                         <button
                           onClick={() => setResched(null)}
-                          className="text-xs font-semibold text-[#8a9ab5]"
+                          className="text-xs font-semibold text-[var(--ink-muted)]"
                         >
                           Cancel
                         </button>
-                        <span className="text-xs text-[#8a9ab5]">
+                        <span className="text-xs text-[var(--ink-muted)]">
                           Both parties are notified automatically.
                         </span>
                       </div>

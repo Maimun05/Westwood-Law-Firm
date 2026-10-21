@@ -128,7 +128,7 @@ export default function ResetPasswordPage({ onNavigate }: ResetPasswordPageProps
 
   if (!validSession && !error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0d1f3c] via-[#162d52] to-[#0d1f3c] flex items-center justify-center px-6 py-12">
+      <div className="min-h-screen bg-gradient-to-br from-[var(--navy-solid)] via-[#162d52] to-[var(--navy-solid)] flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-md text-center">
           <div className="w-16 h-16 mx-auto mb-4 border-4 border-[#c9a84c] border-t-transparent rounded-full animate-spin" />
           <p className="text-white/70 text-sm">Verifying reset link...</p>
@@ -138,7 +138,7 @@ export default function ResetPasswordPage({ onNavigate }: ResetPasswordPageProps
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0d1f3c] via-[#162d52] to-[#0d1f3c] flex items-center justify-center px-6 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-[var(--navy-solid)] via-[#162d52] to-[var(--navy-solid)] flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
@@ -150,16 +150,16 @@ export default function ResetPasswordPage({ onNavigate }: ResetPasswordPageProps
         </div>
 
         {/* Form */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
+        <div className="bg-[var(--surface-card)] rounded-2xl shadow-2xl p-8">
           {success ? (
             <div className="text-center py-8">
               <div className="w-16 h-16 mx-auto mb-4 bg-green-50 rounded-full flex items-center justify-center">
                 <span className="text-3xl">✓</span>
               </div>
-              <h2 className="text-xl font-semibold text-[#0d1f3c] mb-2">
+              <h2 className="text-xl font-semibold text-[var(--ink-strong)] mb-2">
                 Password Reset Successful!
               </h2>
-              <p className="text-sm text-[#8a9ab5] mb-6">
+              <p className="text-sm text-[var(--ink-muted)] mb-6">
                 Your password has been updated. Redirecting to login...
               </p>
             </div>
@@ -175,7 +175,7 @@ export default function ResetPasswordPage({ onNavigate }: ResetPasswordPageProps
 
               {/* New Password */}
               <div>
-                <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5">
                   New Password *
                 </label>
                 <input
@@ -184,16 +184,16 @@ export default function ResetPasswordPage({ onNavigate }: ResetPasswordPageProps
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={loading || !validSession}
-                  className="w-full px-4 py-2.5 border border-[#e8e4dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c9a84c] transition-all text-sm disabled:bg-gray-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-2.5 border border-[var(--line)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c9a84c] transition-all text-sm disabled:bg-gray-50 disabled:cursor-not-allowed"
                   placeholder="Enter your new password"
                   minLength={6}
                 />
-                <p className="text-xs text-[#8a9ab5] mt-1">Minimum 6 characters</p>
+                <p className="text-xs text-[var(--ink-muted)] mt-1">Minimum 6 characters</p>
               </div>
 
               {/* Confirm Password */}
               <div>
-                <label className="text-xs font-semibold text-[#2c3347] uppercase tracking-wide block mb-1.5">
+                <label className="text-xs font-semibold text-[var(--ink-body)] uppercase tracking-wide block mb-1.5">
                   Confirm Password *
                 </label>
                 <input
@@ -202,7 +202,7 @@ export default function ResetPasswordPage({ onNavigate }: ResetPasswordPageProps
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   disabled={loading || !validSession}
-                  className="w-full px-4 py-2.5 border border-[#e8e4dc] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c9a84c] transition-all text-sm disabled:bg-gray-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-2.5 border border-[var(--line)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c9a84c] transition-all text-sm disabled:bg-gray-50 disabled:cursor-not-allowed"
                   placeholder="Confirm your new password"
                   minLength={6}
                 />
@@ -212,17 +212,17 @@ export default function ResetPasswordPage({ onNavigate }: ResetPasswordPageProps
               <button
                 type="submit"
                 disabled={loading || !validSession}
-                className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] text-[var(--ink-on-gold)] font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? "Resetting Password..." : "Reset Password"}
               </button>
 
               {/* Back to Login */}
-              <div className="text-center pt-4 border-t border-[#e8e4dc]">
+              <div className="text-center pt-4 border-t border-[var(--line)]">
                 <button
                   type="button"
                   onClick={() => onNavigate("auth")}
-                  className="text-sm text-[#8a9ab5] hover:text-[#0d1f3c] hover:underline"
+                  className="text-sm text-[var(--ink-muted)] hover:text-[var(--ink-strong)] hover:underline"
                 >
                   Back to Login
                 </button>

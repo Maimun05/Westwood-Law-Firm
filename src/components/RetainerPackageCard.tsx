@@ -14,18 +14,18 @@ export default function RetainerPackageCard({ pkg, onSelect }: RetainerPackageCa
     <div
       className={`rounded-xl p-7 border-2 flex flex-col ${
         pkg.is_active && pkg.display_order === 2
-          ? "bg-[#0d1f3c] border-[#c9a84c]"
-          : "bg-white border-[#e8e4dc]"
+          ? "bg-[var(--navy-solid)] border-[#c9a84c]"
+          : "bg-[var(--surface-card)] border-[var(--line)]"
       }`}
     >
       {pkg.display_order === 2 && (
-        <span className="text-xs font-semibold bg-[#c9a84c] text-[#0d1f3c] px-3 py-1 rounded-full self-start mb-5">
+        <span className="text-xs font-semibold bg-[#c9a84c] text-[var(--ink-on-gold)] px-3 py-1 rounded-full self-start mb-5">
           Most Popular
         </span>
       )}
       <h3
         className={`font-serif text-2xl font-bold mb-1 ${
-          pkg.display_order === 2 ? "text-white" : "text-[#0d1f3c]"
+          pkg.display_order === 2 ? "text-white" : "text-[var(--ink-strong)]"
         }`}
       >
         {pkg.name}
@@ -39,7 +39,9 @@ export default function RetainerPackageCard({ pkg, onSelect }: RetainerPackageCa
           {pkg.tagline}
         </p>
       )}
-      <p className={`text-sm mb-5 ${pkg.display_order === 2 ? "text-white/60" : "text-[#8a9ab5]"}`}>
+      <p
+        className={`text-sm mb-5 ${pkg.display_order === 2 ? "text-white/60" : "text-[var(--ink-muted)]"}`}
+      >
         {pkg.description}
       </p>
       {/* price_display holds the text the firm wants shown ("From ₱25,000/mo",
@@ -60,7 +62,7 @@ export default function RetainerPackageCard({ pkg, onSelect }: RetainerPackageCa
               }`}
             />
             <span
-              className={`text-sm ${pkg.display_order === 2 ? "text-white/80" : "text-[#2c3347]"}`}
+              className={`text-sm ${pkg.display_order === 2 ? "text-white/80" : "text-[var(--ink-body)]"}`}
             >
               {f}
             </span>
@@ -71,8 +73,8 @@ export default function RetainerPackageCard({ pkg, onSelect }: RetainerPackageCa
         onClick={onSelect}
         className={`w-full py-3 rounded text-sm font-semibold transition-colors ${
           pkg.display_order === 2
-            ? "bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c]"
-            : "border border-[#0d1f3c] text-[#0d1f3c] hover:bg-[#0d1f3c] hover:text-white"
+            ? "bg-[#c9a84c] hover:bg-[#e2c87a] text-[var(--ink-on-gold)]"
+            : "border border-[var(--line-strong)] text-[var(--ink-strong)] hover:bg-[var(--navy-solid)] hover:text-white"
         }`}
       >
         {pkg.cta_text}

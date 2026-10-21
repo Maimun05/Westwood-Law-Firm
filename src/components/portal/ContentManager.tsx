@@ -199,7 +199,7 @@ export default function ContentManager({
   };
 
   const inputCls =
-    "w-full bg-[#f7f5f0] border border-[#e8e4dc] rounded-lg px-3 py-2 text-sm text-[#0d1f3c] focus:outline-none focus:border-[#c9a84c]";
+    "w-full bg-[var(--surface-sunken)] border border-[var(--line)] rounded-lg px-3 py-2 text-sm text-[var(--ink-strong)] focus:outline-none focus:border-[#c9a84c]";
 
   return (
     <div className="space-y-5">
@@ -213,8 +213,8 @@ export default function ContentManager({
             }}
             className={`text-xs font-semibold px-3.5 py-2 rounded transition-colors ${
               k === kind
-                ? "bg-[#0d1f3c] text-white"
-                : "bg-white text-[#2c3347] border border-[#e8e4dc] hover:bg-[#f7f5f0]"
+                ? "bg-[var(--navy-solid)] text-white"
+                : "bg-[var(--surface-card)] text-[var(--ink-body)] border border-[var(--line)] hover:bg-[var(--surface-hover)]"
             }`}
           >
             {CONTENT_CONFIG[k].label}
@@ -222,7 +222,7 @@ export default function ContentManager({
         ))}
       </div>
 
-      <div className="bg-white rounded-xl border border-[#e8e4dc] p-5">
+      <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-5">
         <div className="flex flex-wrap items-center gap-3 mb-4">
           <input
             value={search}
@@ -230,27 +230,27 @@ export default function ContentManager({
             placeholder={`Search ${cfg.label.toLowerCase()}…`}
             className={`${inputCls} max-w-xs`}
           />
-          <span className="text-xs text-[#8a9ab5]">
+          <span className="text-xs text-[var(--ink-muted)]">
             {visible.length} of {rows.length}
           </span>
           <button
             onClick={() => setEditing({ row: null })}
-            className="ml-auto bg-[#c9a84c] hover:bg-[#e2c87a] text-[#0d1f3c] text-xs font-semibold px-4 py-2.5 rounded transition-colors"
+            className="ml-auto bg-[#c9a84c] hover:bg-[#e2c87a] text-[var(--ink-on-gold)] text-xs font-semibold px-4 py-2.5 rounded transition-colors"
           >
             + New {cfg.label.replace(/s$/, "")}
           </button>
         </div>
 
         {loading ? (
-          <p className="text-sm text-[#8a9ab5] py-6 text-center">Loading…</p>
+          <p className="text-sm text-[var(--ink-muted)] py-6 text-center">Loading…</p>
         ) : visible.length === 0 ? (
-          <p className="text-sm text-[#8a9ab5] py-6 text-center">
+          <p className="text-sm text-[var(--ink-muted)] py-6 text-center">
             {rows.length === 0
               ? `No ${cfg.label.toLowerCase()} yet.`
               : "Nothing matches that search."}
           </p>
         ) : (
-          <div className="divide-y divide-[#e8e4dc]">
+          <div className="divide-y divide-[var(--line)]">
             {visible.map((row) => {
               const published = Boolean(row[cfg.publishedColumn]);
               // The date column differs by table: seminar_events.date is a
@@ -267,10 +267,10 @@ export default function ContentManager({
                     title={published ? "Published" : "Hidden from the public site"}
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm text-[#0d1f3c] truncate">
+                    <p className="text-sm text-[var(--ink-strong)] truncate">
                       {String(row[cfg.titleField] ?? "(untitled)")}
                     </p>
-                    <p className="text-[11px] text-[#8a9ab5] truncate">
+                    <p className="text-[11px] text-[var(--ink-muted)] truncate">
                       {String(row.id)}
                       {typeof row.category === "string" && row.category ? ` · ${row.category}` : ""}
                       {dateValue ? ` · ${dateValue.slice(0, 10)}` : ""}
@@ -278,14 +278,14 @@ export default function ContentManager({
                   </div>
                   <button
                     onClick={() => void togglePublished(row)}
-                    className="text-xs text-[#8a9ab5] hover:text-[#0d1f3c]"
+                    className="text-xs text-[var(--ink-muted)] hover:text-[var(--ink-strong)]"
                   >
                     {published ? "Unpublish" : "Publish"}
                   </button>
                   {kind === "seminar_events" && (
                     <button
                       onClick={() => setRegistrantsFor(row)}
-                      className="text-xs text-[#2c3347] font-medium hover:text-[#0d1f3c] hover:underline"
+                      className="text-xs text-[var(--ink-body)] font-medium hover:text-[var(--ink-strong)] hover:underline"
                     >
                       Registrants
                     </button>
@@ -298,7 +298,7 @@ export default function ContentManager({
                   </button>
                   <button
                     onClick={() => setConfirmDelete(row)}
-                    className="text-xs text-[#8a9ab5] hover:text-red-600"
+                    className="text-xs text-[var(--ink-muted)] hover:text-red-600"
                   >
                     Delete
                   </button>
@@ -333,14 +333,14 @@ export default function ContentManager({
             </div>
             <h3
               id="content-delete-title"
-              className="font-serif text-lg font-bold text-[#0d1f3c] mb-2"
+              className="font-serif text-lg font-bold text-[var(--ink-strong)] mb-2"
             >
               Delete this {cfg.label.replace(/s$/, "").toLowerCase()}?
             </h3>
-            <p className="text-sm font-medium text-[#2c3347] mb-1 break-words">
+            <p className="text-sm font-medium text-[var(--ink-body)] mb-1 break-words">
               {String(confirmDelete[cfg.titleField] ?? "(untitled)")}
             </p>
-            <p className="text-xs text-[#8a9ab5]">
+            <p className="text-xs text-[var(--ink-muted)]">
               This removes it from the public site immediately and cannot be undone from here.
             </p>
           </ModalBody>
@@ -457,8 +457,8 @@ function ContentForm({
                     onChange={(e) => setDraft({ ...draft, [f]: e.target.checked })}
                     className="w-4 h-4 accent-[#c9a84c]"
                   />
-                  <span className="text-sm text-[#2c3347]">{fieldLabel(f)}</span>
-                  <span className="text-xs text-[#8a9ab5]">
+                  <span className="text-sm text-[var(--ink-body)]">{fieldLabel(f)}</span>
+                  <span className="text-xs text-[var(--ink-muted)]">
                     {f === cfg.publishedColumn ? "— shown on the public site" : ""}
                   </span>
                 </label>
@@ -509,12 +509,12 @@ function ContentForm({
                   />
                 )}
                 {f === "id" && isNew && (
-                  <p className="text-[11px] text-[#8a9ab5] mt-1">
+                  <p className="text-[11px] text-[var(--ink-muted)] mt-1">
                     Generated from the title or slug. Type here to override.
                   </p>
                 )}
                 {f === "content" && (
-                  <p className="text-[11px] text-[#8a9ab5] mt-1">
+                  <p className="text-[11px] text-[var(--ink-muted)] mt-1">
                     The public article page renders this as plain text, one paragraph per blank
                     line.
                   </p>
@@ -530,7 +530,7 @@ function ContentForm({
           )}
         </ModalBody>
 
-        <ModalFooter className="flex gap-3 p-6 border-t border-[#e8e4dc]">
+        <ModalFooter className="flex gap-3 p-6 border-t border-[var(--line)]">
           <button
             type="button"
             onClick={onCancel}

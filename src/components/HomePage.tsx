@@ -396,7 +396,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
 
       {/* ── Upcoming Seminars ── */}
       {seminars.length > 0 && (
-        <section className="section-py-lg bg-white">
+        <section className="section-py-lg bg-[var(--surface-card)]">
           <div className="container-page">
             <div aria-hidden className="divider-gold reveal-x w-24 mb-10" />
             <div className="reveal flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-16">
@@ -458,7 +458,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
       )}
 
       {/* ── Insights ── */}
-      <section className="section-py-lg bg-white">
+      <section className="section-py-lg bg-[var(--surface-card)]">
         <div className="container-page">
           <div aria-hidden className="divider-gold reveal-x w-24 mb-10" />
           <div className="reveal flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-16">
