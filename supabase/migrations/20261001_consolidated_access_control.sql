@@ -645,21 +645,18 @@ GRANT SELECT ON public.public_lawyers TO anon, authenticated;
 
 ALTER TABLE public.practice_areas ADD COLUMN IF NOT EXISTS lawyer_ids TEXT[] NOT NULL DEFAULT '{}';
 
--- Seed the firm's lawyers (idempotent). Directory accounts are created without a
--- usable password; use "Forgot password" or the admin-create-user function to let
--- a lawyer sign in. Education/experience are left blank on purpose: enter the
--- verified details from the Profile screen rather than guessing them here.
+-- Seed the firm's lawyer (idempotent). The firm has one position — "Lawyer" —
+-- and one lawyer in the directory. The demo associates that used to live here
+-- are gone; do not add them back, or a re-run of this file resurrects them.
+-- Directory accounts are created without a usable password; use "Forgot
+-- password" or the admin-create-user function to let a lawyer sign in.
+-- Education/experience are left blank on purpose: enter the verified details
+-- from the Profile screen rather than guessing them here.
 DO $seed$
 DECLARE r RECORD; v_uid UUID;
 BEGIN
   FOR r IN SELECT * FROM (VALUES
-  ('l1', 'atty.boyet@westwoodlaw.ph', 'Ernesto', 'Boyet', '', 'Tabao', 'Managing Partner', '/lawyers/atty-tabao-primary.png', 'Labor, industrial relations, corporate, and business law practitioner.', 1),
-  ('l2', 'mc.santos@westwoodlaw.ph', 'Maria Cristina', '', 'L.', 'Santos', 'Senior Associate', 'https://images.unsplash.com/photo-1662104935883-e9dd0619eaba?w=400&h=500&fit=crop&auto=format', 'Civil and administrative matters practitioner with litigation experience.', 2),
-  ('l3', 'bj.reyes@westwoodlaw.ph', 'Benjamin Jose', '', 'T.', 'Reyes', 'Associate', 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=500&fit=crop&auto=format', 'Corporate and commercial law practitioner focused on business matters.', 3),
-  ('l4', 'l.delacruz@westwoodlaw.ph', 'Lorraine', '', 'A.', 'Dela Cruz', 'Associate', 'https://images.unsplash.com/photo-1614786269829-d24616faf56d?w=400&h=500&fit=crop&auto=format', 'Immigration practitioner handling visas and residency documentation.', 4),
-  ('l5', 'cg.torres@westwoodlaw.ph', 'Carlos Gabriel', '', 'M.', 'Torres', 'Associate', 'https://images.unsplash.com/photo-1534030347209-467a5b0ad3e6?w=400&h=500&fit=crop&auto=format', 'Taxation and banking law practitioner advising businesses and families.', 5),
-  ('l6', 'si.mendoza@westwoodlaw.ph', 'Sofia Isabelle', '', 'B.', 'Mendoza', 'Associate', 'https://images.unsplash.com/photo-1662104935762-707db0439ecd?w=400&h=500&fit=crop&auto=format', 'Family law practitioner focused on sensitive annulment matters.', 6),
-  ('l7', 'ma.villanueva@westwoodlaw.ph', 'Marco Antonio', '', 'R.', 'Villanueva', 'Associate', 'https://images.unsplash.com/photo-1613496701765-97267d26e3df?w=400&h=500&fit=crop&auto=format', 'Energy, mining, cooperatives, and regulatory compliance practitioner.', 7)
+  ('l1', 'atty.boyet@westwoodlaw.ph', 'Ernesto', 'Boyet', '', 'Tabao', 'Lawyer', '/lawyers/atty-tabao-primary.png', 'Labor, industrial relations, corporate, and business law practitioner.', 1)
   ) AS t(lid, email, first_name, nickname, middle_name, last_name, position, img, bio, ord)
   LOOP
     -- Find the account by email on BOTH sides. Matching profiles alone is not
@@ -700,7 +697,7 @@ BEGIN
       bar_admissions = CASE WHEN bar_admissions IS NULL OR bar_admissions = '[]'::JSONB
                             THEN '["Philippine Bar"]'::JSONB ELSE bar_admissions END
     WHERE id = v_uid;
-    -- keep the practice-area link keyed by the old seed ids l1..l7
+    -- keep the practice-area link keyed by the old seed ids (l1 only now)
     INSERT INTO public.profile_practice_areas(profile_id, practice_area_id)
     SELECT v_uid, pa.id FROM public.practice_areas pa WHERE r.lid = ANY(pa.lawyer_ids)
     ON CONFLICT DO NOTHING;

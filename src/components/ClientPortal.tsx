@@ -6115,31 +6115,9 @@ function ManageUserModal({
 
 // ── Create user modal (admin) ─────────────────────────────────────────────────
 
-// Law-firm positions offered when an admin creates a lawyer or staff account.
-
-const LAW_FIRM_POSITIONS = [
-  "Managing Partner",
-
-  "Senior Partner",
-
-  "Partner",
-
-  "Of Counsel",
-
-  "Senior Associate",
-
-  "Associate",
-
-  "Junior Associate",
-
-  "Paralegal",
-
-  "Legal Secretary",
-
-  "Firm Administrator",
-
-  "Office Administrator",
-];
+// The firm has one position. Every lawyer account is recorded as "Lawyer" and
+// that is the only option the account forms offer.
+const LAW_FIRM_POSITIONS = ["Lawyer"];
 
 function CreateUserModal({
   onClose,

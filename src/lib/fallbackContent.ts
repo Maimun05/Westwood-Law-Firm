@@ -126,64 +126,10 @@ const lawyerSeed = [
   [
     "l1",
     'Atty. Ernesto "Boyet" Tabao',
-    "Managing Partner",
+    "Lawyer",
     "/lawyers/atty-tabao-primary.png",
     "atty.boyet@westwoodlaw.ph",
     "Labor, industrial relations, corporate, and business law practitioner.",
-  ],
-
-  [
-    "l2",
-    "Atty. Maria Cristina L. Santos",
-    "Senior Associate",
-    "https://images.unsplash.com/photo-1662104935883-e9dd0619eaba?w=400&h=500&fit=crop&auto=format",
-    "mc.santos@westwoodlaw.ph",
-    "Civil and administrative matters practitioner with litigation experience.",
-  ],
-
-  [
-    "l3",
-    "Atty. Benjamin Jose T. Reyes",
-    "Associate",
-    "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=500&fit=crop&auto=format",
-    "bj.reyes@westwoodlaw.ph",
-    "Corporate and commercial law practitioner focused on business matters.",
-  ],
-
-  [
-    "l4",
-    "Atty. Lorraine A. Dela Cruz",
-    "Associate",
-    "https://images.unsplash.com/photo-1614786269829-d24616faf56d?w=400&h=500&fit=crop&auto=format",
-    "l.delacruz@westwoodlaw.ph",
-    "Immigration practitioner handling visas and residency documentation.",
-  ],
-
-  [
-    "l5",
-    "Atty. Carlos Gabriel M. Torres",
-    "Associate",
-    "https://images.unsplash.com/photo-1534030347209-467a5b0ad3e6?w=400&h=500&fit=crop&auto=format",
-    "cg.torres@westwoodlaw.ph",
-    "Taxation and banking law practitioner advising businesses and families.",
-  ],
-
-  [
-    "l6",
-    "Atty. Sofia Isabelle B. Mendoza",
-    "Associate",
-    "https://images.unsplash.com/photo-1662104935762-707db0439ecd?w=400&h=500&fit=crop&auto=format",
-    "si.mendoza@westwoodlaw.ph",
-    "Family law practitioner focused on sensitive annulment matters.",
-  ],
-
-  [
-    "l7",
-    "Atty. Marco Antonio R. Villanueva",
-    "Associate",
-    "https://images.unsplash.com/photo-1613496701765-97267d26e3df?w=400&h=500&fit=crop&auto=format",
-    "ma.villanueva@westwoodlaw.ph",
-    "Energy, mining, cooperatives, and regulatory compliance practitioner.",
   ],
 ];
 
@@ -435,7 +381,7 @@ export const fallbackSeminars: SeminarEvent[] = [
     "October 22, 2026",
     "2:00 PM - 5:00 PM",
     "Online",
-    "Atty. Maria Cristina L. Santos",
+    'Atty. Ernesto "Boyet" Tabao',
   ],
 ].map(([id, title, date, time, mode, speaker], index) => ({
   id,
@@ -445,7 +391,7 @@ export const fallbackSeminars: SeminarEvent[] = [
   location: mode === "Online" ? "Online (Zoom)" : "Westwood Law Firm, San Juan City",
   speaker,
   speaker_name: speaker,
-  speaker_profile_id: fallbackLawyers[index].id,
+  speaker_profile_id: fallbackLawyers.find((l) => l.full_name === speaker)?.id ?? null,
   capacity: null,
   registration_url: null,
   is_active: true,

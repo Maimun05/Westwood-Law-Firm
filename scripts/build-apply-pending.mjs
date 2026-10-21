@@ -133,6 +133,10 @@ const MIGRATIONS = [
     file: "20261025_service_role_profile_write.sql",
     note: "service_role UPDATE on profiles — without it admin-create-user cannot set a new account's role",
   },
+  {
+    file: "20261026_single_lawyer_directory.sql",
+    note: "single-lawyer directory: deletes the six demo associates, one position for the firm",
+  },
 ];
 
 const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the practice areas created
@@ -174,7 +178,9 @@ const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the p
 -- reviews on the six-role helpers 20261023 installs (is_matter_team,
 -- is_matter_lawyer_team, is_admin), so it runs last. 20261025 is a plain
 -- grant on profiles with no dependencies; running it last means a rebuilt
--- database has it after the table exists.`;
+-- database has it after the table exists. 20261026 must run after 20261001,
+-- whose seed is the thing that creates the six demo associates it deletes —
+-- run it earlier and the seed would simply put them back.`;
 
 const VERIFICATION = `-- ############################################################################
 -- ## VERIFICATION  —  read the result grid, not the "Success" toast
