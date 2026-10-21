@@ -3,13 +3,12 @@
 // ============================================================================
 // The header used to point at /westwood-logo.png, which was never in the repo,
 // so every page showed a broken-image icon. The mark is now the Lady Justice
-// emblem cropped from the firm's logo artwork the owner supplied
-// (public/westwood-mark.png), shown as a small tile. The wordmark stays as
-// text so it renders crisp at any size and in either tone.
-//
-// The emblem is royal blue on navy — the banner's own treatment — so it reads
-// on the white scrolled header and on the navy hero alike; the thin ring just
-// separates the tile from whatever is behind it.
+// emblem extracted from the firm's logo artwork the owner supplied
+// (src/imports/Westwood_Law_Firm_Logo__revised___1_.png). Two transparent
+// recolours of the same art are shipped: navy for light surfaces and gold for
+// the navy hero/sidebar. The old 128px blue-on-navy tile was soft and read as
+// a dark blob on the light header; the vector-sourced artwork stays crisp.
+// The wordmark stays as text so it renders sharp at any size and in either tone.
 
 export function BrandMark({
   tone = "dark",
@@ -20,12 +19,10 @@ export function BrandMark({
 }) {
   return (
     <img
-      src="/westwood-mark.png"
+      src={tone === "light" ? "/westwood-mark-light.png" : "/westwood-mark.png"}
       alt=""
       aria-hidden="true"
-      className={`${className} rounded-lg object-cover shadow-sm ${
-        tone === "light" ? "ring-1 ring-white/20" : "ring-1 ring-[var(--ink-strong)]/10"
-      }`}
+      className={`${className} object-contain`}
     />
   );
 }
