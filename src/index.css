@@ -1064,6 +1064,14 @@ select {
   color: #ffffff;
 }
 
+/* The home hero and the closing CTA are navy in light mode. Leaving them the
+   same navy on a dark page makes the toggle look like it did nothing above
+   the fold, because the hero is the whole first screen. Dark mode sinks the
+   band to near-black so the switch is visible without scrolling. */
+.dark .gradient-navy {
+  background: linear-gradient(135deg, #070d18 0%, #04080f 55%, #0d1a2d 100%);
+}
+
 /* ── Status tints in dark mode ──
    The portal paints status chips with Tailwind's light tint ramp
    (bg-amber-50, text-amber-700, border-amber-200 …). Those tints are
