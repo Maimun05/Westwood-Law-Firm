@@ -1,3 +1,5 @@
+import { useTheme } from "@/hooks/useTheme";
+
 // ============================================================================
 // Brand mark
 // ============================================================================
@@ -9,6 +11,12 @@
 // the navy hero/sidebar. The old 128px blue-on-navy tile was soft and read as
 // a dark blob on the light header; the vector-sourced artwork stays crisp.
 // The wordmark stays as text so it renders sharp at any size and in either tone.
+//
+// The mark is a raster tint, so it cannot inherit a CSS colour: the file has to
+// match the surface it sits on. `tone` says what the surface is ("light" = navy
+// hero / portal sidebar), and dark mode turns every other surface navy too,
+// which is why the theme is consulted as well — a navy mark on a dark header is
+// invisible.
 
 export function BrandMark({
   tone = "dark",
@@ -17,9 +25,15 @@ export function BrandMark({
   tone?: "dark" | "light";
   className?: string;
 }) {
+  const { theme } = useTheme();
+
+  // Gold on anything dark: an explicit light-tone surface, or the whole page
+  // once dark mode is on. Navy only on a light surface.
+  const gold = tone === "light" || theme === "dark";
+
   return (
     <img
-      src={tone === "light" ? "/westwood-mark-light.png" : "/westwood-mark.png"}
+      src={gold ? "/westwood-mark-light.png" : "/westwood-mark.png"}
       alt=""
       aria-hidden="true"
       className={`${className} object-contain`}
