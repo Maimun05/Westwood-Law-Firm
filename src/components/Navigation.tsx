@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 import BrandLogo from "@/components/BrandLogo";
 import ThemeToggle from "@/components/ThemeToggle";
 import type { Page } from "@/types/navigation";
@@ -11,6 +12,7 @@ type NavigationProps = {
 
 export default function Navigation({ currentPage, onNavigate }: NavigationProps) {
   const { user, loading } = useAuth();
+  const { theme } = useTheme();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -40,12 +42,17 @@ export default function Navigation({ currentPage, onNavigate }: NavigationProps)
   // gradient-navy). Every other page pads its top by the nav height, so an
   // off-white strip sits behind the transparent nav and the dark tone is the
   // one that stays readable.
-  const overHero = !scrolled && currentPage === "home";
+  //
+  // Light mode always shows the solid light bar — a transparent bar over the
+  // navy hero read as a blue header on a light page. Dark mode keeps the
+  // original treatment: transparent over the hero, dark glass once scrolled.
+  const solidHeader = scrolled || theme === "light";
+  const overHero = !solidHeader && currentPage === "home";
 
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-[var(--z-fixed)] transition-all duration-300 ${
-        scrolled
+        solidHeader
           ? "bg-[var(--surface-glass)] backdrop-blur-sm shadow-sm shadow-black/5 border-b border-[var(--color-border-light)]"
           : "bg-transparent"
       }`}
