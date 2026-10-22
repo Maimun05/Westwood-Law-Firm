@@ -46,13 +46,8 @@ export function uploadableAccessLevels(role: UserRole): DocAccessLevel[] {
   if (role === "client") return ["Client & Assigned Lawyer"];
   if (role === "lawyer")
     return ["Client & Assigned Lawyer", "Staff Shared", "Lawyer Only", "Confidential"];
-  if (role === "paralegal")
-    // Paralegals file on their team's matters but never author Confidential
-    // content (20261023); the database refuses it, so it is not offered.
-    return ["Client & Assigned Lawyer", "Staff Shared", "Lawyer Only"];
-  // The managing partner is view-only on documents (20261012) and the system
-  // admin has no matter access at all: the database refuses every upload, so
-  // the UI must not offer one.
+  // The admin is view-only on documents (20261012): the database refuses every
+  // upload, so the UI must not offer one.
   return [];
 }
 

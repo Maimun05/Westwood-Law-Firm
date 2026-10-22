@@ -17,9 +17,8 @@
 // and the log records exactly what went out.
 //
 // Auth follows the admin-create-user shape: resolve the caller's JWT to a user
-// (401), require profiles.role = 'managing_partner' (403) — the firm owner's
-// role keeps this power; the system administrator is not given bulk mail — and
-// only then build the service-role client. That client reads the registrants —
+// (401), require profiles.role = 'admin' (403), and only then build the
+// service-role client. That client reads the registrants —
 // inquiries rows are not readable in bulk through RLS — and writes the send log.
 //
 // The message is one template with a single {name} placeholder, replaced per
@@ -108,7 +107,7 @@ serve(async (req) => {
       .select("role")
       .eq("id", user.id)
       .single();
-    if (profile?.role !== "managing_partner") {
+    if (profile?.role !== "admin") {
       return json({ ok: false, error: "Managing partner access is required" }, 403);
     }
 

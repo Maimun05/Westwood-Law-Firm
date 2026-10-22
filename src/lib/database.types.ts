@@ -24,13 +24,7 @@ export interface Database {
           address: string | null;
           city: string | null;
           date_of_birth: string | null;
-          role:
-            | "client"
-            | "lawyer"
-            | "legal_assistant"
-            | "paralegal"
-            | "managing_partner"
-            | "system_admin";
+          role: "client" | "lawyer" | "admin";
           is_active: boolean;
           must_change_password: boolean;
           preferred_contact_method: string | null;
@@ -61,13 +55,7 @@ export interface Database {
           address?: string | null;
           city?: string | null;
           date_of_birth?: string | null;
-          role?:
-            | "client"
-            | "lawyer"
-            | "legal_assistant"
-            | "paralegal"
-            | "managing_partner"
-            | "system_admin";
+          role?: "client" | "lawyer" | "admin";
           is_active?: boolean;
           must_change_password?: boolean;
           preferred_contact_method?: string | null;
@@ -98,13 +86,7 @@ export interface Database {
           address?: string | null;
           city?: string | null;
           date_of_birth?: string | null;
-          role?:
-            | "client"
-            | "lawyer"
-            | "legal_assistant"
-            | "paralegal"
-            | "managing_partner"
-            | "system_admin";
+          role?: "client" | "lawyer" | "admin";
           is_active?: boolean;
           must_change_password?: boolean;
           preferred_contact_method?: string | null;
@@ -1400,13 +1382,7 @@ export interface Database {
       };
     };
     Enums: {
-      user_role:
-        | "client"
-        | "lawyer"
-        | "legal_assistant"
-        | "paralegal"
-        | "managing_partner"
-        | "system_admin";
+      user_role: "client" | "lawyer" | "admin";
       task_status: "Open" | "In Progress" | "Blocked" | "In Review" | "Completed" | "Cancelled";
       review_decision: "Approved" | "Changes Requested";
       matter_status:

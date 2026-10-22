@@ -1,15 +1,12 @@
 // ============================================================================
 // admin-create-user — create staff accounts with emailed credentials
 // ============================================================================
-// Two actions, both restricted to the two firm-management roles — the caller's
-// JWT is resolved and its profile must be role = 'managing_partner' or
-// 'system_admin' before anything else happens (locked decision 2026-10-12:
-// both roles manage staff accounts):
+// Two actions, both restricted to the firm administrator — the caller's JWT is
+// resolved and its profile must be role = 'admin' before anything else happens:
 //
 //   action: "create"  Create an account.
 //     - role = client  The manager supplies the password; nothing is emailed.
-//     - any staff role (lawyer, paralegal, legal_assistant, managing_partner,
-//       system_admin)
+//     - role = lawyer or admin
 //                      The password is generated here with a CSPRNG, the
 //                      profile is flagged `must_change_password`, and the
 //                      credentials are emailed to the new user. The portal
@@ -62,26 +59,11 @@ const esc = (v: unknown) =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 
-type Role =
-  | "client"
-  | "lawyer"
-  | "paralegal"
-  | "legal_assistant"
-  | "managing_partner"
-  | "system_admin";
-const ROLES: Role[] = [
-  "client",
-  "lawyer",
-  "paralegal",
-  "legal_assistant",
-  "managing_partner",
-  "system_admin",
-];
+type Role = "client" | "lawyer" | "admin";
+const ROLES: Role[] = ["client", "lawyer", "admin"];
 
-// The caller must hold one of these roles. The migration renames the legacy
-// 'admin' role to 'managing_partner', so 'admin' is not accepted — by the
-// time this function is deployed the old value no longer exists.
-const CALLER_ROLES = new Set(["managing_partner", "system_admin"]);
+// Only the firm administrator may create or reset staff accounts.
+const CALLER_ROLES = new Set(["admin"]);
 
 interface CreateRequest {
   action?: "create" | "resend";

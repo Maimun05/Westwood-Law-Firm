@@ -1,9 +1,9 @@
 // ============================================================================
 // Tasks panel — assignment + four-eyes review (migration 20261024)
 // ============================================================================
-// One panel for every staff portal (lawyer, paralegal, intake, managing
-// partner, system admin). RLS decides which tasks each role sees — assignee,
-// creator, the matter team or the managing partner — and the database guards
+// One panel for every staff portal (lawyer, admin). RLS decides which tasks
+// each role sees — assignee, creator, the matter team or the admin — and the
+// database guards
 // decide what each person may change; this panel only offers the actions the
 // guards allow, so an error toast is the exception, not the flow.
 //
@@ -539,8 +539,8 @@ export default function TasksPanel({
     new Set(tasks.map((t) => staffName(t.assigned_to)).filter(Boolean)),
   ).sort();
 
-  // Creation is matter-lawyer + managing-partner work (tasks_insert_managers);
-  // a paralegal's matters list is non-empty, so the role check matters too.
+  // Creation is matter-lawyer + admin work (tasks_insert_managers); the
+  // matters list alone is not enough, so the role check matters too.
   const canCreate =
     matters.length > 0 && (isFirmAdmin(currentUser.role) || isLawyer(currentUser.role));
 

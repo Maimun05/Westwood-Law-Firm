@@ -36,9 +36,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Both firm-management roles may delete accounts (locked decision 2026-10-12).
+// Only the firm administrator may delete accounts.
 
-const MANAGER_ROLES = new Set(["managing_partner", "system_admin"]);
+const MANAGER_ROLES = new Set(["admin"]);
 
 interface DeleteUserRequest {
   userId: string;

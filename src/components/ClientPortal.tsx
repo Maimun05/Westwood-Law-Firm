@@ -63,11 +63,8 @@ import { signIn, signUp, signOut, type AuthUser } from "@/lib/auth";
 import {
   isClient,
   isFirmAdmin,
-  isIntake,
   isLawyer,
-  isParalegal,
   isStaff,
-  isSystemAdmin,
   normalizeRole,
   roleLabel,
   USER_ROLES,
@@ -203,8 +200,9 @@ const LAWYER_TABS = [
   { key: "profile", label: "Profile", group: "Account" },
 ];
 
-// The managing partner keeps every tab the old single-admin portal had.
-const MANAGING_PARTNER_TABS: PortalTab[] = [
+// The admin keeps every tab the portal has: accounts, the intake queue, the
+// whole matter list, content, reports, settings and the audit trail.
+const ADMIN_TABS: PortalTab[] = [
   { key: "dashboard", label: "Dashboard" },
   { key: "users", label: "User Accounts", group: "Practice" },
   { key: "intake", label: "Client Intake", group: "Practice" },
@@ -218,39 +216,6 @@ const MANAGING_PARTNER_TABS: PortalTab[] = [
   { key: "settings", label: "System Settings", group: "System" },
   { key: "profile", label: "My Profile", group: "System" },
   { key: "audit", label: "Audit Logs", group: "System" },
-];
-
-// The system administrator manages accounts and reads the audit trail.
-// Casework tabs (matters, intake, documents…) are deliberately absent — the
-// database gives this role no access to them and the shell mirrors that.
-// Tasks stays: work assigned to the administrator personally is theirs to
-// move, and RLS scopes the list to exactly that.
-const SYSTEM_ADMIN_TABS: PortalTab[] = [
-  { key: "dashboard", label: "Dashboard" },
-  { key: "users", label: "User Accounts", group: "Administration" },
-  { key: "tasks", label: "Tasks", group: "Administration" },
-  { key: "settings", label: "System Settings", group: "Administration" },
-  { key: "audit", label: "Audit Logs", group: "Administration" },
-  { key: "profile", label: "My Profile", group: "Account" },
-];
-
-// Intake works the inquiry queue. Acting on an inquiry (statuses, conversion)
-// stays with the managing partner and lawyers — see the read-only queue.
-const INTAKE_TABS: PortalTab[] = [
-  { key: "dashboard", label: "Dashboard" },
-  { key: "intake", label: "Inquiry Queue", group: "Intake" },
-  { key: "tasks", label: "Tasks", group: "Intake" },
-  { key: "profile", label: "Profile", group: "Account" },
-];
-
-// A paralegal supports the matters whose team they are on: the matter itself,
-// its documents (never Confidential), and no status or team controls.
-const PARALEGAL_TABS: PortalTab[] = [
-  { key: "dashboard", label: "Dashboard" },
-  { key: "matters", label: "My Matters", group: "Casework" },
-  { key: "documents", label: "Documents", group: "Casework" },
-  { key: "tasks", label: "Tasks", group: "Casework" },
-  { key: "profile", label: "Profile", group: "Account" },
 ];
 
 // ── Status colors ─────────────────────────────────────────────────────────────
@@ -353,16 +318,10 @@ function RoleBadge({ role }: { role: string }) {
 
     lawyer: "bg-blue-50 text-blue-700",
 
-    paralegal: "bg-indigo-50 text-indigo-700",
-
-    legal_assistant: "bg-teal-50 text-teal-700",
-
-    managing_partner: "bg-purple-50 text-purple-700",
-
-    system_admin: "bg-slate-100 text-slate-700",
+    admin: "bg-purple-50 text-purple-700",
   };
 
-  // Raw values reach here from audit rows written before the six-role
+  // Raw values reach here from audit rows written before the three-role
   // migration, so everything goes through the normalizer first.
   const r = normalizeRole(role);
 
@@ -1911,9 +1870,8 @@ function MatterDetail({
             <div className="bg-[var(--surface-card)] rounded-xl p-5 border border-[var(--line)]">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-[var(--ink-strong)]">Documents</h3>
-                {/* The managing partner is view-only on documents (20261012);
-                    matter teams — lawyers and paralegals — may upload, within
-                    the access levels their role allows (20261023). */}
+                {/* The admin is view-only on documents (20261012); lawyers
+                    may upload, within the access levels their role allows. */}
                 {!isFirmAdmin(currentUser.role) && (
                   <button
                     onClick={() => setShowUpload(true)}
@@ -3155,12 +3113,9 @@ function LawyerPortalView({
   onSignOut: () => void;
   /** Re-reads the profile so the avatar/name update after an edit. */
   onUserRefresh?: () => void;
-  /** The lawyer sees the full set; the paralegal gets the casework subset. */
   tabs?: PortalTab[];
 }) {
   const [tab, setTab] = useState("dashboard");
-
-  const isPara = isParalegal(currentUser.role);
 
   const [myMatters, setMyMatters] = useState<Matter[]>([]);
 
@@ -3286,22 +3241,18 @@ function LawyerPortalView({
       });
     }
     const seen = new Set<string>();
-    // Client search entries land on the Clients tab, which only the lawyer
-    // portal has — a paralegal's index would dead-end.
-    if (!isPara) {
-      for (const m of myMatters) {
-        if (!m.client_id || seen.has(m.client_id)) continue;
-        seen.add(m.client_id);
-        items.push({
-          id: `client-${m.client_id}`,
-          title: clientNames[m.client_id] || "Client",
-          subtitle: `${m.matter_number} · ${m.title}`,
-          tab: "clients",
-        });
-      }
+    for (const m of myMatters) {
+      if (!m.client_id || seen.has(m.client_id)) continue;
+      seen.add(m.client_id);
+      items.push({
+        id: `client-${m.client_id}`,
+        title: clientNames[m.client_id] || "Client",
+        subtitle: `${m.matter_number} · ${m.title}`,
+        tab: "clients",
+      });
     }
     return items;
-  }, [myMatters, myDocs, myAppts, practiceAreas, clientNames, isPara]);
+  }, [myMatters, myDocs, myAppts, practiceAreas, clientNames]);
 
   if (loading) {
     return (
@@ -3353,16 +3304,12 @@ function LawyerPortalView({
                 tone="blue"
                 icon={<IconGavel className="h-5 w-5" />}
               />
-              {/* Paralegals never hold appointments — the card would always
-                  read zero and the database gives them no calendar access. */}
-              {!isPara && (
-                <StatCard
-                  label="Appointments"
-                  value={myAppts.length}
-                  tone="purple"
-                  icon={<IconClock className="h-5 w-5" />}
-                />
-              )}
+              <StatCard
+                label="Appointments"
+                value={myAppts.length}
+                tone="purple"
+                icon={<IconClock className="h-5 w-5" />}
+              />
               <StatCard
                 label="Unread Notifications"
                 value={notifs.unreadCount}
@@ -3379,38 +3326,36 @@ function LawyerPortalView({
                 }))}
               />
             </Panel>
-            {!isPara && (
-              <Panel>
-                <PanelHeader
-                  title="Recent Appointments"
-                  subtitle="Your latest scheduled consultations"
-                />
-                <div className="space-y-3">
-                  {myAppts.length > 0 ? (
-                    myAppts.slice(0, 4).map((a) => (
-                      <div
-                        key={a.id}
-                        className="flex items-center justify-between gap-3 py-2 border-b border-[var(--line)] last:border-0"
-                      >
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-[var(--ink-strong)] truncate">
-                            {a.appointment_type}
-                          </p>
-                          <p className="text-xs text-[var(--ink-muted)]">
-                            {new Date(a.date + "T00:00").toLocaleDateString()} · {a.time}
-                          </p>
-                        </div>
-                        <Badge text={a.status} />
+            <Panel>
+              <PanelHeader
+                title="Recent Appointments"
+                subtitle="Your latest scheduled consultations"
+              />
+              <div className="space-y-3">
+                {myAppts.length > 0 ? (
+                  myAppts.slice(0, 4).map((a) => (
+                    <div
+                      key={a.id}
+                      className="flex items-center justify-between gap-3 py-2 border-b border-[var(--line)] last:border-0"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-[var(--ink-strong)] truncate">
+                          {a.appointment_type}
+                        </p>
+                        <p className="text-xs text-[var(--ink-muted)]">
+                          {new Date(a.date + "T00:00").toLocaleDateString()} · {a.time}
+                        </p>
                       </div>
-                    ))
-                  ) : (
-                    <p className="text-xs text-[var(--ink-muted)] text-center py-2">
-                      No appointments yet
-                    </p>
-                  )}
-                </div>
-              </Panel>
-            )}
+                      <Badge text={a.status} />
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-[var(--ink-muted)] text-center py-2">
+                    No appointments yet
+                  </p>
+                )}
+              </div>
+            </Panel>
             <MattersTable
               matters={myMatters}
               currentUser={currentUser}
@@ -3427,11 +3372,7 @@ function LawyerPortalView({
             <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">My Matters</h2>
             {myMatters.length === 0 ? (
               <div className="bg-[var(--surface-card)] rounded-xl border border-[var(--line)] p-10 text-center">
-                <p className="text-[var(--ink-muted)] text-sm">
-                  {isPara
-                    ? "You are not on any matter team yet. A matter's assigned lawyer adds paralegals to its team."
-                    : "No matters assigned yet."}
-                </p>
+                <p className="text-[var(--ink-muted)] text-sm">No matters assigned yet.</p>
               </div>
             ) : (
               <MattersTable
@@ -3601,8 +3542,8 @@ function LawyerPortalView({
           onOpenLink={(link) => {
             setShowNotifs(false);
             // Land on this portal's own tab for the link — the lawyer's
-            // inquiries queue, a paralegal's matters — but never on a tab
-            // this role's portal does not have.
+            // inquiries queue, their matters — but never on a tab this
+            // role's portal does not have.
             if (tabs.some((t) => t.key === link)) setTab(link);
           }}
           onClose={() => setShowNotifs(false)}
@@ -3619,183 +3560,6 @@ function LawyerPortalView({
 // inquiry but reserves status changes, assignment and conversion for the
 // managing partner and the lawyers (guard_inquiry_update / convert_inquiry_to_matter).
 
-function IntakePortalView({
-  currentUser,
-  onNavigate,
-  onSignOut,
-  onUserRefresh,
-}: {
-  currentUser: AuthUser;
-  onNavigate: (p: Page, params?: Record<string, string>) => void;
-  onSignOut: () => void;
-  /** Re-reads the profile so the avatar/name update after an edit. */
-  onUserRefresh?: () => void;
-}) {
-  const [tab, setTab] = useState("dashboard");
-
-  // Status-only projection of the queue, for the dashboard counts. RLS admits
-  // every inquiry for intake; the rows themselves are rendered by AdminIntake.
-  const [queue, setQueue] = useState<{ id: string; status: string }[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const notifs = useNotifications(currentUser.id);
-
-  const [showNotifs, setShowNotifs] = useState(false);
-
-  const [toast, setToast] = useState<{
-    message: string;
-    tone: "success" | "error";
-  } | null>(null);
-
-  const showToast = (message: string, tone: "success" | "error" = "success") =>
-    setToast({ message, tone });
-
-  const loadQueue = useCallback(async (showSpinner = true) => {
-    if (showSpinner) setLoading(true);
-
-    const { data } = await supabase
-      .from("inquiries")
-      .select("id, status")
-      .order("created_at", { ascending: false })
-      .limit(200);
-
-    setQueue((data as { id: string; status: string }[]) ?? []);
-
-    if (showSpinner) setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    void loadQueue();
-  }, [loadQueue]);
-
-  // Live queue: a new client inquiry or a status change moves the counts and
-  // the queue without a refresh.
-  useEffect(() => {
-    return subscribeToTables(["inquiries"], () => void loadQueue(false), {
-      channelKey: currentUser.id,
-    });
-  }, [loadQueue, currentUser.id]);
-
-  const count = (status: string) => queue.filter((r) => r.status === status).length;
-
-  if (loading) {
-    return (
-      <PortalShell
-        currentUser={currentUser}
-        tabs={INTAKE_TABS}
-        activeTab={tab}
-        onTab={setTab}
-        onSignOut={onSignOut}
-        unreadCount={notifs.unreadCount}
-      >
-        <div className="flex items-center justify-center py-20">
-          <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-4 border-4 border-[#c9a84c] border-t-transparent rounded-full animate-spin" />
-            <p className="text-[var(--ink-muted)] text-sm">Loading the inquiry queue...</p>
-          </div>
-        </div>
-      </PortalShell>
-    );
-  }
-
-  return (
-    <>
-      <EmailVerificationBanner />
-      <PortalShell
-        currentUser={currentUser}
-        tabs={INTAKE_TABS}
-        activeTab={tab}
-        onTab={setTab}
-        onSignOut={onSignOut}
-        unreadCount={notifs.unreadCount}
-        onOpenNotifications={() => setShowNotifs(true)}
-      >
-        {tab === "dashboard" && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <StatCard
-                label="New"
-                value={count("New")}
-                tone="blue"
-                icon={<IconEnvelope className="h-5 w-5" />}
-                onClick={() => setTab("intake")}
-              />
-              <StatCard
-                label="Under Review"
-                value={count("Under Review")}
-                tone="amber"
-                icon={<IconClock className="h-5 w-5" />}
-                onClick={() => setTab("intake")}
-              />
-              <StatCard
-                label="Contacted"
-                value={count("Contacted")}
-                tone="purple"
-                icon={<IconTrendingUp className="h-5 w-5" />}
-                onClick={() => setTab("intake")}
-              />
-              <StatCard
-                label="Closed"
-                value={count("Closed")}
-                tone="green"
-                icon={<IconShield className="h-5 w-5" />}
-                onClick={() => setTab("intake")}
-              />
-            </div>
-            <Panel>
-              <PanelHeader
-                title="Intake queue"
-                subtitle="Every inquiry filed by a registered client"
-              />
-              <p className="text-sm text-[var(--ink-body)] leading-relaxed">
-                You are notified about each new client inquiry — the bell in the top bar, and the
-                email the firm receives. The queue shows every inquiry and its attachments.
-                Assigning a lawyer, moving statuses and converting an inquiry into a matter stay
-                with the managing partner and the lawyers.
-              </p>
-            </Panel>
-          </div>
-        )}
-
-        {tab === "intake" && <AdminIntake readOnly />}
-
-        {tab === "tasks" && (
-          <TasksPanel currentUser={currentUser} matters={[]} onToast={showToast} />
-        )}
-
-        {tab === "profile" && (
-          <div className="space-y-5">
-            <h2 className="font-serif text-2xl font-bold text-[var(--ink-strong)]">My Profile</h2>
-            <ProfileEditor userId={currentUser.id} onSaved={onUserRefresh} />
-          </div>
-        )}
-      </PortalShell>
-      {toast && (
-        <PortalToast message={toast.message} tone={toast.tone} onClose={() => setToast(null)} />
-      )}
-      {showNotifs && (
-        <NotificationsModal
-          items={notifs.items}
-          loading={notifs.loading}
-          error={notifs.error}
-          unreadCount={notifs.unreadCount}
-          onMarkRead={notifs.markRead}
-          onMarkAllRead={notifs.markAllRead}
-          onDelete={notifs.remove}
-          onOpenLink={(link) => {
-            setShowNotifs(false);
-            // New-inquiry notifications carry the "intake" link; task
-            // notifications carry "tasks". Both land on this portal's tabs.
-            if (link === "intake" || link === "inquiries") setTab("intake");
-            else if (link === "tasks") setTab("tasks");
-          }}
-          onClose={() => setShowNotifs(false)}
-        />
-      )}
-    </>
-  );
-}
-
 // ── Admin Portal ──────────────────────────────────────────────────────────────
 
 function AdminPortalView({
@@ -3803,23 +3567,14 @@ function AdminPortalView({
   onNavigate,
   onSignOut,
   onUserRefresh,
-  tabs = MANAGING_PARTNER_TABS,
 }: {
   currentUser: AuthUser;
   onNavigate: (p: Page, params?: Record<string, string>) => void;
   onSignOut: () => void;
   /** Re-reads the profile so the avatar/name update after an edit. */
   onUserRefresh?: () => void;
-  /** The managing partner sees every tab; the system administrator gets the
-      administration subset (accounts, settings, audit, profile). */
-  tabs?: PortalTab[];
 }) {
   const [tab, setTab] = useState("dashboard");
-
-  // The system administrator shares this component with the managing partner,
-  // but sees only the administration subset (tabs prop), an accounts-only
-  // dashboard and a users-only search index.
-  const sysAdmin = isSystemAdmin(currentUser.role);
 
   // Filters a dashboard stat card hands to the Matters tab (e.g. status=Active).
   // Empty means the plain "All Matters" list.
@@ -4014,12 +3769,12 @@ function AdminPortalView({
   const applyMatterPatch = (id: string, patch: Partial<Matter>) =>
     setAllMatters((prev) => prev.map((m) => (m.id === id ? { ...m, ...patch } : m)));
 
-  // How many managing partners could still get in. The database refuses to
-  // remove the last one (private.guard_last_admin), so the UI warns first
-  // rather than letting the account manager hit a raw SQL error.
+  // How many admins could still get in. The database refuses to remove the
+  // last one (private.guard_last_admin), so the UI warns first rather than
+  // letting the account manager hit a raw SQL error.
 
-  const activeManagingPartnerCount = userAccounts.filter(
-    (u) => normalizeRole(u.role) === "managing_partner" && u.is_active !== false && !u.deleted_at,
+  const activeAdminCount = userAccounts.filter(
+    (u) => normalizeRole(u.role) === "admin" && u.is_active !== false && !u.deleted_at,
   ).length;
 
   // ── Excel export (Reports tab) ──────────────────────────────────────────────
@@ -4226,9 +3981,6 @@ function AdminPortalView({
         tab: "users",
       });
     }
-    // Everything below lands on a casework tab, which the system
-    // administrator's portal does not have.
-    if (sysAdmin) return items;
     for (const m of allMatters) {
       items.push({
         id: `matter-${m.id}`,
@@ -4259,13 +4011,13 @@ function AdminPortalView({
       });
     }
     return items;
-  }, [userAccounts, allMatters, lawyers, allDocs, allAppointments, practiceAreas, sysAdmin]);
+  }, [userAccounts, allMatters, lawyers, allDocs, allAppointments, practiceAreas]);
 
   if (loading) {
     return (
       <PortalShell
         currentUser={currentUser}
-        tabs={tabs}
+        tabs={ADMIN_TABS}
         activeTab={tab}
         onTab={goToTab}
         onSignOut={onSignOut}
@@ -4286,13 +4038,13 @@ function AdminPortalView({
       <EmailVerificationBanner />
       <PortalShell
         currentUser={currentUser}
-        tabs={tabs}
+        tabs={ADMIN_TABS}
         activeTab={tab}
         onTab={goToTab}
         onSignOut={onSignOut}
         unreadCount={notifs.unreadCount}
         onOpenNotifications={() => setShowNotifs(true)}
-        searchPlaceholder={sysAdmin ? "Search users…" : "Search users, matters, lawyers…"}
+        searchPlaceholder="Search users, matters, lawyers…"
         searchItems={searchItems}
         onSearchSelect={(item) => {
           goToTab(item.tab);
@@ -4305,139 +4057,87 @@ function AdminPortalView({
           </div>
         )}
 
-        {tab === "dashboard" &&
-          (sysAdmin ? (
-            // The system administrator has no legal work in the database, so
-            // the firm-wide casework dashboard would read all zeros. Their
-            // dashboard counts accounts and audit activity instead.
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <StatCard
-                  label="Total Accounts"
-                  value={userAccounts.length}
-                  tone="purple"
-                  icon={<IconUsers className="h-5 w-5" />}
-                  onClick={() => goToTab("users")}
-                />
-                <StatCard
-                  label="Active Accounts"
-                  value={userAccounts.filter((u) => u.is_active !== false && !u.deleted_at).length}
-                  tone="green"
-                  icon={<IconTrendingUp className="h-5 w-5" />}
-                  onClick={() => goToTab("users")}
-                />
-                <StatCard
-                  label="Staff Accounts"
-                  value={
-                    userAccounts.filter((u) => isStaff(normalizeRole(u.role)) && !u.deleted_at)
-                      .length
-                  }
-                  tone="blue"
-                  icon={<IconGavel className="h-5 w-5" />}
-                  onClick={() => goToTab("users")}
-                />
-                <StatCard
-                  label="Audit Events"
-                  value={auditLogs.length}
-                  tone="gold"
-                  icon={<IconShield className="h-5 w-5" />}
-                  onClick={() => goToTab("audit")}
-                />
-              </div>
-              <Panel>
-                <PanelHeader
-                  title="System administration"
-                  subtitle="Accounts and the audit trail"
-                />
-                <p className="text-sm text-[var(--ink-body)] leading-relaxed">
-                  Your role manages user accounts — creating them, changing roles and resetting
-                  credentials — and reviews the audit trail. Casework (matters, documents, inquiry
-                  conversations) is deliberately out of scope and stays with the firm&rsquo;s
-                  lawyers and managing partner.
-                </p>
-              </Panel>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <StatCard
-                  label="Total Matters"
-                  value={allMatters.length}
-                  tone="blue"
-                  icon={<IconBriefcase className="h-5 w-5" />}
-                  onClick={() => goToTab("matters")}
-                />
-                <StatCard
-                  label="Active Matters"
-                  value={allMatters.filter((m) => m.status === "Active").length}
-                  tone="green"
-                  icon={<IconTrendingUp className="h-5 w-5" />}
-                  onClick={() => goToTab("matters", { status: "Active" })}
-                />
-                <StatCard
-                  label="Pending Conflict Checks"
-                  value={allMatters.filter((m) => m.status === "Conflict Check").length}
-                  tone="amber"
-                  icon={<IconShield className="h-5 w-5" />}
-                  onClick={() => goToTab("matters", { status: "Conflict Check" })}
-                />
-                <StatCard
-                  label="Unassigned Matters"
-                  value={unassigned.length}
-                  tone="red"
-                  icon={<IconUsers className="h-5 w-5" />}
-                  onClick={() => goToTab("matters", { lawyer: "Unassigned" })}
-                />
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <StatCard
-                  label="Total Users"
-                  value={userAccounts.length}
-                  tone="purple"
-                  icon={<IconUsers className="h-5 w-5" />}
-                  onClick={() => goToTab("users")}
-                />
-                <StatCard
-                  label="Total Lawyers"
-                  value={lawyers.length}
-                  tone="gold"
-                  icon={<IconGavel className="h-5 w-5" />}
-                  onClick={() => goToTab("lawyers")}
-                />
-                <StatCard
-                  label="Client Inquiries"
-                  value={inquiryCount}
-                  tone="blue"
-                  icon={<IconEnvelope className="h-5 w-5" />}
-                  onClick={() => goToTab("intake")}
-                />
-                <StatCard
-                  label="Audit Events"
-                  value={auditLogs.length}
-                  tone="green"
-                  icon={<IconShield className="h-5 w-5" />}
-                  onClick={() => goToTab("audit")}
-                />
-              </div>
-              <Panel>
-                <PanelHeader title="Matters by Status" subtitle="All matters across the practice" />
-                <StatusBreakdown
-                  items={MATTER_STATUS_ORDER.map((s) => ({
-                    label: s,
-                    value: allMatters.filter((m) => m.status === s).length,
-                  }))}
-                />
-              </Panel>
-              <MattersTable
-                matters={allMatters}
-                currentUser={currentUser}
-                onNavigate={onNavigate}
-                practiceAreas={practiceAreas}
-                lawyers={lawyers}
-                onMatterUpdated={applyMatterPatch}
+        {tab === "dashboard" && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <StatCard
+                label="Total Matters"
+                value={allMatters.length}
+                tone="blue"
+                icon={<IconBriefcase className="h-5 w-5" />}
+                onClick={() => goToTab("matters")}
+              />
+              <StatCard
+                label="Active Matters"
+                value={allMatters.filter((m) => m.status === "Active").length}
+                tone="green"
+                icon={<IconTrendingUp className="h-5 w-5" />}
+                onClick={() => goToTab("matters", { status: "Active" })}
+              />
+              <StatCard
+                label="Pending Conflict Checks"
+                value={allMatters.filter((m) => m.status === "Conflict Check").length}
+                tone="amber"
+                icon={<IconShield className="h-5 w-5" />}
+                onClick={() => goToTab("matters", { status: "Conflict Check" })}
+              />
+              <StatCard
+                label="Unassigned Matters"
+                value={unassigned.length}
+                tone="red"
+                icon={<IconUsers className="h-5 w-5" />}
+                onClick={() => goToTab("matters", { lawyer: "Unassigned" })}
               />
             </div>
-          ))}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <StatCard
+                label="Total Users"
+                value={userAccounts.length}
+                tone="purple"
+                icon={<IconUsers className="h-5 w-5" />}
+                onClick={() => goToTab("users")}
+              />
+              <StatCard
+                label="Total Lawyers"
+                value={lawyers.length}
+                tone="gold"
+                icon={<IconGavel className="h-5 w-5" />}
+                onClick={() => goToTab("lawyers")}
+              />
+              <StatCard
+                label="Client Inquiries"
+                value={inquiryCount}
+                tone="blue"
+                icon={<IconEnvelope className="h-5 w-5" />}
+                onClick={() => goToTab("intake")}
+              />
+              <StatCard
+                label="Audit Events"
+                value={auditLogs.length}
+                tone="green"
+                icon={<IconShield className="h-5 w-5" />}
+                onClick={() => goToTab("audit")}
+              />
+            </div>
+            <Panel>
+              <PanelHeader title="Matters by Status" subtitle="All matters across the practice" />
+              <StatusBreakdown
+                items={MATTER_STATUS_ORDER.map((s) => ({
+                  label: s,
+                  value: allMatters.filter((m) => m.status === s).length,
+                }))}
+              />
+            </Panel>
+            <MattersTable
+              matters={allMatters}
+              currentUser={currentUser}
+              onNavigate={onNavigate}
+              practiceAreas={practiceAreas}
+              lawyers={lawyers}
+              onMatterUpdated={applyMatterPatch}
+            />
+          </div>
+        )}
 
         {tab === "users" && (
           <div className="space-y-4">
@@ -4656,7 +4356,7 @@ function AdminPortalView({
               <EditUserModal
                 user={editUser}
                 currentUserId={currentUser.id}
-                activeManagingPartnerCount={activeManagingPartnerCount}
+                activeAdminCount={activeAdminCount}
                 onClose={() => setEditUser(null)}
                 onUpdate={(updated) => {
                   setUserAccounts((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
@@ -4679,7 +4379,7 @@ function AdminPortalView({
               <ManageUserModal
                 user={manageUser}
                 currentUserId={currentUser.id}
-                activeManagingPartnerCount={activeManagingPartnerCount}
+                activeAdminCount={activeAdminCount}
                 onClose={() => setManageUser(null)}
                 onRoleChange={(newRole) => {
                   setUserAccounts((prev) =>
@@ -5259,11 +4959,10 @@ function AdminPortalView({
           onOpenLink={(link) => {
             setShowNotifs(false);
             // The admin has no inquiries tab; inquiry notifications land on
-            // Client Intake, which is the front desk's queue for them. Never
-            // land on a tab this role's portal does not have (the system
-            // administrator has no casework tabs).
+            // Client Intake, which is the firm's queue for them. Never land on
+            // a tab this portal does not have.
             const target = link === "inquiries" ? "intake" : link;
-            if (tabs.some((t) => t.key === target)) setTab(target);
+            if (ADMIN_TABS.some((t) => t.key === target)) setTab(target);
           }}
           onClose={() => setShowNotifs(false)}
         />
@@ -5370,7 +5069,7 @@ function ViewUserModal({ user, onClose }: { user: Profile; onClose: () => void }
 function EditUserModal({
   user,
   currentUserId,
-  activeManagingPartnerCount,
+  activeAdminCount,
   onClose,
   onUpdate,
   onPictureChanged,
@@ -5379,7 +5078,7 @@ function EditUserModal({
 
   currentUserId: string;
 
-  activeManagingPartnerCount: number;
+  activeAdminCount: number;
 
   onClose: () => void;
 
@@ -5424,12 +5123,12 @@ function EditUserModal({
   // The database will reject this, so say it here in plain language instead.
 
   const isLastAdmin =
-    normalizeRole(user.role) === "managing_partner" &&
+    normalizeRole(user.role) === "admin" &&
     user.is_active !== false &&
     !user.deleted_at &&
-    activeManagingPartnerCount <= 1;
+    activeAdminCount <= 1;
 
-  const wouldLoseLastAdmin = isLastAdmin && form.role !== "managing_partner";
+  const wouldLoseLastAdmin = isLastAdmin && form.role !== "admin";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -5442,7 +5141,7 @@ function EditUserModal({
 
     if (wouldLoseLastAdmin) {
       setError(
-        "This is the last active managing partner. Promote another account to managing partner before changing this one.",
+        "This is the last active admin. Promote another account to admin before changing this one.",
       );
 
       return;
@@ -5475,7 +5174,7 @@ function EditUserModal({
 
       // Only sent when the role actually changed. Besides being tidier, this
       // keeps profile edits working against a database that has not had the
-      // six-role migration pasted yet (the old enum has no 'managing_partner').
+      // three-role migration pasted yet (its enum has no plain 'admin').
       ...(form.role !== normalizeRole(user.role) ? { role: form.role } : {}),
 
       position: isStaff(form.role) ? form.position || undefined : undefined,
@@ -5782,7 +5481,7 @@ function EditUserModal({
 function ManageUserModal({
   user,
   currentUserId,
-  activeManagingPartnerCount,
+  activeAdminCount,
   onClose,
   onRoleChange,
   onDeactivate,
@@ -5792,7 +5491,7 @@ function ManageUserModal({
 
   currentUserId: string;
 
-  activeManagingPartnerCount: number;
+  activeAdminCount: number;
 
   onClose: () => void;
 
@@ -5818,14 +5517,14 @@ function ManageUserModal({
   // (private.guard_last_admin), so explain it before the account manager tries.
 
   const isLastAdmin =
-    normalizeRole(user.role) === "managing_partner" &&
+    normalizeRole(user.role) === "admin" &&
     user.is_active !== false &&
     !user.deleted_at &&
-    activeManagingPartnerCount <= 1;
+    activeAdminCount <= 1;
 
   const isSelf = user.id === currentUserId;
 
-  const wouldLoseLastAdmin = isLastAdmin && selectedRole !== "managing_partner";
+  const wouldLoseLastAdmin = isLastAdmin && selectedRole !== "admin";
 
   const isInactive = user.is_active === false;
 
@@ -5858,7 +5557,7 @@ function ManageUserModal({
 
     if (wouldLoseLastAdmin) {
       setError(
-        "This is the last active managing partner. Promote another account to managing partner before changing this one.",
+        "This is the last active admin. Promote another account to admin before changing this one.",
       );
 
       return;
@@ -5888,7 +5587,7 @@ function ManageUserModal({
   const handleDeactivate = async () => {
     if (isLastAdmin) {
       setError(
-        "This is the last active managing partner and cannot be deactivated. Promote another account first.",
+        "This is the last active admin and cannot be deactivated. Promote another account first.",
       );
 
       return;
@@ -6169,8 +5868,7 @@ function CreateUserModal({
   const [resendMsg, setResendMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   // Clients get an account-manager-typed password; staff accounts (lawyer,
-  // paralegal, intake, managing partner, system admin) get a generated
-  // temporary password emailed to them.
+  // admin) get a generated temporary password emailed to them.
 
   const handleResend = async () => {
     if (!created) return;
@@ -6613,42 +6311,7 @@ export default function ClientPortal({ onNavigate, savedLawyers }: ClientPortalP
     );
   }
 
-  if (isParalegal(user.role)) {
-    return (
-      <LawyerPortalView
-        currentUser={user}
-        onNavigate={onNavigate}
-        onSignOut={handleSignOut}
-        onUserRefresh={refresh}
-        tabs={PARALEGAL_TABS}
-      />
-    );
-  }
-
-  if (isIntake(user.role)) {
-    return (
-      <IntakePortalView
-        currentUser={user}
-        onNavigate={onNavigate}
-        onSignOut={handleSignOut}
-        onUserRefresh={refresh}
-      />
-    );
-  }
-
-  if (isSystemAdmin(user.role)) {
-    return (
-      <AdminPortalView
-        currentUser={user}
-        onNavigate={onNavigate}
-        onSignOut={handleSignOut}
-        onUserRefresh={refresh}
-        tabs={SYSTEM_ADMIN_TABS}
-      />
-    );
-  }
-
-  // Managing partner — the full administration portal.
+  // Admin — the full administration portal.
 
   return (
     <AdminPortalView

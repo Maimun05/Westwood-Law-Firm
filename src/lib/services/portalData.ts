@@ -289,8 +289,7 @@ export async function getMyAuditLogs(userId: string, userRole: string) {
       .order("created_at", { ascending: false })
       .limit(100);
 
-    // The managing partner and the system admin read the whole trail
-    // (audit_logs_select_admin_policy / audit_logs_select_system_admin);
+    // The admin reads the whole trail (audit_logs_select_admin_policy);
     // everyone else sees their own rows only.
     if (!seesAllAuditLogs(normalizeRole(userRole))) {
       query = query.eq("user_id", userId);

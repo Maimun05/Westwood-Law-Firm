@@ -137,6 +137,10 @@ const MIGRATIONS = [
     file: "20261026_single_lawyer_directory.sql",
     note: "single-lawyer directory: deletes the six demo associates, one position for the firm",
   },
+  {
+    file: "20261027_three_role_model.sql",
+    note: "three-role model: folds managing_partner/system_admin/legal_assistant into admin and paralegal into lawyer; deletes the three demo staff accounts",
+  },
 ];
 
 const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the practice areas created
@@ -180,7 +184,10 @@ const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the p
 -- grant on profiles with no dependencies; running it last means a rebuilt
 -- database has it after the table exists. 20261026 must run after 20261001,
 -- whose seed is the thing that creates the six demo associates it deletes —
--- run it earlier and the seed would simply put them back.`;
+-- run it earlier and the seed would simply put them back. 20261027 folds the
+-- six roles back to client/lawyer/admin: it must run after 20261023 (which
+-- installs the six-value enum it swaps out) and after 20261026 (so the
+-- directory is already reduced when the roles collapse).`;
 
 const VERIFICATION = `-- ############################################################################
 -- ## VERIFICATION  —  read the result grid, not the "Success" toast
@@ -280,10 +287,11 @@ UNION ALL SELECT 'court_decisions admin policy', EXISTS (SELECT 1 FROM pg_polici
 UNION ALL SELECT 'realtime: court_decisions published', EXISTS (SELECT 1 FROM pg_publication_tables
                                                  WHERE pubname='supabase_realtime' AND schemaname='public'
                                                    AND tablename='court_decisions')
-UNION ALL SELECT 'role enum: six values, no legacy admin', (SELECT count(*) FROM pg_enum e JOIN pg_type t ON t.oid = e.enumtypid
-                                                 WHERE t.typname = 'user_role') = 6
-                                                 AND NOT EXISTS (SELECT 1 FROM pg_enum e JOIN pg_type t ON t.oid = e.enumtypid
-                                                 WHERE t.typname = 'user_role' AND e.enumlabel = 'admin')
+UNION ALL SELECT 'role enum: three values (client, lawyer, admin)', (SELECT count(*) FROM pg_enum e JOIN pg_type t ON t.oid = e.enumtypid
+                                                 WHERE t.typname = 'user_role') = 3
+                                                 AND (SELECT count(*) FROM pg_enum e JOIN pg_type t ON t.oid = e.enumtypid
+                                                 WHERE t.typname = 'user_role'
+                                                   AND e.enumlabel IN ('client','lawyer','admin')) = 3
 UNION ALL SELECT 'tasks table',                  to_regclass('public.tasks')                         IS NOT NULL
 UNION ALL SELECT 'task_reviews table',           to_regclass('public.task_reviews')                  IS NOT NULL
 UNION ALL SELECT 'task_events table',            to_regclass('public.task_events')                   IS NOT NULL
@@ -448,7 +456,7 @@ UNION ALL SELECT 'no policy re-evaluates auth.uid() per row',
 UNION ALL SELECT 'admins are view-only: can_upload_document refuses them',
        CASE WHEN (SELECT prosrc FROM pg_proc
                    WHERE oid = to_regprocedure('private.can_upload_document(uuid,public.access_level)'))
-                 ~ 'managing_partner''\\s+THEN FALSE'
+                 ~ 'admin''\\s+THEN FALSE'
             THEN 'PASS' ELSE 'FAIL' END
 UNION ALL SELECT 'the documents bucket refuses admin uploads',
        CASE WHEN EXISTS (SELECT 1 FROM pg_policies
