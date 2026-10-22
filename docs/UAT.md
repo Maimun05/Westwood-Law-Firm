@@ -6,7 +6,7 @@
 | **Version**          | 1.0                                                                                                      |
 | **Date**             | 2026-10-22                                                                                               |
 | **System**           | Westwood Law Firm website + client/lawyer/admin portals                                                  |
-| **Build under test** | `main` @ `6c33bda` — `feature/realtime` fast-forwarded in                                                |
+| **Build under test** | `main` @ `408e85f` — `feature/realtime` fast-forwarded in; later commits are documentation only          |
 | **Database**         | Supabase project `labwmffshjaywmattmen` — migrations through `20261028_directory_visibility.sql` applied |
 | **Prepared by**      | Engineering                                                                                              |
 | **Approver**         | Firm owner                                                                                               |
