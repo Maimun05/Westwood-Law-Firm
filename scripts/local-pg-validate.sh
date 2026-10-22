@@ -1675,6 +1675,60 @@ GOT=$($PSQL -tA -c "SET request.jwt.claim.sub = '$CLIENT'; SET ROLE authenticate
 if [ "$GOT" = "0" ]; then pass "clients cannot read the task timeline"; else fail "clients can read the task timeline (got '$GOT')"; fi
 
 echo
+echo "== 6b. Public directory visibility (20261028) =="
+# The live project carries a second lawyer account (the owner's login, seeded as
+# "Sample Lawyer") that must not appear in Our Lawyers. Two things have to
+# hold: the view honours the flag for any profile, and the migration hides the
+# placeholder account by email without needing a manual UPDATE.
+COL_OK=$($PSQL -tA -c "SELECT count(*) FROM information_schema.columns
+  WHERE table_schema = 'public' AND table_name = 'profiles'
+    AND column_name = 'show_in_directory'
+    AND is_nullable = 'NO' AND column_default = 'true';" 2>&1 | tr -d '[:space:]')
+if [ "$COL_OK" = "1" ]; then
+  pass "profiles.show_in_directory exists, NOT NULL, defaults true"
+else
+  fail "profiles.show_in_directory is missing or has the wrong shape (found '$COL_OK')"
+fi
+
+BEFORE=$($PSQL -tA -c "SELECT count(*) FROM public.public_lawyers;" 2>&1 | tr -d '[:space:]')
+$PSQL -q -c "UPDATE public.profiles SET show_in_directory = FALSE WHERE email = 'lawyer2@wlf.test';" >/dev/null 2>&1
+HIDDEN=$($PSQL -tA -c "SELECT count(*) FROM public.public_lawyers WHERE email = 'lawyer2@wlf.test';" 2>&1 | tr -d '[:space:]')
+AFTER=$($PSQL -tA -c "SELECT count(*) FROM public.public_lawyers;" 2>&1 | tr -d '[:space:]')
+if [ "$HIDDEN" = "0" ] && [ "$AFTER" = "$((BEFORE - 1))" ]; then
+  pass "show_in_directory = false removes exactly that lawyer from public_lawyers"
+else
+  fail "hiding a lawyer did not remove exactly one row (before $BEFORE, after $AFTER, still visible $HIDDEN)"
+fi
+$PSQL -q -c "UPDATE public.profiles SET show_in_directory = TRUE WHERE email = 'lawyer2@wlf.test';" >/dev/null 2>&1
+
+# Replay the migration against a profile carrying the live address. It has to
+# hide it, and the second run has to be a no-op (the harness applies every file
+# twice for exactly this reason).
+$PSQL -q -c "INSERT INTO auth.users (id, email)
+             VALUES ('00000000-0000-0000-0000-0000000000b9', 'flores.augosteras.gapasin@gmail.com')
+             ON CONFLICT DO NOTHING;" >/dev/null 2>&1
+$PSQL -q -c "INSERT INTO public.profiles (id, email, role, full_name, is_active)
+             VALUES ('00000000-0000-0000-0000-0000000000b9',
+                     'flores.augosteras.gapasin@gmail.com', 'lawyer', 'Sample Lawyer', TRUE)
+             ON CONFLICT (id) DO UPDATE SET role = 'lawyer', show_in_directory = TRUE;" >/dev/null 2>&1
+if $PSQL -q -f "$REPO/supabase/migrations/20261028_directory_visibility.sql" >/dev/null 2>"$WORKDIR/dir.err"; then
+  FLAG=$($PSQL -tA -c "SELECT show_in_directory FROM public.profiles
+    WHERE email = 'flores.augosteras.gapasin@gmail.com';" 2>&1 | tr -d '[:space:]')
+  LISTED=$($PSQL -tA -c "SELECT count(*) FROM public.public_lawyers
+    WHERE email = 'flores.augosteras.gapasin@gmail.com';" 2>&1 | tr -d '[:space:]')
+  if [ "$FLAG" = "f" ] && [ "$LISTED" = "0" ]; then
+    pass "20261028 hides the placeholder account by email, and re-runs cleanly"
+  else
+    fail "20261028 did not hide the placeholder account (flag '$FLAG', rows '$LISTED')"
+  fi
+else
+  fail "re-applying 20261028 failed"
+  tail -5 "$WORKDIR/dir.err"
+fi
+# Drop the fixture so the later assertions see the same world as before.
+$PSQL -q -c "DELETE FROM auth.users WHERE id = '00000000-0000-0000-0000-0000000000b9';" >/dev/null 2>&1
+
+echo
 echo "== 7. Content payloads match the real columns =="
 # Runs the admin ContentManager's own draft -> payload path against the real
 # tables. A wrong column name (the form once wrote speaker_name while the

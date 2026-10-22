@@ -141,6 +141,10 @@ const MIGRATIONS = [
     file: "20261027_three_role_model.sql",
     note: "three-role model: folds managing_partner/system_admin/legal_assistant into admin and paralegal into lawyer; deletes the three demo staff accounts",
   },
+  {
+    file: "20261028_directory_visibility.sql",
+    note: "profiles.show_in_directory: hides the placeholder second-lawyer account from the public directory",
+  },
 ];
 
 const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the practice areas created
@@ -187,7 +191,10 @@ const ORDER_NOTE = `-- ORDER MATTERS: 20261001 links each seeded lawyer to the p
 -- run it earlier and the seed would simply put them back. 20261027 folds the
 -- six roles back to client/lawyer/admin: it must run after 20261023 (which
 -- installs the six-value enum it swaps out) and after 20261026 (so the
--- directory is already reduced when the roles collapse).`;
+-- directory is already reduced when the roles collapse). 20261028 adds
+-- profiles.show_in_directory and rebuilds public_lawyers, so it must run after
+-- 20261027's final rebuild of that view and after 20261026 has pruned the six
+-- demo associates.`;
 
 const VERIFICATION = `-- ############################################################################
 -- ## VERIFICATION  —  read the result grid, not the "Success" toast

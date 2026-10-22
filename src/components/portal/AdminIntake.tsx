@@ -207,8 +207,7 @@ export default function AdminIntake({
       {readOnly && (
         <p className="text-xs text-[var(--ink-muted)]">
           Read-only: you can review every inquiry and its attachments. Assigning a lawyer, moving
-          statuses and converting an inquiry into a matter are handled by the managing partner and
-          the lawyers.
+          statuses and converting an inquiry into a matter are handled by the admin and the lawyers.
         </p>
       )}
 

@@ -37,6 +37,7 @@ export interface Database {
           profile_image: string | null;
           linkedin_url: string | null;
           display_order: number;
+          show_in_directory: boolean;
           honorific: string | null;
           first_name: string | null;
           middle_name: string | null;
@@ -68,6 +69,7 @@ export interface Database {
           profile_image?: string | null;
           linkedin_url?: string | null;
           display_order?: number;
+          show_in_directory?: boolean;
           honorific?: string | null;
           first_name?: string | null;
           middle_name?: string | null;
@@ -99,6 +101,7 @@ export interface Database {
           profile_image?: string | null;
           linkedin_url?: string | null;
           display_order?: number;
+          show_in_directory?: boolean;
           honorific?: string | null;
           first_name?: string | null;
           middle_name?: string | null;

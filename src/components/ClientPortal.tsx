@@ -5419,8 +5419,8 @@ function EditUserModal({
             </div>
             {isLastAdmin && (
               <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2.5 mt-3 leading-relaxed">
-                ⚠️ This is the only active managing partner. The role is locked until you promote
-                someone else to managing partner, otherwise nobody could run the firm.
+                ⚠️ This is the only active admin account. The role is locked until you make someone
+                else an admin — otherwise nobody could run the firm.
               </p>
             )}
           </div>
@@ -5677,8 +5677,8 @@ function ManageUserModal({
               </select>
               {isLastAdmin && (
                 <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2.5 mt-3 leading-relaxed">
-                  ⚠️ This is the only active managing partner. The role is locked until you promote
-                  someone else to managing partner, otherwise nobody could run the firm.
+                  ⚠️ This is the only active admin account. The role is locked until you make
+                  someone else an admin — otherwise nobody could run the firm.
                 </p>
               )}
               <button

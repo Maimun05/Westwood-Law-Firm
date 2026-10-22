@@ -37,6 +37,7 @@
 --   28. 20261025_service_role_profile_write.sql      (service_role UPDATE on profiles — without it admin-create-user cannot set a new account's role)
 --   29. 20261026_single_lawyer_directory.sql         (single-lawyer directory: deletes the six demo associates, one position for the firm)
 --   30. 20261027_three_role_model.sql                (three-role model: folds managing_partner/system_admin/legal_assistant into admin and paralegal into lawyer; deletes the three demo staff accounts)
+--   31. 20261028_directory_visibility.sql            (profiles.show_in_directory: hides the placeholder second-lawyer account from the public directory)
 --
 -- ORDER MATTERS: 20261001 links each seeded lawyer to the practice areas created
 -- by 20260919, so 20260919 must run first. 20261003 supersedes functions that
@@ -82,7 +83,10 @@
 -- run it earlier and the seed would simply put them back. 20261027 folds the
 -- six roles back to client/lawyer/admin: it must run after 20261023 (which
 -- installs the six-value enum it swaps out) and after 20261026 (so the
--- directory is already reduced when the roles collapse).
+-- directory is already reduced when the roles collapse). 20261028 adds
+-- profiles.show_in_directory and rebuilds public_lawyers, so it must run after
+-- 20261027's final rebuild of that view and after 20261026 has pruned the six
+-- demo associates.
 --
 -- HOW TO RUN
 --   1. Open https://supabase.com/dashboard  ->  your project  ->  SQL Editor
@@ -98,7 +102,7 @@
 
 
 -- ############################################################################
--- ## 1/30  20260919_seed_content.sql
+-- ## 1/31  20260919_seed_content.sql
 -- ############################################################################
 -- ============================================================================
 -- Westwood Law Firm - Content Seed Data
@@ -510,7 +514,7 @@ COMMIT;
 
 
 -- ############################################################################
--- ## 2/30  20260928_fix_admin_profile_write_access.sql
+-- ## 2/31  20260928_fix_admin_profile_write_access.sql
 -- ############################################################################
 -- ============================================================================
 -- Fix: Restore admin write-access to profiles (without reintroducing recursion)
@@ -545,7 +549,7 @@ COMMENT ON POLICY profiles_admin_write_policy ON public.profiles IS
 
 
 -- ############################################################################
--- ## 3/30  20260929_documents_and_notifications.sql
+-- ## 3/31  20260929_documents_and_notifications.sql
 -- ############################################################################
 -- ============================================================================
 -- Documents upload/download + Notifications
@@ -1049,7 +1053,7 @@ WITH CHECK ((SELECT private.is_admin()));
 
 
 -- ############################################################################
--- ## 4/30  20261001_consolidated_access_control.sql
+-- ## 4/31  20261001_consolidated_access_control.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261001  Consolidated access control, composite names, lawyer directory
@@ -1794,7 +1798,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 5/30  20261002_database_cleanup.sql
+-- ## 5/31  20261002_database_cleanup.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261002  Non-destructive cleanup + routing fixes
@@ -1937,7 +1941,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 6/30  20261003_integrity_hardening.sql
+-- ## 6/31  20261003_integrity_hardening.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261003  Integrity hardening
@@ -2318,7 +2322,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 7/30  20261004_client_messaging.sql
+-- ## 7/31  20261004_client_messaging.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261004  Client messaging on matters
@@ -2447,7 +2451,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 8/30  20261005_security_advisor_fixes.sql
+-- ## 8/31  20261005_security_advisor_fixes.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261005  Security advisor fixes
@@ -3046,7 +3050,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 9/30  20261006_public_inquiry_rpc.sql
+-- ## 9/31  20261006_public_inquiry_rpc.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261006  Public inquiry submission
@@ -3162,7 +3166,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 10/30  20261007_content_table_grants.sql
+-- ## 10/31  20261007_content_table_grants.sql
 -- ############################################################################
 -- ============================================================================
 -- CONTENT TABLE GRANTS — the live "Admin access is required" failure
@@ -3284,7 +3288,7 @@ WITH CHECK ((SELECT private.is_admin()));
 
 
 -- ############################################################################
--- ## 11/30  20261008_inquiry_attachments.sql
+-- ## 11/31  20261008_inquiry_attachments.sql
 -- ############################################################################
 -- ============================================================================
 -- INQUIRY ATTACHMENTS — "Attach File / Photo / Video" on the public form
@@ -3474,7 +3478,7 @@ GRANT EXECUTE ON FUNCTION public.attach_inquiry_files(TEXT, JSONB) TO anon, auth
 
 
 -- ############################################################################
--- ## 12/30  20261009_firm_contact_email.sql
+-- ## 12/31  20261009_firm_contact_email.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261009 — Firm public contact email
@@ -3497,7 +3501,7 @@ WHERE answer LIKE '%atty.boyet@westwoodlaw.ph%';
 
 
 -- ############################################################################
--- ## 13/30  20261010_inquiry_firm_notified.sql
+-- ## 13/31  20261010_inquiry_firm_notified.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261010 — Track whether the firm has been emailed about an inquiry
@@ -3519,7 +3523,7 @@ ALTER TABLE public.inquiries
 
 
 -- ############################################################################
--- ## 14/30  20261011_inquiries_service_role_grant.sql
+-- ## 14/31  20261011_inquiries_service_role_grant.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261011 — service_role access to inquiries (for notify-inquiry)
@@ -3547,7 +3551,7 @@ GRANT SELECT, UPDATE ON public.inquiries TO service_role;
 
 
 -- ############################################################################
--- ## 15/30  20261012_admin_view_only_documents.sql
+-- ## 15/31  20261012_admin_view_only_documents.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261012 — Admins are view-only on documents
@@ -3618,7 +3622,7 @@ USING (
 
 
 -- ############################################################################
--- ## 16/30  20261013_seminar_registrations.sql
+-- ## 16/31  20261013_seminar_registrations.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261013 — Seminar registrations get a real link + email send log
@@ -3796,7 +3800,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 17/30  20261014_audit_log_browser_writes.sql
+-- ## 17/31  20261014_audit_log_browser_writes.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261014  Audit log writes from the browser
@@ -3938,7 +3942,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 18/30  20261015_matter_notes_encryption.sql
+-- ## 18/31  20261015_matter_notes_encryption.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261015  Encrypt matter messages at rest (Tier B)
@@ -4243,7 +4247,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 19/30  20261016_profile_pictures_and_temp_passwords.sql
+-- ## 19/31  20261016_profile_pictures_and_temp_passwords.sql
 -- ############################################################################
 -- ============================================================================
 -- PROFILE PICTURES + FORCED PASSWORD CHANGE
@@ -4359,7 +4363,7 @@ NOTIFY pgrst, 'reload schema';
 
 
 -- ############################################################################
--- ## 20/30  20261017_notify_admins_new_inquiry.sql
+-- ## 20/31  20261017_notify_admins_new_inquiry.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261017  Notify admins when a registered client files an inquiry
@@ -4443,7 +4447,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 21/30  20261018_realtime_inquiries_messaging_consultations.sql
+-- ## 21/31  20261018_realtime_inquiries_messaging_consultations.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261018  Realtime inquiries, inquiry conversations, and consultation
@@ -5194,7 +5198,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 22/30  20261019_notify_event_email_log.sql
+-- ## 22/31  20261019_notify_event_email_log.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261019  Email claim log for the notify-event edge function
@@ -5263,7 +5267,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 23/30  20261020_realtime_remaining_tables.sql
+-- ## 23/31  20261020_realtime_remaining_tables.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261020 — Realtime for every remaining portal surface
@@ -5406,7 +5410,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 24/30  20261021_court_decisions_law_library.sql
+-- ## 24/31  20261021_court_decisions_law_library.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261021 — Law Library: public Philippine jurisprudence
@@ -5580,7 +5584,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 25/30  20261022_contact_details.sql
+-- ## 25/31  20261022_contact_details.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261022 — Firm contact details: new public email + phone
@@ -5631,7 +5635,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 26/30  20261023_role_expansion.sql
+-- ## 26/31  20261023_role_expansion.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261023  Role expansion: the six-role model
@@ -6284,7 +6288,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 27/30  20261024_tasks_and_reviews.sql
+-- ## 27/31  20261024_tasks_and_reviews.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261024  Tasks + reviews (Phase B of the 6-role build)
@@ -6819,7 +6823,7 @@ END $$;
 
 
 -- ############################################################################
--- ## 28/30  20261025_service_role_profile_write.sql
+-- ## 28/31  20261025_service_role_profile_write.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261025  service_role: write access to public.profiles
@@ -6843,7 +6847,7 @@ GRANT SELECT, UPDATE ON public.profiles TO service_role;
 
 
 -- ############################################################################
--- ## 29/30  20261026_single_lawyer_directory.sql
+-- ## 29/31  20261026_single_lawyer_directory.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261026 — Single-lawyer directory
@@ -7014,7 +7018,7 @@ WHERE lower(email) IN (
 
 
 -- ############################################################################
--- ## 30/30  20261027_three_role_model.sql
+-- ## 30/31  20261027_three_role_model.sql
 -- ############################################################################
 -- ============================================================================
 -- 20261027  Back to three roles: client, admin, lawyer
@@ -7553,6 +7557,82 @@ BEGIN
     RAISE WARNING 'There is no active admin. Promote one before anyone signs in.';
   END IF;
 END $$;
+
+
+-- ############################################################################
+-- ## 31/31  20261028_directory_visibility.sql
+-- ############################################################################
+-- ============================================================================
+-- 20261028 — Public directory visibility
+-- ============================================================================
+-- The firm lists one lawyer: Atty. Ernesto "Boyet" Tabao. A second lawyer
+-- account exists (the owner's own login, seeded as "Sample Lawyer") so the
+-- four-eyes task review and the matter-team rules can be exercised. It is not
+-- a directory entry: it has no bio or photo and its display name is a
+-- placeholder, but 20261026 left every role = 'lawyer' row in the view.
+--
+-- Rather than special-casing an email inside the view, profiles gets an
+-- explicit flag. TRUE by default, so a lawyer appears in the directory unless
+-- someone turns it off; the account keeps working exactly as before.
+--
+-- Safe to run twice. The UPDATE only matches rows that are still listed, and
+-- ADD COLUMN IF NOT EXISTS is a no-op on the second run.
+-- ============================================================================
+
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS show_in_directory BOOLEAN NOT NULL DEFAULT TRUE;
+
+COMMENT ON COLUMN public.profiles.show_in_directory IS
+  'When false the profile is hidden from the public Our Lawyers directory. The account still signs in and works normally.';
+
+-- ----------------------------------------------------------------------------
+-- 1. Hide the placeholder second-lawyer account
+-- ----------------------------------------------------------------------------
+-- Matched by email, not id: ids differ between projects, emails are what the
+-- seed created and what the live project holds.
+UPDATE public.profiles
+SET show_in_directory = FALSE,
+    updated_at = NOW()
+WHERE lower(email) = 'flores.augosteras.gapasin@gmail.com'
+  AND show_in_directory;
+
+-- ----------------------------------------------------------------------------
+-- 2. Rebuild the directory view so it honours the flag
+-- ----------------------------------------------------------------------------
+-- Same column list as 20261023/20261026 — only the WHERE clause changes, so
+-- CREATE OR REPLACE is legal and the existing GRANT survives.
+CREATE OR REPLACE VIEW public.public_lawyers AS
+SELECT p.id, p.email, p.honorific, p.first_name, p.nickname, p.middle_name, p.last_name, p.suffix, p.full_name,
+       p.position, p.bio, p.education, p.bar_admissions, p.experience_years, p.profile_image,
+       p.linkedin_url, p.display_order, p.city,
+       COALESCE((SELECT jsonb_agg(jsonb_build_object('id', pa.id, 'name', pa.name, 'slug', pa.slug, 'icon', pa.icon)
+                                  ORDER BY pa.display_order)
+                 FROM public.profile_practice_areas ppa
+                 JOIN public.practice_areas pa ON pa.id = ppa.practice_area_id AND pa.is_active
+                 WHERE ppa.profile_id = p.id), '[]'::JSONB) AS practice_areas
+FROM public.profiles p
+WHERE p.role = 'lawyer'
+  AND COALESCE(p.is_active, TRUE)
+  AND p.deleted_at IS NULL
+  AND p.show_in_directory;
+
+GRANT SELECT ON public.public_lawyers TO anon, authenticated;
+
+-- ----------------------------------------------------------------------------
+-- 3. Verification — read the grid
+-- ----------------------------------------------------------------------------
+-- expect: 2 lawyers, 1 directory row, 1 hidden, and the one row is Atty. Tabao.
+SELECT 'lawyers'                AS metric, count(*)::TEXT AS value
+FROM public.profiles WHERE role = 'lawyer'
+UNION ALL
+SELECT 'public_lawyers rows',   count(*)::TEXT
+FROM public.public_lawyers
+UNION ALL
+SELECT 'hidden from directory', count(*)::TEXT
+FROM public.profiles WHERE role = 'lawyer' AND NOT show_in_directory
+UNION ALL
+SELECT 'listed',                COALESCE(string_agg(full_name, ', ' ORDER BY display_order), '(none)')
+FROM public.public_lawyers;
 
 
 -- ############################################################################
