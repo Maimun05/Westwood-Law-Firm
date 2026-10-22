@@ -264,7 +264,7 @@ export default function ExpertisePage({ onNavigate, selectedArea }: ExpertisePag
                   Schedule a consultation with one of our {detail.name} specialists.
                 </p>
                 <button
-                  onClick={() => onNavigate("consultation")}
+                  onClick={() => onNavigate("consultation", { area: detail.id })}
                   className="w-full bg-[#c9a84c] hover:bg-[#e2c87a] text-[var(--ink-on-gold)] text-sm font-semibold py-3 rounded transition-colors"
                 >
                   Schedule Consultation
