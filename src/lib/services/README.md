@@ -59,9 +59,6 @@ import {
   getActiveLawyers,
   getLawyerById,
   getLawyersBySpecialization,
-  saveLawyer,
-  unsaveLawyer,
-  getSavedLawyers,
 } from "@/lib/services/lawyers";
 
 // Get all active lawyers
@@ -72,15 +69,6 @@ const { data: lawyer, error } = await getLawyerById("lawyer-id");
 
 // Filter by specialization
 const { data: lawyers, error } = await getLawyersBySpecialization("Corporate Law");
-
-// Save lawyer to favorites (requires auth)
-await saveLawyer("lawyer-id");
-
-// Remove from favorites
-await unsaveLawyer("lawyer-id");
-
-// Get saved lawyers
-const { data: savedLawyers, error } = await getSavedLawyers();
 ```
 
 ## Matters
@@ -234,7 +222,6 @@ The database automatically enforces access control via RLS policies:
 - ✅ View their own inquiries
 - ✅ Upload documents to their matters
 - ✅ View documents based on access level
-- ✅ Save lawyers
 - ❌ View other clients' data
 - ❌ View all inquiries
 - ❌ Assign lawyers

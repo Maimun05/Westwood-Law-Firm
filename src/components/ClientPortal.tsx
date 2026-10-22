@@ -170,8 +170,6 @@ type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
 type ClientPortalProps = {
   onNavigate: (page: Page, params?: Record<string, string>) => void;
-
-  savedLawyers: string[];
 };
 
 // ── Tab definitions ───────────────────────────────────────────────────────────
@@ -2505,7 +2503,6 @@ function ClientPortalView({
   onSignOut: () => void;
   /** Re-reads the profile so the avatar/name update after an edit. */
   onUserRefresh?: () => void;
-  savedLawyers?: string[];
 }) {
   const [tab, setTab] = useState("dashboard");
 
@@ -6227,7 +6224,7 @@ function CreateUserModal({
 
 // ── Root export ───────────────────────────────────────────────────────────────
 
-export default function ClientPortal({ onNavigate, savedLawyers }: ClientPortalProps) {
+export default function ClientPortal({ onNavigate }: ClientPortalProps) {
   usePageMeta("portal");
 
   const { user, loading, refresh } = useAuth();
@@ -6295,7 +6292,6 @@ export default function ClientPortal({ onNavigate, savedLawyers }: ClientPortalP
         onNavigate={onNavigate}
         onSignOut={handleSignOut}
         onUserRefresh={refresh}
-        savedLawyers={savedLawyers}
       />
     );
   }

@@ -226,29 +226,3 @@ export async function submitConsultation(data: ConsultationPayload) {
     lawyerId: data.lawyerId,
   });
 }
-
-// ── Saved lawyers (uses localStorage, not database) ────────────────────────
-
-const SAVED_LAWYERS_KEY = "westwood_saved_lawyers";
-
-export async function syncSavedLawyers(sessionId: string, lawyerIds: string[]) {
-  try {
-    // Store in localStorage
-    localStorage.setItem(`${SAVED_LAWYERS_KEY}_${sessionId}`, JSON.stringify(lawyerIds));
-    return { success: true };
-  } catch (error) {
-    console.error("Error syncing saved lawyers:", error);
-    return { success: false, error };
-  }
-}
-
-export async function fetchSavedLawyers(sessionId: string) {
-  try {
-    const stored = localStorage.getItem(`${SAVED_LAWYERS_KEY}_${sessionId}`);
-    const lawyerIds = stored ? JSON.parse(stored) : [];
-    return { data: lawyerIds };
-  } catch (error) {
-    console.error("Error fetching saved lawyers:", error);
-    return { data: [] };
-  }
-}

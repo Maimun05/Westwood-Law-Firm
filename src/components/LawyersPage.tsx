@@ -7,7 +7,7 @@ import {
   type PracticeArea,
   type Article,
 } from "@/lib/content";
-import { IconBookmark, IconSearch, IconArrowRight } from "@/components/Icons";
+import { IconSearch, IconArrowRight } from "@/components/Icons";
 import { PracticeAreaIcon } from "@/components/Icons";
 import { onPortraitError } from "@/utils/image";
 import { useAuth } from "@/hooks/useAuth";
@@ -31,8 +31,6 @@ type Page =
 type LawyersPageProps = {
   onNavigate: (page: Page, params?: Record<string, string>) => void;
   selectedLawyerId?: string;
-  savedLawyers: string[];
-  onToggleSave: (id: string) => void;
 };
 
 const matchSteps = [
@@ -52,12 +50,7 @@ const assistanceTypes = [
 ];
 const preferenceTypes = ["In-Person", "Video Call", "Phone Call", "No Preference"];
 
-export default function LawyersPage({
-  onNavigate,
-  selectedLawyerId,
-  savedLawyers,
-  onToggleSave,
-}: LawyersPageProps) {
+export default function LawyersPage({ onNavigate, selectedLawyerId }: LawyersPageProps) {
   const { user } = useAuth();
   // Inquiries and consultations are for registered clients; everyone else is
   // pointed at the Contact page.
@@ -153,8 +146,6 @@ export default function LawyersPage({
         lawyer={profile}
         onBack={() => openProfile(null)}
         onNavigate={onNavigate}
-        savedLawyers={savedLawyers}
-        onToggleSave={onToggleSave}
         articles={articles}
         practiceAreas={practiceAreas}
         canInquire={canInquire}
@@ -238,8 +229,6 @@ export default function LawyersPage({
                 onView={() => openProfile(lawyer.id)}
                 onInquiry={() => onNavigate("inquiry")}
                 canInquire={canInquire}
-                saved={savedLawyers.includes(lawyer.id)}
-                onToggleSave={() => onToggleSave(lawyer.id)}
                 index={index}
               />
             ))}
@@ -468,16 +457,12 @@ function LawyerCard({
   onView,
   onInquiry,
   canInquire,
-  saved,
-  onToggleSave,
   index = 0,
 }: {
   lawyer: Lawyer;
   onView: () => void;
   onInquiry: () => void;
   canInquire: boolean;
-  saved: boolean;
-  onToggleSave: () => void;
   index?: number;
 }) {
   return (
@@ -497,17 +482,6 @@ function LawyerCard({
           decoding="async"
           className="w-full aspect-[4/5] object-cover object-top group-hover:scale-[1.03] transition-transform duration-700"
         />
-        <button
-          onClick={onToggleSave}
-          className={`absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 ${
-            saved
-              ? "bg-[var(--color-gold)] text-[var(--color-navy)] shadow-[var(--shadow-gold-sm)]"
-              : "bg-[var(--surface-glass)] text-[var(--color-text-muted)] hover:bg-[var(--color-gold)] hover:text-[var(--color-navy)] hover:shadow-[var(--shadow-gold-sm)]"
-          }`}
-          aria-label={saved ? "Remove from saved" : "Save lawyer"}
-        >
-          <IconBookmark className="w-4.5 h-4.5" filled={saved} />
-        </button>
       </div>
       <div className="p-5 flex flex-col flex-1">
         <h3 className="heading-card text-sm mb-1 group-hover:text-[var(--color-gold)] transition-colors">
@@ -544,8 +518,6 @@ function LawyerProfile({
   lawyer,
   onBack,
   onNavigate,
-  savedLawyers,
-  onToggleSave,
   articles,
   practiceAreas,
   canInquire,
@@ -553,13 +525,10 @@ function LawyerProfile({
   lawyer: Lawyer;
   onBack: () => void;
   onNavigate: (page: Page, params?: Record<string, string>) => void;
-  savedLawyers: string[];
-  onToggleSave: (id: string) => void;
   articles: Article[];
   practiceAreas: PracticeArea[];
   canInquire: boolean;
 }) {
-  const saved = savedLawyers.includes(lawyer.id);
   const lawyerArticles = articles.filter((a) => a.author_id === lawyer.id);
   const lawyerPAs = lawyer.practice_areas || [];
 
@@ -609,17 +578,6 @@ function LawyerProfile({
                 ) : (
                   <InquiryFallback />
                 )}
-                <button
-                  onClick={() => onToggleSave(lawyer.id)}
-                  className={`w-full btn flex items-center justify-center gap-2 ${
-                    saved
-                      ? "border-[var(--color-gold)] text-[var(--color-gold)] bg-[var(--color-gold-muted)]"
-                      : "btn-outline"
-                  }`}
-                >
-                  <IconBookmark className="w-4 h-4" filled={saved} />
-                  {saved ? "Saved" : "Save Lawyer"}
-                </button>
                 <div className="border-t border-[var(--color-border-light)] pt-4 space-y-4">
                   <div>
                     <p className="text-micro uppercase tracking-wide text-[var(--color-text-muted)] mb-1">

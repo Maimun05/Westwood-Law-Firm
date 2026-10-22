@@ -45,8 +45,6 @@ const ForgotPasswordPage = lazy(() => import("@/components/ForgotPasswordPage"))
 
 const ResetPasswordPage = lazy(() => import("@/components/ResetPasswordPage"));
 
-import { syncSavedLawyers, fetchSavedLawyers } from "@/utils/api";
-
 import { useAuth } from "@/hooks/useAuth";
 
 import { readRoute, pageToUrl } from "@/lib/routes";
@@ -65,45 +63,6 @@ export default function App() {
   const [page, setPage] = useState<Page>(initialRoute.page);
 
   const [pageParams, setPageParams] = useState<Record<string, string>>(initialRoute.params);
-
-  const [savedLawyers, setSavedLawyers] = useState<string[]>(() => {
-    try {
-      return JSON.parse(localStorage.getItem("wlf-saved") || "[]");
-    } catch {
-      return [];
-    }
-  });
-
-  const [toast, setToast] = useState<string | null>(null);
-
-  const sessionId = (() => {
-    let id = localStorage.getItem("wlf-session");
-
-    if (!id) {
-      id = `s-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-      localStorage.setItem("wlf-session", id);
-    }
-
-    return id;
-  })();
-
-  useEffect(() => {
-    fetchSavedLawyers(sessionId)
-      .then((res) => {
-        const remote = res.data ?? [];
-
-        if (remote.length > 0) {
-          setSavedLawyers((local) => {
-            const merged = Array.from(new Set([...local, ...remote]));
-
-            localStorage.setItem("wlf-saved", JSON.stringify(merged));
-
-            return merged;
-          });
-        }
-      })
-      .catch(() => {});
-  }, []);
 
   const navigate = (nextPage: Page | string, params?: Record<string, string>) => {
     const next = nextPage as Page;
@@ -178,28 +137,6 @@ export default function App() {
     };
   }, [page]);
 
-  const toggleSave = (id: string) => {
-    setSavedLawyers((prev) => {
-      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
-
-      localStorage.setItem("wlf-saved", JSON.stringify(next));
-
-      setToast(prev.includes(id) ? "Removed from saved lawyers" : "Saved to My Lawyers");
-
-      syncSavedLawyers(sessionId, next).catch(() => {});
-
-      return next;
-    });
-  };
-
-  useEffect(() => {
-    if (toast) {
-      const t = setTimeout(() => setToast(null), 2500);
-
-      return () => clearTimeout(t);
-    }
-  }, [toast]);
-
   const showFooter =
     page !== "inquiry" &&
     page !== "portal" &&
@@ -239,12 +176,7 @@ export default function App() {
               <ExpertisePage onNavigate={navigate} selectedArea={pageParams.area} />
             )}
             {page === "lawyers" && (
-              <LawyersPage
-                onNavigate={navigate}
-                selectedLawyerId={pageParams.lawyer}
-                savedLawyers={savedLawyers}
-                onToggleSave={toggleSave}
-              />
+              <LawyersPage onNavigate={navigate} selectedLawyerId={pageParams.lawyer} />
             )}
             {page === "specialists" && <SpecialistNetwork onNavigate={navigate} />}
             {page === "insights-resources" && (
@@ -268,9 +200,7 @@ export default function App() {
                 prefilledAreaId={pageParams.area}
               />
             )}
-            {page === "portal" && (
-              <ClientPortal onNavigate={navigate} savedLawyers={savedLawyers} />
-            )}
+            {page === "portal" && <ClientPortal onNavigate={navigate} />}
             {page === "auth" && (
               <AuthPage
                 onNavigate={navigate}
@@ -285,13 +215,6 @@ export default function App() {
       </main>
 
       {showFooter && <Footer onNavigate={navigate} />}
-
-      {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[var(--navy-solid)] text-white text-sm font-medium px-5 py-3 rounded-full shadow-lg flex items-center gap-2">
-          <span className="text-[#c9a84c]">✓</span>
-          {toast}
-        </div>
-      )}
 
       {/* Mobile sticky CTA - only show on public pages. Inquiries are for
           registered clients; everyone else reaches the firm via the nav
