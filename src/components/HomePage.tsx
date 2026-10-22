@@ -164,54 +164,58 @@ export default function HomePage({ onNavigate }: HomePageProps) {
         <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[var(--color-gold)]/40 to-transparent" />
         <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[var(--color-gold)]/15 to-transparent" />
 
-        <div className="relative container-page text-center py-20 lg:py-28">
+        <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center px-6 pt-20 pb-16 text-center lg:px-8 lg:pt-24 lg:pb-20">
           {/* Location badge */}
-          <div className="inline-flex items-center gap-2.5 mb-10 px-5 py-2.5 rounded-full border border-[var(--color-gold)]/20 bg-[var(--color-gold)]/5 animate-fade-in">
-            <span className="w-2 h-2 rounded-full bg-[var(--color-gold)] animate-pulse" />
-            <span className="text-[var(--color-gold)] text-xs tracking-widest uppercase font-medium">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-gold)]/20 bg-[var(--color-gold)]/5 px-4 py-2 animate-fade-in">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-gold)] animate-pulse" />
+            <span className="text-[var(--color-gold)] text-[11px] lg:text-xs tracking-[0.18em] uppercase font-medium">
               Westwood Law Firm — San Juan City, Philippines
             </span>
           </div>
 
-          {/* Main headline */}
-          <h1 className="heading-display text-[length:var(--text-display-xl)] text-white mb-6 animate-slide-up stagger-1">
-            Specialized Legal Expertise.
-            <br />
-            <span className="relative inline-block">
+          {/* Main headline — display-lg caps at 4.5rem, the accent line at 3.5rem.
+              leading-[1.05] is load-bearing: body sets line-height 1.6, which at
+              display sizes added ~40% phantom height and pushed the hero past the
+              fold on its own. */}
+          <h1 className="heading-display mt-6 text-white animate-slide-up stagger-1">
+            <span className="block text-[length:var(--text-display-lg)] leading-[1.05]">
+              Specialized Legal Expertise.
+            </span>
+            <span className="relative inline-block mt-1 text-[length:var(--text-display-md)] leading-[1.1]">
               <span className="text-[var(--color-gold)]">Trusted Guidance.</span>
               <span aria-hidden className="hero-underline" />
             </span>
           </h1>
 
           {/* Subheadline */}
-          <p className="text-lead text-white/70 max-w-3xl mx-auto mb-12 animate-slide-up stagger-2">
+          <p className="text-base lg:text-lg text-white/70 leading-relaxed max-w-[42rem] mx-auto mt-5 animate-slide-up stagger-2">
             Westwood Law Firm provides specialized legal practice — ensuring that every case is
             handled by lawyers with expertise in the relevant field of law.
           </p>
 
           {/* CTA Group */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up stagger-3">
+          <div className="flex flex-col sm:flex-row items-center gap-3 justify-center mt-7 animate-slide-up stagger-3">
             {canInquire && (
-              <button onClick={() => onNavigate("consultation")} className="btn-primary-lg">
+              <button onClick={() => onNavigate("consultation")} className="btn-primary-sm">
                 Schedule a Consultation
               </button>
             )}
             <button
               onClick={() => onNavigate("expertise")}
-              className="btn-secondary-lg border-white/20 text-white hover:border-white/50 hover:text-white"
+              className="btn-secondary-sm border-white/20 text-white hover:border-white/50 hover:text-white"
             >
               Explore Our Expertise
             </button>
           </div>
 
           {/* Trust Stats */}
-          <div className="mt-20 grid grid-cols-2 lg:grid-cols-4 gap-8 border-t border-white/8 pt-12 animate-slide-up stagger-4">
+          <div className="mt-10 lg:mt-12 grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-6 lg:gap-x-10 w-full border-t border-white/10 pt-8 lg:pt-10 animate-slide-up stagger-4">
             {stats.map((stat) => (
               <div key={stat.label} className="text-center">
-                <div className="heading-display text-[var(--color-gold)] text-3xl lg:text-4xl mb-2">
+                <div className="heading-display text-[var(--color-gold)] text-2xl lg:text-3xl leading-none">
                   <StatValue value={stat.value} />
                 </div>
-                <div className="text-white/40 text-micro tracking-widest uppercase">
+                <div className="mt-2 text-white/40 text-xs tracking-wider uppercase">
                   {stat.label}
                 </div>
               </div>
@@ -219,8 +223,9 @@ export default function HomePage({ onNavigate }: HomePageProps) {
           </div>
         </div>
 
-        {/* Scroll cue */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/25 animate-fade-in stagger-5">
+        {/* Scroll cue — hidden below sm: the compact hero plus the mobile action
+            bar leave no room, and the cue would sit under the bar. */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden sm:flex flex-col items-center gap-2 text-white/25 animate-fade-in stagger-5">
           <span className="text-[10px] tracking-[0.3em] uppercase">Scroll</span>
           <span aria-hidden className="scroll-cue-track" />
         </div>

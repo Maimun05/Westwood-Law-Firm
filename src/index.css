@@ -340,6 +340,12 @@ select {
   @apply btn-primary px-8 py-4 text-base;
 }
 
+/* Compact variant for above-the-fold CTAs, where a 56px-tall button reads as
+   oversized against a bounded hero. */
+@utility btn-primary-sm {
+  @apply btn-primary px-6 py-2.5 text-sm;
+}
+
 @utility btn-secondary {
   @apply btn border-2 border-[var(--color-navy)] text-[var(--color-navy)] hover:bg-[var(--color-navy)] hover:text-white;
   @apply focus-visible:ring-[var(--color-navy)] focus-visible:ring-offset-2;
@@ -348,6 +354,10 @@ select {
 
 @utility btn-secondary-lg {
   @apply btn-secondary px-8 py-4 text-base;
+}
+
+@utility btn-secondary-sm {
+  @apply btn-secondary px-6 py-2.5 text-sm;
 }
 
 @utility btn-outline {
